@@ -1,0 +1,190 @@
+:root {
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+  background: 
+    radial-gradient(
+      circle at 0% 0%,
+      var(--gradient-light-accent1),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      var(--gradient-light-accent2),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      var(--gradient-light-accent3),
+      transparent 40%
+    ),
+    linear-gradient(
+      to bottom right,
+      var(--gradient-light-start),
+      var(--gradient-light-end)
+    );
+  min-height: 100vh;
+  --gradient-light-start: #f5f7fb; /* 更柔和，降低亮度与蓝紫饱和度 */
+  --gradient-light-end: #e9eef7;   /* 略偏灰蓝，减少刺眼感 */
+  --gradient-light-accent1: rgba(147, 197, 253, 0.14);
+  --gradient-light-accent2: rgba(167, 139, 250, 0.08);
+  --gradient-light-accent3: rgba(134, 239, 172, 0.06);
+  
+  --gradient-dark-start: #0f172a;
+  --gradient-dark-end: #1e293b;
+  --gradient-dark-accent1: rgba(59, 130, 246, 0.15);
+  --gradient-dark-accent2: rgba(139, 92, 246, 0.1);
+  --gradient-dark-accent3: rgba(16, 185, 129, 0.05);
+}
+
+:root.dark {
+  background: radial-gradient(
+      circle at 0% 0%,
+      var(--gradient-dark-accent1),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      var(--gradient-dark-accent2),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      var(--gradient-dark-accent3),
+      transparent 40%
+    ),
+    linear-gradient(
+      to bottom right,
+      var(--gradient-dark-start),
+      var(--gradient-dark-end)
+    );
+}
+
+* {
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* 优化滚动性能 */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  /* 优化渲染 */
+  contain: layout style paint;
+  /* 减少重绘 */
+  will-change: scroll-position;
+}
+
+/* 滚动容器优化 */
+.scroll-container {
+  /* 独立的层叠上下文 */
+  contain: layout style paint;
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  /* 优化滚动 */
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* 过渡动画优化 */
+.optimized-transition {
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  will-change: transform, opacity;
+}
+
+/* 悬停效果优化 */
+.hover-optimized {
+  transition: transform var(--dur) var(--ease);
+  will-change: transform;
+}
+
+.hover-optimized:hover {
+  transform: translateY(-2px);
+}
+
+/* 图片优化 */
+img {
+  /* 防止图片导致的重排 */
+  max-width: 100%;
+  height: auto;
+  /* 优化渲染 */
+  image-rendering: optimizeQuality;
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+}
+
+/* 懒加载图片优化 */
+.lazy-image {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  will-change: opacity;
+}
+
+.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* 网格布局优化 */
+.grid-optimized {
+  /* 减少重排 */
+  contain: layout;
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+}
+
+/* 卡片组件优化 */
+.card-optimized {
+  /* 独立的层叠上下文 */
+  contain: layout style paint;
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  /* 优化过渡 */
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+  will-change: box-shadow, transform;
+}
+
+/* 减少动画时的重绘 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  /* 减少移动端的复杂效果 */
+  .backdrop-blur-xl,
+  .backdrop-blur-md {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .dark .backdrop-blur-xl,
+  .dark .backdrop-blur-md {
+    background-color: rgba(17, 24, 39, 0.9) !important;
+  }
+}
+
+/* 打印优化 */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+} 

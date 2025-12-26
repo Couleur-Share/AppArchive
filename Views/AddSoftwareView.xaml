@@ -1,0 +1,3 @@
+<TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}"
+         Margin="5"
+         ToolTip="输入 GitHub 链接以自动获取软件信息"/> 

@@ -1,0 +1,25 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 渐变背景：从蓝到紫，符合应用主题 -->
+    <linearGradient id="grad" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 圆角矩形背景 -->
+  <rect width="96" height="96" rx="20" fill="url(#grad)"/>
+  
+  <!-- 应用图标：简洁的方块网格，代表应用 -->
+  <!-- 大方块 -->
+  <rect x="28" y="28" width="20" height="20" rx="4" fill="white" fill-opacity="0.9"/>
+  
+  <!-- 中方块 -->
+  <rect x="52" y="28" width="16" height="16" rx="3" fill="white" fill-opacity="0.8"/>
+  
+  <!-- 小方块 -->
+  <rect x="28" y="52" width="12" height="12" rx="2" fill="white" fill-opacity="0.7"/>
+  
+  <!-- 长条 -->
+  <rect x="44" y="52" width="24" height="12" rx="2" fill="white" fill-opacity="0.6"/>
+</svg>

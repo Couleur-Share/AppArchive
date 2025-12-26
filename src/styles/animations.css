@@ -1,0 +1,106 @@
+@keyframes dance {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-12px) scale(1.1);
+  }
+  50% {
+    transform: translateY(4px) scale(0.9);
+  }
+  75% {
+    transform: translateY(-6px) scale(1.05);
+  }
+}
+
+@keyframes dot {
+  0%, 20% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80%, 100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.7;
+    filter: brightness(0.8);
+  }
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% auto;
+  animation: gradient 3s linear infinite;
+}
+
+.category-move,
+.category-enter-active,
+.category-leave-active {
+  transition: all 0.5s ease;
+}
+
+.category-enter-from,
+.category-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.category-leave-active {
+  position: absolute;
+}
+
+.animate__fadeIn {
+  --animate-duration: 0.2s;
+}
+
+.animate__animated {
+  --animate-duration: 0.5s;
+  --animate-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate__faster {
+  --animate-duration: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate__animated {
+    animation: none !important;
+  }
+}
+
+.animate__duration-200 {
+  --animate-duration: 0.2s;
+}
+
+.animate__duration-300 {
+  --animate-duration: 0.3s;
+}
+
+.animate__delay-1 {
+  --animate-delay: 0.1s;
+}
+
+.animate__delay-2 {
+  --animate-delay: 0.2s;
+} 
