@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "dev:full": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"yellow,cyan\" \"npm run server\" \"npm run dev\"",
-    "start": "node server/index.js",
+    "start": "node scripts/start.js",
     "download-icons": "node scripts/download-icons.js",
     "migrate:up": "node scripts/run-migrations.js up",
     "migrate:down": "node scripts/run-migrations.js down"
