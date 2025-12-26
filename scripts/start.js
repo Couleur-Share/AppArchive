@@ -64,8 +64,8 @@ async function cleanNodeModules() {
   }
 }
 
-// 安装依赖
-async function installDependencies() {
+// 安装生产依赖（不包含devDependencies）
+async function installProductionDependencies() {
   try {
     // 彻底清理
     await cleanNodeModules();
@@ -86,7 +86,7 @@ async function installDependencies() {
       throw new Error('express 依赖安装失败');
     }
     
-    console.log('✅ 依赖安装完成');
+    console.log('✅ 生产依赖安装完成');
     return true;
   } catch (error) {
     console.error('❌ 依赖安装失败:', error.message);
@@ -95,18 +95,62 @@ async function installDependencies() {
   }
 }
 
-// 检查构建产物是否存在
-function checkBuild() {
-  const distPath = join(rootDir, 'dist');
-  const indexHtmlPath = join(distPath, 'index.html');
-  
-  if (!existsSync(distPath) || !existsSync(indexHtmlPath)) {
-    console.error('❌ 错误：未找到前端构建产物（dist 目录）');
-    console.error('   请先执行构建命令：npm run build');
-    console.error('   注意：构建需要 devDependencies，请确保已安装完整依赖');
+// 检查构建工具是否存在（vite等）
+function checkBuildTools() {
+  const vitePath = join(rootDir, 'node_modules', 'vite');
+  return existsSync(vitePath);
+}
+
+// 安装完整依赖（包括devDependencies，用于构建）
+async function installFullDependencies() {
+  try {
+    console.log('📥 安装完整依赖（包括 devDependencies，用于构建）...');
+    execSync('npm install --no-audit --no-fund', { 
+      stdio: 'inherit', 
+      cwd: rootDir 
+    });
+    
+    // 验证构建工具是否安装成功
+    if (!checkBuildTools()) {
+      throw new Error('构建工具（vite）安装失败');
+    }
+    
+    console.log('✅ 完整依赖安装完成');
+    return true;
+  } catch (error) {
+    console.error('❌ 完整依赖安装失败:', error.message);
     return false;
   }
-  
+}
+
+// 构建前端
+function buildFrontend() {
+  try {
+    console.log('🏗️  构建前端...');
+    execSync('npm run build', { stdio: 'inherit', cwd: rootDir });
+    
+    // 验证构建产物
+    const distPath = join(rootDir, 'dist');
+    const indexHtmlPath = join(distPath, 'index.html');
+    if (!existsSync(distPath) || !existsSync(indexHtmlPath)) {
+      throw new Error('构建产物不存在');
+    }
+    
+    console.log('✅ 前端构建完成');
+    return true;
+  } catch (error) {
+    console.error('❌ 前端构建失败:', error.message);
+    return false;
+  }
+}
+
+// 执行构建（假设依赖已安装）
+function executeBuild() {
+  console.log('🏗️  开始构建前端...');
+  if (!buildFrontend()) {
+    console.error('❌ 前端构建失败');
+    return false;
+  }
   return true;
 }
 
@@ -149,17 +193,35 @@ function startServer() {
 async function main() {
   console.log('🔍 检查启动环境...');
   
-  // 检查依赖
-  if (!checkDependencies()) {
-    if (!await installDependencies()) {
-      console.error('❌ 无法启动：依赖安装失败');
+  // 检查构建产物
+  const distPath = join(rootDir, 'dist');
+  const indexHtmlPath = join(distPath, 'index.html');
+  const needsBuild = !existsSync(distPath) || !existsSync(indexHtmlPath);
+  
+  if (needsBuild) {
+    // 需要构建，安装完整依赖（包括 devDependencies）
+    console.log('📦 检测到需要构建，准备安装完整依赖...');
+    if (!checkDependencies() || !checkBuildTools()) {
+      await cleanNodeModules();
+      execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
+      if (!await installFullDependencies()) {
+        console.error('❌ 无法启动：依赖安装失败');
+        process.exit(1);
+      }
+    }
+    
+    // 执行构建
+    if (!executeBuild()) {
       process.exit(1);
     }
-  }
-  
-  // 检查构建
-  if (!checkBuild()) {
-    process.exit(1);
+  } else {
+    // 不需要构建，只检查生产依赖
+    if (!checkDependencies()) {
+      if (!await installProductionDependencies()) {
+        console.error('❌ 无法启动：依赖安装失败');
+        process.exit(1);
+      }
+    }
   }
   
   console.log('✅ 环境检查通过，启动服务器');
