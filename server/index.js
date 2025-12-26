@@ -1145,6 +1145,28 @@ app.get('/api/comparison/groups/:groupId/analysis', async (req, res) => {
   }
 });
 
+// ========== 生产环境：静态文件服务和SPA路由fallback ==========
+// 在所有API路由之后，启动服务器之前配置
+const distPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+if (fs.existsSync(distPath)) {
+  // 静态文件服务：提供dist目录中的CSS、JS、图片等资源
+  app.use(express.static(distPath));
+  
+  // SPA路由fallback：所有非API路由都返回index.html，让Vue Router处理前端路由
+  app.get('*', (req, res, next) => {
+    // 排除API路由和静态资源路由
+    if (req.path.startsWith('/api/') || req.path.startsWith('/icons/')) {
+      return next();
+    }
+    // 返回index.html，让Vue Router处理路由
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+  
+  console.log('✅ 已启用生产模式：静态文件服务和SPA路由fallback');
+} else {
+  console.log('⚠️  未找到dist目录，跳过静态文件服务（开发模式）');
+}
+
 // 获取本机IP地址的函数
 const getLocalIPAddress = () => {
   const nets = networkInterfaces();
