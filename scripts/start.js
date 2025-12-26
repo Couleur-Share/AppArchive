@@ -1,23 +1,61 @@
 #!/usr/bin/env node
 
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
-import { spawn } from 'child_process';
+import { execSync, spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
 
-// 检查关键依赖是否存在
+// 检测 node_modules 是否处于损坏状态（存在临时重命名目录）
+function isNodeModulesCorrupted() {
+  const nodeModulesPath = join(rootDir, 'node_modules');
+  
+  if (!existsSync(nodeModulesPath)) {
+    return false;
+  }
+  
+  try {
+    // 检查是否存在 npm 的临时重命名目录（如 .accepts-vazhEv0F）
+    const entries = readdirSync(nodeModulesPath);
+    for (const entry of entries) {
+      // npm 在重命名时会创建 .<package>-<random> 格式的临时目录
+      if (entry.startsWith('.') && entry.includes('-') && !entry.startsWith('.bin') && !entry.startsWith('.cache')) {
+        // 排除一些正常的隐藏目录
+        if (!entry.startsWith('.package-lock') && !entry.startsWith('.pnpm')) {
+          console.log(`⚠️  检测到损坏的 node_modules（存在临时目录: ${entry}）`);
+          return true;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️  检查 node_modules 状态时出错:', error.message);
+    return true; // 出错时假设损坏
+  }
+  
+  return false;
+}
+
+// 检查关键依赖是否完整（不仅检查目录，还检查关键文件）
 function checkDependencies() {
   const nodeModulesPath = join(rootDir, 'node_modules');
-  const expressPath = join(nodeModulesPath, 'express');
   
-  if (!existsSync(nodeModulesPath) || !existsSync(expressPath)) {
-    console.log('⚠️  检测到依赖不完整，开始重新安装...');
-    return false;
+  // 检查关键依赖的 package.json 是否存在（确保包完整安装）
+  const criticalDeps = [
+    'express/package.json',
+    'cors/package.json',
+    'dotenv/package.json',
+    'pg/package.json'
+  ];
+  
+  for (const dep of criticalDeps) {
+    const depPath = join(nodeModulesPath, dep);
+    if (!existsSync(depPath)) {
+      console.log(`⚠️  检测到依赖不完整（缺少 ${dep.split('/')[0]}），需要重新安装...`);
+      return false;
+    }
   }
   
   return true;
@@ -180,9 +218,29 @@ async function installProductionDependencies(maxRetries = 2) {
 }
 
 // 检查构建工具是否存在（vite等）
+// 检查构建工具是否完整
 function checkBuildTools() {
-  const vitePath = join(rootDir, 'node_modules', 'vite');
-  return existsSync(vitePath);
+  const nodeModulesPath = join(rootDir, 'node_modules');
+  
+  // 检查 vite 的关键文件
+  const vitePackageJson = join(nodeModulesPath, 'vite', 'package.json');
+  const viteBin = join(nodeModulesPath, '.bin', 'vite');
+  
+  if (!existsSync(vitePackageJson)) {
+    console.log('⚠️  构建工具 vite 未安装或不完整...');
+    return false;
+  }
+  
+  // 在 Linux 上检查可执行文件（Windows 上是 .cmd 文件）
+  const isWindows = process.platform === 'win32';
+  const binFile = isWindows ? join(nodeModulesPath, '.bin', 'vite.cmd') : viteBin;
+  
+  if (!existsSync(binFile)) {
+    console.log('⚠️  构建工具 vite 可执行文件缺失...');
+    return false;
+  }
+  
+  return true;
 }
 
 // 安装完整依赖（包括devDependencies，用于构建，支持重试）
@@ -301,6 +359,19 @@ function startServer() {
 // 主函数
 async function main() {
   console.log('🔍 检查启动环境...');
+  
+  // 首先检测 node_modules 是否损坏（1Panel 可能在启动前执行了失败的 npm install）
+  if (isNodeModulesCorrupted()) {
+    console.log('🔧 检测到 node_modules 损坏，需要清理并重新安装...');
+    const cleaned = await cleanNodeModules();
+    if (!cleaned) {
+      console.error('❌ 清理损坏的 node_modules 失败');
+      console.error('   请手动执行: rm -rf /app/node_modules');
+      process.exit(1);
+    }
+    execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
   
   // 检查构建产物
   const distPath = join(rootDir, 'dist');
