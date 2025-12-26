@@ -1153,7 +1153,8 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   
   // SPA路由fallback：所有非API路由都返回index.html，让Vue Router处理前端路由
-  app.get('*', (req, res, next) => {
+  // Express 5.x 需要使用命名通配符语法
+  app.get('/{*splat}', (req, res, next) => {
     // 排除API路由和静态资源路由
     if (req.path.startsWith('/api/') || req.path.startsWith('/icons/')) {
       return next();
