@@ -23,30 +23,74 @@ function checkDependencies() {
   return true;
 }
 
-// 安装依赖
-function installDependencies() {
+// 彻底清理 node_modules（使用系统命令，更可靠）
+async function cleanNodeModules() {
+  const nodeModulesPath = join(rootDir, 'node_modules');
+  const lockPath = join(rootDir, 'package-lock.json');
+  
   try {
-    console.log('📦 清理旧的 node_modules...');
-    const nodeModulesPath = join(rootDir, 'node_modules');
-    const lockPath = join(rootDir, 'package-lock.json');
-    
+    // 使用系统命令 rm -rf 彻底删除（比 Node.js 的 rmSync 更可靠）
     if (existsSync(nodeModulesPath)) {
-      rmSync(nodeModulesPath, { recursive: true, force: true });
+      console.log('📦 清理 node_modules 目录...');
+      // 根据操作系统选择命令
+      const isWindows = process.platform === 'win32';
+      if (isWindows) {
+        // Windows 使用 rmdir /s /q
+        execSync(`rmdir /s /q "${nodeModulesPath}"`, { 
+          stdio: 'inherit', 
+          cwd: rootDir,
+          shell: true
+        });
+      } else {
+        // Linux/Mac 使用 rm -rf
+        execSync(`rm -rf "${nodeModulesPath}"`, { 
+          stdio: 'inherit', 
+          cwd: rootDir,
+          shell: true
+        });
+      }
     }
+    
     if (existsSync(lockPath)) {
+      console.log('📦 清理 package-lock.json...');
       rmSync(lockPath, { force: true });
     }
+    
+    // 等待一下确保文件系统操作完成
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  } catch (error) {
+    console.warn('⚠️  清理警告:', error.message);
+    // 即使清理失败也继续，npm install 可能会处理
+  }
+}
+
+// 安装依赖
+async function installDependencies() {
+  try {
+    // 彻底清理
+    await cleanNodeModules();
     
     console.log('🧹 清理 npm 缓存...');
     execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
     
     console.log('📥 安装生产依赖...');
-    execSync('npm ci --omit=dev', { stdio: 'inherit', cwd: rootDir });
+    // 使用 npm install 而不是 npm ci，更宽容一些
+    execSync('npm install --omit=dev --no-audit --no-fund', { 
+      stdio: 'inherit', 
+      cwd: rootDir 
+    });
+    
+    // 验证关键依赖是否安装成功
+    const expressPath = join(rootDir, 'node_modules', 'express');
+    if (!existsSync(expressPath)) {
+      throw new Error('express 依赖安装失败');
+    }
     
     console.log('✅ 依赖安装完成');
     return true;
   } catch (error) {
     console.error('❌ 依赖安装失败:', error.message);
+    console.error('   请手动执行: rm -rf node_modules package-lock.json && npm install --omit=dev');
     return false;
   }
 }
@@ -102,12 +146,12 @@ function startServer() {
 }
 
 // 主函数
-function main() {
+async function main() {
   console.log('🔍 检查启动环境...');
   
   // 检查依赖
   if (!checkDependencies()) {
-    if (!installDependencies()) {
+    if (!await installDependencies()) {
       console.error('❌ 无法启动：依赖安装失败');
       process.exit(1);
     }
