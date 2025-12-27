@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { CheckCircle, XCircle, Info } from 'lucide-vue-next'
+import { CheckCircle, Info, XCircle } from 'lucide-vue-next'
 import { TransitionGroup } from 'vue'
 
 interface Toast {

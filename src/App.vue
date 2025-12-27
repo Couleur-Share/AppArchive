@@ -199,16 +199,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick, defineAsyncComponent } from 'vue'
-import { Plus, LayoutGrid, List } from 'lucide-vue-next'
-import { type Software, type LicenseType, type SystemType } from './types'
-import { softwareService } from './services/software'
-import { comparisonService } from './services/comparison'
-import { isSignedIn, user, signOut } from './lib/clerk'
-import { initImageCache } from './services/imageCache'
-import { performanceChecker, devPerformanceTips } from './utils/performance'
-import logger from './utils/logger'
+import { LayoutGrid, List, Plus } from 'lucide-vue-next'
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue'
 import BlurFade from './components/animations/BlurFade.vue'
+import { isSignedIn, signOut, user } from './lib/clerk'
+import { comparisonService } from './services/comparison'
+import { initImageCache } from './services/imageCache'
+import { softwareService } from './services/software'
+import { type LicenseType, type Software, type SystemType } from './types'
+import logger from './utils/logger'
+import { devPerformanceTips, performanceChecker } from './utils/performance'
 
 // 异步导入组件
 const AppHeader = defineAsyncComponent(() => import('./components/layout/AppHeader.vue'))
@@ -224,10 +224,10 @@ const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsD
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
 const ComparisonResult = defineAsyncComponent(() => import('./components/ComparisonResult.vue'))
 
+import { usePagination } from './composables/usePagination'
+import { useTheme } from './composables/useTheme'
 // 导入组合式函数
 import { useToast } from './composables/useToast'
-import { useTheme } from './composables/useTheme'
-import { usePagination } from './composables/usePagination'
 
 const categories = [
   '社交',
@@ -301,7 +301,7 @@ const categoryCounts = computed<Record<string, number>>(() => {
       (s) =>
         s.name.toLowerCase().includes(search) ||
         s.category.toLowerCase().includes(search) ||
-        (s.description && s.description.toLowerCase().includes(search))
+        (s.description?.toLowerCase().includes(search))
     )
   }
 
@@ -338,7 +338,7 @@ const filteredSoftwares = computed(() => {
       (s) =>
         s.name.toLowerCase().includes(search) ||
         s.category.toLowerCase().includes(search) ||
-        (s.description && s.description.toLowerCase().includes(search))
+        (s.description?.toLowerCase().includes(search))
     )
   }
 
@@ -823,14 +823,14 @@ const isEllipsis = (page: number) => {
 img,
 button,
 .transition-none {
-  transition: none !important;
+  transition: none;
 }
 
 /* 只针对图标链接的样式 */
 .icon-link > svg {
-  animation: none !important;
-  transform: none !important;
-  background: none !important;
+  animation: none;
+  transform: none;
+  background: none;
 }
 
 /* 确保渐变效果不被其他样式覆盖 */
@@ -838,7 +838,7 @@ button,
   background-image: linear-gradient(
     to bottom right,
     var(--tw-gradient-stops)
-  ) !important;
+  );
 }
 
 .category-move, /* 应用于移动中的元素 */
@@ -876,7 +876,7 @@ button,
 /* 确保动画不会影响性能 */
 @media (prefers-reduced-motion: reduce) {
   .animate__animated {
-    animation: none !important;
+    animation: none;
   }
 }
 

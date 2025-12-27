@@ -51,8 +51,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { Plus, Trash2 } from 'lucide-vue-next'
+import { ref, watch } from 'vue'
 import BaseButton from './common/BaseButton.vue'
 import IconButton from './common/IconButton.vue'
 

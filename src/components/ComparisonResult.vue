@@ -327,18 +327,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
-import { X, Settings, Plus, FileSearch, ExternalLink, MoreVertical, Image, Eye, EyeOff, Check } from 'lucide-vue-next'
-import { comparisonService } from '../services/comparison'
-import type { Software } from '../types'
-import { isSignedIn } from '../lib/clerk'
-import MarkdownIt from 'markdown-it'
-import logger from '../utils/logger'
-import { getIconUrl } from '../services/localIconCache'
-import ShareCardPreview from './ShareCardPreview.vue'
-// @ts-ignore: html-to-image has no bundled types in our setup
+import { Dialog, DialogPanel, DialogTitle, Menu, MenuButton, MenuItem, MenuItems, TransitionChild, TransitionRoot } from '@headlessui/vue'
+// @ts-expect-error: html-to-image has no bundled types in our setup
 import { toPng } from 'html-to-image'
+import { Check, ExternalLink, Eye, EyeOff, FileSearch, Image, MoreVertical, Plus, Settings, X } from 'lucide-vue-next'
+import MarkdownIt from 'markdown-it'
+import { computed, onMounted, ref } from 'vue'
+import { isSignedIn } from '../lib/clerk'
+import { comparisonService } from '../services/comparison'
+import { getIconUrl } from '../services/localIconCache'
+import type { Software } from '../types'
+import logger from '../utils/logger'
+import ShareCardPreview from './ShareCardPreview.vue'
 
 const props = defineProps<{
   isOpen: boolean

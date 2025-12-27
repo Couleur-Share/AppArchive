@@ -1,30 +1,30 @@
-import { ref } from 'vue'
+import { ref } from "vue";
 
 // AI配置接口定义
 export interface AIConfig {
-  // API配置
-  apiBase: string
-  apiKey: string  // 敏感信息，但允许用户设置
-  model: string
-  temperature: number
-  maxTokens: number
-  
-  // 提示词配置
-  prompts: {
-    softwareAnalysis: string
-    comparisonAnalysis: string
-  }
+	// API配置
+	apiBase: string;
+	apiKey: string; // 敏感信息，但允许用户设置
+	model: string;
+	temperature: number;
+	maxTokens: number;
+
+	// 提示词配置
+	prompts: {
+		softwareAnalysis: string;
+		comparisonAnalysis: string;
+	};
 }
 
 // 默认配置（从环境变量或代码中读取）
 const defaultConfig: AIConfig = {
-  apiBase: import.meta.env.VITE_KIMI_API_BASE || 'https://api.moonshot.cn/v1',
-  apiKey: import.meta.env.VITE_KIMI_API_KEY || '',
-  model: import.meta.env.VITE_KIMI_MODEL || 'kimi-k2-turbo-preview',
-  temperature: Number(import.meta.env.VITE_KIMI_TEMPERATURE || 0.7),
-  maxTokens: Number(import.meta.env.VITE_KIMI_MAX_TOKENS || 1024),
-  prompts: {
-    softwareAnalysis: `请基于下列软件信息，输出用于快速决策的精准优缺点清单（准确性优先，不要凑数，不要长篇大论）：
+	apiBase: import.meta.env.VITE_KIMI_API_BASE || "https://api.moonshot.cn/v1",
+	apiKey: import.meta.env.VITE_KIMI_API_KEY || "",
+	model: import.meta.env.VITE_KIMI_MODEL || "kimi-k2-turbo-preview",
+	temperature: Number(import.meta.env.VITE_KIMI_TEMPERATURE || 0.7),
+	maxTokens: Number(import.meta.env.VITE_KIMI_MAX_TOKENS || 1024),
+	prompts: {
+		softwareAnalysis: `请基于下列软件信息，输出用于快速决策的精准优缺点清单（准确性优先，不要凑数，不要长篇大论）：
 名称：{name}
 {description}
 {category}
@@ -40,7 +40,7 @@ const defaultConfig: AIConfig = {
 
 输出 JSON 模板：
 {"pros":[],"cons":[]}`,
-    comparisonAnalysis: `请对比这些软件并给出快速选择建议（避免长篇大论，仅列要点）。
+		comparisonAnalysis: `请对比这些软件并给出快速选择建议（避免长篇大论，仅列要点）。
 
 软件信息：
 {softwares}
@@ -63,36 +63,36 @@ const defaultConfig: AIConfig = {
 ### 选择建议
 - 注重简单高效：选**软件A**
 - 追求功能全面：选**软件B**
-- 预算敏感：选**软件C**`
-  }
-}
+- 预算敏感：选**软件C**`,
+	},
+};
 
 // localStorage 键名
-const STORAGE_KEY = 'ai-config'
+const STORAGE_KEY = "ai-config";
 
 // 响应式配置状态
-const aiConfig = ref<AIConfig>({ ...defaultConfig })
+const aiConfig = ref<AIConfig>({ ...defaultConfig });
 
 // 从 localStorage 加载配置
 export function loadAIConfig(): AIConfig {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      // 合并默认配置和保存的配置（确保所有字段都存在）
-      return {
-        ...defaultConfig,
-        ...parsed,
-        prompts: {
-          ...defaultConfig.prompts,
-          ...parsed.prompts
-        }
-      }
-    }
-  } catch (error) {
-    console.error('加载AI配置失败:', error)
-  }
-  return { ...defaultConfig }
+	try {
+		const saved = localStorage.getItem(STORAGE_KEY);
+		if (saved) {
+			const parsed = JSON.parse(saved);
+			// 合并默认配置和保存的配置（确保所有字段都存在）
+			return {
+				...defaultConfig,
+				...parsed,
+				prompts: {
+					...defaultConfig.prompts,
+					...parsed.prompts,
+				},
+			};
+		}
+	} catch (error) {
+		console.error("加载AI配置失败:", error);
+	}
+	return { ...defaultConfig };
 }
 
 // 注意：已移除数据库配置功能，统一使用 prompts.js 文件中的提示词
@@ -100,51 +100,51 @@ export function loadAIConfig(): AIConfig {
 
 // 保存配置到 localStorage
 export function saveAIConfig(config: AIConfig) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
-    aiConfig.value = { ...config }
-  } catch (error) {
-    console.error('保存AI配置失败:', error)
-    throw error
-  }
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+		aiConfig.value = { ...config };
+	} catch (error) {
+		console.error("保存AI配置失败:", error);
+		throw error;
+	}
 }
 
 // 保存配置（统一使用 localStorage）
 export async function saveAIConfigAuto(config: AIConfig): Promise<boolean> {
-  try {
-    saveAIConfig(config)
-    return true
-  } catch (error) {
-    console.error('保存AI配置失败:', error)
-    return false
-  }
+	try {
+		saveAIConfig(config);
+		return true;
+	} catch (error) {
+		console.error("保存AI配置失败:", error);
+		return false;
+	}
 }
 
 // 重置为默认配置
 export function resetAIConfig() {
-  const resetConfig = { ...defaultConfig }
-  saveAIConfig(resetConfig)
+	const resetConfig = { ...defaultConfig };
+	saveAIConfig(resetConfig);
 }
 
 // 初始化：从 localStorage 加载保存的配置
 function initAIConfig() {
-  aiConfig.value = loadAIConfig()
+	aiConfig.value = loadAIConfig();
 }
 
 // 初始化配置
-initAIConfig()
+initAIConfig();
 
 // 导出配置状态（供其他模块直接使用）
-export { aiConfig }
+export { aiConfig };
 
 // 导出 composable
 export function useAIConfig() {
-  return {
-    config: aiConfig,
-    loadAIConfig,
-    saveAIConfig,
-    saveAIConfigAuto,
-    resetAIConfig,
-    defaultConfig
-  }
+	return {
+		config: aiConfig,
+		loadAIConfig,
+		saveAIConfig,
+		saveAIConfigAuto,
+		resetAIConfig,
+		defaultConfig,
+	};
 }

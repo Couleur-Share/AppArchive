@@ -146,10 +146,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
 import { gsap } from 'gsap'
 import { TextPlugin } from 'gsap/TextPlugin'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BlurFade from '../animations/BlurFade.vue'
 
 // 注册GSAP插件
@@ -169,9 +169,7 @@ const props = defineProps<{
   fadeWidth?: number
 }>()
 
-defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
+defineEmits<(e: 'update:modelValue', value: string) => void>()
 
 const tabRefs = ref<HTMLElement[]>([])
 const activeTabWidth = ref(0)
@@ -453,12 +451,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .no-scrollbar::-webkit-scrollbar {
-  display: none !important;
+  display: none;
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .scroll-mask {

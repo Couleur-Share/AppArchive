@@ -1,432 +1,451 @@
 #!/usr/bin/env node
 
-import { existsSync, rmSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { execSync, spawn } from 'child_process';
+import { execSync, spawn } from "node:child_process";
+import { existsSync, readdirSync, rmSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const rootDir = join(__dirname, '..');
+const rootDir = join(__dirname, "..");
 
 // 检测 node_modules 是否处于损坏状态（存在临时重命名目录）
 function isNodeModulesCorrupted() {
-  const nodeModulesPath = join(rootDir, 'node_modules');
-  
-  if (!existsSync(nodeModulesPath)) {
-    return false;
-  }
-  
-  try {
-    // 检查是否存在 npm 的临时重命名目录（如 .accepts-vazhEv0F）
-    const entries = readdirSync(nodeModulesPath);
-    for (const entry of entries) {
-      // npm 在重命名时会创建 .<package>-<random> 格式的临时目录
-      if (entry.startsWith('.') && entry.includes('-') && !entry.startsWith('.bin') && !entry.startsWith('.cache')) {
-        // 排除一些正常的隐藏目录
-        if (!entry.startsWith('.package-lock') && !entry.startsWith('.pnpm')) {
-          console.log(`⚠️  检测到损坏的 node_modules（存在临时目录: ${entry}）`);
-          return true;
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('⚠️  检查 node_modules 状态时出错:', error.message);
-    return true; // 出错时假设损坏
-  }
-  
-  return false;
+	const nodeModulesPath = join(rootDir, "node_modules");
+
+	if (!existsSync(nodeModulesPath)) {
+		return false;
+	}
+
+	try {
+		// 检查是否存在 npm 的临时重命名目录（如 .accepts-vazhEv0F）
+		const entries = readdirSync(nodeModulesPath);
+		for (const entry of entries) {
+			// npm 在重命名时会创建 .<package>-<random> 格式的临时目录
+			if (
+				entry.startsWith(".") &&
+				entry.includes("-") &&
+				!entry.startsWith(".bin") &&
+				!entry.startsWith(".cache")
+			) {
+				// 排除一些正常的隐藏目录
+				if (!entry.startsWith(".package-lock") && !entry.startsWith(".pnpm")) {
+					console.log(`⚠️  检测到损坏的 node_modules（存在临时目录: ${entry}）`);
+					return true;
+				}
+			}
+		}
+	} catch (error) {
+		console.warn("⚠️  检查 node_modules 状态时出错:", error.message);
+		return true; // 出错时假设损坏
+	}
+
+	return false;
 }
 
 // 检查关键依赖是否完整（不仅检查目录，还检查关键文件）
 function checkDependencies() {
-  const nodeModulesPath = join(rootDir, 'node_modules');
-  
-  // 检查关键依赖的 package.json 是否存在（确保包完整安装）
-  const criticalDeps = [
-    'express/package.json',
-    'cors/package.json',
-    'dotenv/package.json',
-    'pg/package.json'
-  ];
-  
-  for (const dep of criticalDeps) {
-    const depPath = join(nodeModulesPath, dep);
-    if (!existsSync(depPath)) {
-      console.log(`⚠️  检测到依赖不完整（缺少 ${dep.split('/')[0]}），需要重新安装...`);
-      return false;
-    }
-  }
-  
-  return true;
+	const nodeModulesPath = join(rootDir, "node_modules");
+
+	// 检查关键依赖的 package.json 是否存在（确保包完整安装）
+	const criticalDeps = [
+		"express/package.json",
+		"cors/package.json",
+		"dotenv/package.json",
+		"pg/package.json",
+	];
+
+	for (const dep of criticalDeps) {
+		const depPath = join(nodeModulesPath, dep);
+		if (!existsSync(depPath)) {
+			console.log(
+				`⚠️  检测到依赖不完整（缺少 ${dep.split("/")[0]}），需要重新安装...`,
+			);
+			return false;
+		}
+	}
+
+	return true;
 }
 
 // 彻底清理 node_modules（使用系统命令，更可靠，支持重试）
 async function cleanNodeModules(maxRetries = 3) {
-  const nodeModulesPath = join(rootDir, 'node_modules');
-  const lockPath = join(rootDir, 'package-lock.json');
-  const isWindows = process.platform === 'win32';
-  
-  // 清理 package-lock.json
-  if (existsSync(lockPath)) {
-    try {
-      console.log('📦 清理 package-lock.json...');
-      rmSync(lockPath, { force: true });
-    } catch (error) {
-      console.warn('⚠️  清理 package-lock.json 警告:', error.message);
-    }
-  }
-  
-  // 如果 node_modules 不存在，直接返回成功
-  if (!existsSync(nodeModulesPath)) {
-    return true;
-  }
-  
-  console.log('📦 清理 node_modules 目录（可能需要一些时间）...');
-  
-  // 多次尝试清理
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      if (isWindows) {
-        // Windows: 先尝试 rmdir，如果失败则使用 PowerShell
-        try {
-          execSync(`rmdir /s /q "${nodeModulesPath}"`, { 
-            stdio: 'pipe', 
-            cwd: rootDir,
-            shell: true,
-            timeout: 30000
-          });
-        } catch (e) {
-          // 如果 rmdir 失败，尝试 PowerShell
-          execSync(`powershell -Command "Remove-Item -Path '${nodeModulesPath}' -Recurse -Force -ErrorAction SilentlyContinue"`, {
-            stdio: 'pipe',
-            cwd: rootDir,
-            shell: true,
-            timeout: 30000
-          });
-        }
-      } else {
-        // Linux/Mac: 使用 rm -rf，如果失败则尝试 find + rm
-        try {
-          execSync(`rm -rf "${nodeModulesPath}"`, { 
-            stdio: 'pipe', 
-            cwd: rootDir,
-            shell: true,
-            timeout: 30000
-          });
-        } catch (e) {
-          // 如果 rm -rf 失败，尝试 find 命令逐个删除
-          console.log('   尝试使用 find 命令清理...');
-          execSync(`find "${nodeModulesPath}" -type f -delete && find "${nodeModulesPath}" -type d -empty -delete`, {
-            stdio: 'pipe',
-            cwd: rootDir,
-            shell: true,
-            timeout: 60000
-          });
-          // 最后尝试删除目录本身
-          execSync(`rm -rf "${nodeModulesPath}"`, {
-            stdio: 'pipe',
-            cwd: rootDir,
-            shell: true,
-            timeout: 30000
-          });
-        }
-      }
-      
-      // 等待文件系统操作完成
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // 验证是否清理成功
-      if (!existsSync(nodeModulesPath)) {
-        console.log('✅ node_modules 清理成功');
-        return true;
-      } else {
-        console.warn(`⚠️  第 ${attempt} 次清理后目录仍存在，重试中...`);
-        if (attempt < maxRetries) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-      }
-    } catch (error) {
-      console.warn(`⚠️  第 ${attempt} 次清理失败:`, error.message);
-      if (attempt < maxRetries) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-    }
-  }
-  
-  // 如果所有尝试都失败，检查目录是否还存在
-  if (existsSync(nodeModulesPath)) {
-    console.error('❌ 清理失败：node_modules 目录仍然存在');
-    console.error('   这可能是文件系统锁定问题，请手动删除后重试');
-    return false;
-  }
-  
-  return true;
+	const nodeModulesPath = join(rootDir, "node_modules");
+	const lockPath = join(rootDir, "package-lock.json");
+	const isWindows = process.platform === "win32";
+
+	// 清理 package-lock.json
+	if (existsSync(lockPath)) {
+		try {
+			console.log("📦 清理 package-lock.json...");
+			rmSync(lockPath, { force: true });
+		} catch (error) {
+			console.warn("⚠️  清理 package-lock.json 警告:", error.message);
+		}
+	}
+
+	// 如果 node_modules 不存在，直接返回成功
+	if (!existsSync(nodeModulesPath)) {
+		return true;
+	}
+
+	console.log("📦 清理 node_modules 目录（可能需要一些时间）...");
+
+	// 多次尝试清理
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			if (isWindows) {
+				// Windows: 先尝试 rmdir，如果失败则使用 PowerShell
+				try {
+					execSync(`rmdir /s /q "${nodeModulesPath}"`, {
+						stdio: "pipe",
+						cwd: rootDir,
+						shell: true,
+						timeout: 30000,
+					});
+				} catch (_e) {
+					// 如果 rmdir 失败，尝试 PowerShell
+					execSync(
+						`powershell -Command "Remove-Item -Path '${nodeModulesPath}' -Recurse -Force -ErrorAction SilentlyContinue"`,
+						{
+							stdio: "pipe",
+							cwd: rootDir,
+							shell: true,
+							timeout: 30000,
+						},
+					);
+				}
+			} else {
+				// Linux/Mac: 使用 rm -rf，如果失败则尝试 find + rm
+				try {
+					execSync(`rm -rf "${nodeModulesPath}"`, {
+						stdio: "pipe",
+						cwd: rootDir,
+						shell: true,
+						timeout: 30000,
+					});
+				} catch (_e) {
+					// 如果 rm -rf 失败，尝试 find 命令逐个删除
+					console.log("   尝试使用 find 命令清理...");
+					execSync(
+						`find "${nodeModulesPath}" -type f -delete && find "${nodeModulesPath}" -type d -empty -delete`,
+						{
+							stdio: "pipe",
+							cwd: rootDir,
+							shell: true,
+							timeout: 60000,
+						},
+					);
+					// 最后尝试删除目录本身
+					execSync(`rm -rf "${nodeModulesPath}"`, {
+						stdio: "pipe",
+						cwd: rootDir,
+						shell: true,
+						timeout: 30000,
+					});
+				}
+			}
+
+			// 等待文件系统操作完成
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			// 验证是否清理成功
+			if (!existsSync(nodeModulesPath)) {
+				console.log("✅ node_modules 清理成功");
+				return true;
+			} else {
+				console.warn(`⚠️  第 ${attempt} 次清理后目录仍存在，重试中...`);
+				if (attempt < maxRetries) {
+					await new Promise((resolve) => setTimeout(resolve, 2000));
+				}
+			}
+		} catch (error) {
+			console.warn(`⚠️  第 ${attempt} 次清理失败:`, error.message);
+			if (attempt < maxRetries) {
+				await new Promise((resolve) => setTimeout(resolve, 2000));
+			}
+		}
+	}
+
+	// 如果所有尝试都失败，检查目录是否还存在
+	if (existsSync(nodeModulesPath)) {
+		console.error("❌ 清理失败：node_modules 目录仍然存在");
+		console.error("   这可能是文件系统锁定问题，请手动删除后重试");
+		return false;
+	}
+
+	return true;
 }
 
 // 安装生产依赖（不包含devDependencies，支持重试）
 async function installProductionDependencies(maxRetries = 2) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      if (attempt > 1) {
-        console.log(`📥 第 ${attempt} 次尝试安装依赖...`);
-        // 重试前再次清理
-        await cleanNodeModules();
-        execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } else {
-        // 彻底清理
-        const cleaned = await cleanNodeModules();
-        if (!cleaned) {
-          console.warn('⚠️  清理可能不完整，但继续尝试安装...');
-        }
-        
-        console.log('🧹 清理 npm 缓存...');
-        execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-        
-        console.log('📥 安装生产依赖...');
-      }
-      
-      // 使用 npm install 而不是 npm ci，更宽容一些
-      execSync('npm install --omit=dev --no-audit --no-fund --legacy-peer-deps', { 
-        stdio: 'inherit', 
-        cwd: rootDir,
-        timeout: 600000 // 10分钟超时
-      });
-      
-      // 验证关键依赖是否安装成功
-      const expressPath = join(rootDir, 'node_modules', 'express');
-      if (!existsSync(expressPath)) {
-        throw new Error('express 依赖安装失败');
-      }
-      
-      console.log('✅ 生产依赖安装完成');
-      return true;
-    } catch (error) {
-      console.error(`❌ 第 ${attempt} 次依赖安装失败:`, error.message);
-      if (attempt < maxRetries) {
-        console.log('   清理后重试...');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      } else {
-        console.error('   所有重试均失败');
-        console.error('   请手动执行: rm -rf node_modules package-lock.json && npm install --omit=dev');
-        return false;
-      }
-    }
-  }
-  return false;
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			if (attempt > 1) {
+				console.log(`📥 第 ${attempt} 次尝试安装依赖...`);
+				// 重试前再次清理
+				await cleanNodeModules();
+				execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			} else {
+				// 彻底清理
+				const cleaned = await cleanNodeModules();
+				if (!cleaned) {
+					console.warn("⚠️  清理可能不完整，但继续尝试安装...");
+				}
+
+				console.log("🧹 清理 npm 缓存...");
+				execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+
+				console.log("📥 安装生产依赖...");
+			}
+
+			// 使用 npm install 而不是 npm ci，更宽容一些
+			execSync(
+				"npm install --omit=dev --no-audit --no-fund --legacy-peer-deps",
+				{
+					stdio: "inherit",
+					cwd: rootDir,
+					timeout: 600000, // 10分钟超时
+				},
+			);
+
+			// 验证关键依赖是否安装成功
+			const expressPath = join(rootDir, "node_modules", "express");
+			if (!existsSync(expressPath)) {
+				throw new Error("express 依赖安装失败");
+			}
+
+			console.log("✅ 生产依赖安装完成");
+			return true;
+		} catch (error) {
+			console.error(`❌ 第 ${attempt} 次依赖安装失败:`, error.message);
+			if (attempt < maxRetries) {
+				console.log("   清理后重试...");
+				await new Promise((resolve) => setTimeout(resolve, 2000));
+			} else {
+				console.error("   所有重试均失败");
+				console.error(
+					"   请手动执行: rm -rf node_modules package-lock.json && npm install --omit=dev",
+				);
+				return false;
+			}
+		}
+	}
+	return false;
 }
 
 // 检查构建工具是否存在（vite等）
 // 检查构建工具是否完整
 function checkBuildTools() {
-  const nodeModulesPath = join(rootDir, 'node_modules');
-  
-  // 检查 vite 的关键文件
-  const vitePackageJson = join(nodeModulesPath, 'vite', 'package.json');
-  const viteBin = join(nodeModulesPath, '.bin', 'vite');
-  
-  if (!existsSync(vitePackageJson)) {
-    console.log('⚠️  构建工具 vite 未安装或不完整...');
-    return false;
-  }
-  
-  // 在 Linux 上检查可执行文件（Windows 上是 .cmd 文件）
-  const isWindows = process.platform === 'win32';
-  const binFile = isWindows ? join(nodeModulesPath, '.bin', 'vite.cmd') : viteBin;
-  
-  if (!existsSync(binFile)) {
-    console.log('⚠️  构建工具 vite 可执行文件缺失...');
-    return false;
-  }
-  
-  return true;
+	const nodeModulesPath = join(rootDir, "node_modules");
+
+	// 检查 vite 的关键文件
+	const vitePackageJson = join(nodeModulesPath, "vite", "package.json");
+	const viteBin = join(nodeModulesPath, ".bin", "vite");
+
+	if (!existsSync(vitePackageJson)) {
+		console.log("⚠️  构建工具 vite 未安装或不完整...");
+		return false;
+	}
+
+	// 在 Linux 上检查可执行文件（Windows 上是 .cmd 文件）
+	const isWindows = process.platform === "win32";
+	const binFile = isWindows
+		? join(nodeModulesPath, ".bin", "vite.cmd")
+		: viteBin;
+
+	if (!existsSync(binFile)) {
+		console.log("⚠️  构建工具 vite 可执行文件缺失...");
+		return false;
+	}
+
+	return true;
 }
 
 // 安装完整依赖（包括devDependencies，用于构建，支持重试）
 async function installFullDependencies(maxRetries = 2) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      if (attempt > 1) {
-        console.log(`📥 第 ${attempt} 次尝试安装依赖...`);
-        // 重试前再次清理
-        await cleanNodeModules();
-        execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      } else {
-        console.log('📥 安装完整依赖（包括 devDependencies，用于构建）...');
-      }
-      
-      execSync('npm install --no-audit --no-fund --legacy-peer-deps', { 
-        stdio: 'inherit', 
-        cwd: rootDir,
-        timeout: 600000 // 10分钟超时
-      });
-      
-      // 验证构建工具是否安装成功
-      if (!checkBuildTools()) {
-        throw new Error('构建工具（vite）安装失败');
-      }
-      
-      // 验证关键依赖
-      const expressPath = join(rootDir, 'node_modules', 'express');
-      if (!existsSync(expressPath)) {
-        throw new Error('express 依赖安装失败');
-      }
-      
-      console.log('✅ 完整依赖安装完成');
-      return true;
-    } catch (error) {
-      console.error(`❌ 第 ${attempt} 次依赖安装失败:`, error.message);
-      if (attempt < maxRetries) {
-        console.log('   清理后重试...');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      } else {
-        console.error('   所有重试均失败，请检查网络连接和磁盘空间');
-        return false;
-      }
-    }
-  }
-  return false;
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			if (attempt > 1) {
+				console.log(`📥 第 ${attempt} 次尝试安装依赖...`);
+				// 重试前再次清理
+				await cleanNodeModules();
+				execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			} else {
+				console.log("📥 安装完整依赖（包括 devDependencies，用于构建）...");
+			}
+
+			execSync("npm install --no-audit --no-fund --legacy-peer-deps", {
+				stdio: "inherit",
+				cwd: rootDir,
+				timeout: 600000, // 10分钟超时
+			});
+
+			// 验证构建工具是否安装成功
+			if (!checkBuildTools()) {
+				throw new Error("构建工具（vite）安装失败");
+			}
+
+			// 验证关键依赖
+			const expressPath = join(rootDir, "node_modules", "express");
+			if (!existsSync(expressPath)) {
+				throw new Error("express 依赖安装失败");
+			}
+
+			console.log("✅ 完整依赖安装完成");
+			return true;
+		} catch (error) {
+			console.error(`❌ 第 ${attempt} 次依赖安装失败:`, error.message);
+			if (attempt < maxRetries) {
+				console.log("   清理后重试...");
+				await new Promise((resolve) => setTimeout(resolve, 2000));
+			} else {
+				console.error("   所有重试均失败，请检查网络连接和磁盘空间");
+				return false;
+			}
+		}
+	}
+	return false;
 }
 
 // 构建前端
 function buildFrontend() {
-  try {
-    console.log('🏗️  构建前端...');
-    execSync('npm run build', { stdio: 'inherit', cwd: rootDir });
-    
-    // 验证构建产物
-    const distPath = join(rootDir, 'dist');
-    const indexHtmlPath = join(distPath, 'index.html');
-    if (!existsSync(distPath) || !existsSync(indexHtmlPath)) {
-      throw new Error('构建产物不存在');
-    }
-    
-    console.log('✅ 前端构建完成');
-    return true;
-  } catch (error) {
-    console.error('❌ 前端构建失败:', error.message);
-    return false;
-  }
+	try {
+		console.log("🏗️  构建前端...");
+		execSync("npm run build", { stdio: "inherit", cwd: rootDir });
+
+		// 验证构建产物
+		const distPath = join(rootDir, "dist");
+		const indexHtmlPath = join(distPath, "index.html");
+		if (!existsSync(distPath) || !existsSync(indexHtmlPath)) {
+			throw new Error("构建产物不存在");
+		}
+
+		console.log("✅ 前端构建完成");
+		return true;
+	} catch (error) {
+		console.error("❌ 前端构建失败:", error.message);
+		return false;
+	}
 }
 
 // 执行构建（假设依赖已安装）
 function executeBuild() {
-  console.log('🏗️  开始构建前端...');
-  if (!buildFrontend()) {
-    console.error('❌ 前端构建失败');
-    return false;
-  }
-  return true;
+	console.log("🏗️  开始构建前端...");
+	if (!buildFrontend()) {
+		console.error("❌ 前端构建失败");
+		return false;
+	}
+	return true;
 }
 
 // 启动服务器
 function startServer() {
-  console.log('🚀 启动服务器...');
-  const serverPath = join(rootDir, 'server', 'index.js');
-  
-  // 使用 spawn 启动服务器，保持进程运行
-  const serverProcess = spawn('node', [serverPath], {
-    stdio: 'inherit',
-    cwd: rootDir,
-    shell: false
-  });
-  
-  // 处理进程退出
-  serverProcess.on('error', (error) => {
-    console.error('❌ 服务器启动失败:', error.message);
-    process.exit(1);
-  });
-  
-  serverProcess.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`❌ 服务器异常退出，退出码: ${code}`);
-      process.exit(code);
-    }
-  });
-  
-  // 传递信号到子进程
-  process.on('SIGINT', () => {
-    serverProcess.kill('SIGINT');
-  });
-  
-  process.on('SIGTERM', () => {
-    serverProcess.kill('SIGTERM');
-  });
+	console.log("🚀 启动服务器...");
+	const serverPath = join(rootDir, "server", "index.js");
+
+	// 使用 spawn 启动服务器，保持进程运行
+	const serverProcess = spawn("node", [serverPath], {
+		stdio: "inherit",
+		cwd: rootDir,
+		shell: false,
+	});
+
+	// 处理进程退出
+	serverProcess.on("error", (error) => {
+		console.error("❌ 服务器启动失败:", error.message);
+		process.exit(1);
+	});
+
+	serverProcess.on("exit", (code) => {
+		if (code !== 0 && code !== null) {
+			console.error(`❌ 服务器异常退出，退出码: ${code}`);
+			process.exit(code);
+		}
+	});
+
+	// 传递信号到子进程
+	process.on("SIGINT", () => {
+		serverProcess.kill("SIGINT");
+	});
+
+	process.on("SIGTERM", () => {
+		serverProcess.kill("SIGTERM");
+	});
 }
 
 // 主函数
 async function main() {
-  console.log('🔍 检查启动环境...');
-  
-  // 首先检测 node_modules 是否损坏（1Panel 可能在启动前执行了失败的 npm install）
-  if (isNodeModulesCorrupted()) {
-    console.log('🔧 检测到 node_modules 损坏，需要清理并重新安装...');
-    const cleaned = await cleanNodeModules();
-    if (!cleaned) {
-      console.error('❌ 清理损坏的 node_modules 失败');
-      console.error('   请手动执行: rm -rf /app/node_modules');
-      process.exit(1);
-    }
-    execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-  
-  // 检查构建产物
-  const distPath = join(rootDir, 'dist');
-  const indexHtmlPath = join(distPath, 'index.html');
-  const needsBuild = !existsSync(distPath) || !existsSync(indexHtmlPath);
-  
-  if (needsBuild) {
-    // 需要构建，安装完整依赖（包括 devDependencies）
-    console.log('📦 检测到需要构建，准备安装完整依赖...');
-    if (!checkDependencies() || !checkBuildTools()) {
-      // 先清理，确保清理成功
-      console.log('🧹 准备清理环境...');
-      const cleaned = await cleanNodeModules();
-      if (!cleaned) {
-        console.error('❌ 清理失败，无法继续安装依赖');
-        console.error('   请手动删除 node_modules 目录后重试');
-        process.exit(1);
-      }
-      
-      execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      if (!await installFullDependencies()) {
-        console.error('❌ 无法启动：依赖安装失败');
-        process.exit(1);
-      }
-    }
-    
-    // 执行构建
-    if (!executeBuild()) {
-      process.exit(1);
-    }
-  } else {
-    // 不需要构建，只检查生产依赖
-    if (!checkDependencies()) {
-      // 先清理，确保清理成功
-      console.log('🧹 准备清理环境...');
-      const cleaned = await cleanNodeModules();
-      if (!cleaned) {
-        console.warn('⚠️  清理可能不完整，但继续尝试安装...');
-      }
-      
-      execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      if (!await installProductionDependencies()) {
-        console.error('❌ 无法启动：依赖安装失败');
-        process.exit(1);
-      }
-    }
-  }
-  
-  console.log('✅ 环境检查通过，启动服务器');
-  startServer();
+	console.log("🔍 检查启动环境...");
+
+	// 首先检测 node_modules 是否损坏（1Panel 可能在启动前执行了失败的 npm install）
+	if (isNodeModulesCorrupted()) {
+		console.log("🔧 检测到 node_modules 损坏，需要清理并重新安装...");
+		const cleaned = await cleanNodeModules();
+		if (!cleaned) {
+			console.error("❌ 清理损坏的 node_modules 失败");
+			console.error("   请手动执行: rm -rf /app/node_modules");
+			process.exit(1);
+		}
+		execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+	}
+
+	// 检查构建产物
+	const distPath = join(rootDir, "dist");
+	const indexHtmlPath = join(distPath, "index.html");
+	const needsBuild = !existsSync(distPath) || !existsSync(indexHtmlPath);
+
+	if (needsBuild) {
+		// 需要构建，安装完整依赖（包括 devDependencies）
+		console.log("📦 检测到需要构建，准备安装完整依赖...");
+		if (!checkDependencies() || !checkBuildTools()) {
+			// 先清理，确保清理成功
+			console.log("🧹 准备清理环境...");
+			const cleaned = await cleanNodeModules();
+			if (!cleaned) {
+				console.error("❌ 清理失败，无法继续安装依赖");
+				console.error("   请手动删除 node_modules 目录后重试");
+				process.exit(1);
+			}
+
+			execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			if (!(await installFullDependencies())) {
+				console.error("❌ 无法启动：依赖安装失败");
+				process.exit(1);
+			}
+		}
+
+		// 执行构建
+		if (!executeBuild()) {
+			process.exit(1);
+		}
+	} else {
+		// 不需要构建，只检查生产依赖
+		if (!checkDependencies()) {
+			// 先清理，确保清理成功
+			console.log("🧹 准备清理环境...");
+			const cleaned = await cleanNodeModules();
+			if (!cleaned) {
+				console.warn("⚠️  清理可能不完整，但继续尝试安装...");
+			}
+
+			execSync("npm cache clean --force", { stdio: "inherit", cwd: rootDir });
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			if (!(await installProductionDependencies())) {
+				console.error("❌ 无法启动：依赖安装失败");
+				process.exit(1);
+			}
+		}
+	}
+
+	console.log("✅ 环境检查通过，启动服务器");
+	startServer();
 }
 
 main();
-

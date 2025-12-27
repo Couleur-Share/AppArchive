@@ -89,8 +89,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Edit, Eye } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 const props = defineProps<{
   modelValue: string
@@ -99,9 +99,7 @@ const props = defineProps<{
   disabled?: boolean
 }>()
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
+const emit = defineEmits<(e: 'update:modelValue', value: string) => void>()
 
 // v-model 透传
 const modelValue = defineModel<string>()

@@ -257,15 +257,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { X } from 'lucide-vue-next'
-import type { Software } from '../types'
-import { getIconUrl } from '../services/localIconCache'
-import BaseButton from './common/BaseButton.vue'
-// @ts-ignore
+// @ts-expect-error
 import { toBlob } from 'html-to-image'
+import { X } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 import { useToast } from '../composables/useToast'
+import { getIconUrl } from '../services/localIconCache'
+import type { Software } from '../types'
+import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{
   isOpen: boolean

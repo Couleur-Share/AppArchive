@@ -15,13 +15,11 @@
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon } from 'lucide-vue-next'
+import { Moon, Sun } from 'lucide-vue-next'
 
 defineProps<{
   modelValue: boolean
 }>()
 
-defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-}>()
+defineEmits<(e: 'update:modelValue', value: boolean) => void>()
 </script> 

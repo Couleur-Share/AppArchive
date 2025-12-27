@@ -188,20 +188,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { X, Plus, Check, Trash2, Eye, Bot, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-vue-next'
+import DOMPurify from 'dompurify'
+import { Bot, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Plus, Trash2, X } from 'lucide-vue-next'
+import { marked } from 'marked'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useComparisonManager } from '../composables/useComparisonManager'
+import { useToast } from '../composables/useToast'
+import { getIconUrl } from '../services/localIconCache'
 import type { Software } from '../types'
 import type { ComparisonGroup, ComparisonTarget } from '../types/comparison'
-import { useToast } from '../composables/useToast'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 import logger from '../utils/logger'
-import { useComparisonManager } from '../composables/useComparisonManager'
-import ComparisonEditor from './comparison/ComparisonEditor.vue'
-import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
 import ComparisonAIOverlay from './ComparisonAIOverlay.vue'
-import { getIconUrl } from '../services/localIconCache'
+import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
+import ComparisonEditor from './comparison/ComparisonEditor.vue'
 
 // 统一 Markdown 渲染：开启常用选项，并通过 DOMPurify hook 为链接加 target/rel
 marked.setOptions({ gfm: true, breaks: true })

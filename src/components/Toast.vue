@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { TransitionRoot, TransitionChild } from '@headlessui/vue'
+import { TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { Check } from 'lucide-vue-next'
 
 defineProps<{

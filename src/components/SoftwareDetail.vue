@@ -553,18 +553,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { X, ExternalLink, Copy, CheckCircle2, XCircle, FileSearch, Plus, Edit } from 'lucide-vue-next'
-import type { Software, DownloadLink, SecretItem } from '../types'
-import Toast from './Toast.vue'
-import { getIconUrl } from '../services/localIconCache'
-import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
-import logger from '../utils/logger'
+import { CheckCircle2, Copy, Edit, ExternalLink, FileSearch, Plus, X, XCircle } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
+import { getIconUrl } from '../services/localIconCache'
+import type { DownloadLink, SecretItem, Software } from '../types'
+import logger from '../utils/logger'
+import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
 import SystemIcon from './SystemIcon.vue'
+import Toast from './Toast.vue'
+
 // 延迟加载 html-to-image，只在需要时加载（提升首次打开速度）
-// @ts-ignore: html-to-image 类型声明在当前环境缺失
+// @ts-expect-error: html-to-image 类型声明在当前环境缺失
 let toPng: typeof import('html-to-image').toPng | null = null
 const loadToPng = async () => {
   if (!toPng) {
@@ -573,13 +574,14 @@ const loadToPng = async () => {
   }
   return toPng
 }
+
+import MarkdownIt from 'markdown-it'
 import { isSignedIn } from '../lib/clerk'
-import ShareCardPreview from './ShareCardPreview.vue'
+import { comparisonService } from '../services/comparison'
+import ComparisonManager from './ComparisonManager.vue'
 import BaseButton from './common/BaseButton.vue'
 import IconButton from './common/IconButton.vue'
-import ComparisonManager from './ComparisonManager.vue'
-import { comparisonService } from '../services/comparison'
-import MarkdownIt from 'markdown-it'
+import ShareCardPreview from './ShareCardPreview.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -607,7 +609,7 @@ const tabs = computed(() => {
 const coreFeatures = computed(() => {
   const pros = props.software.pros || []
   // 取前4个作为核心特性
-  return pros.slice(0, 4).map((pro, index) => {
+  return pros.slice(0, 4).map((pro, _index) => {
     // 尝试从pros文本中提取标题和副标题
     // 如果包含"："，则分割；否则使用整个文本作为标题
     const parts = pro.split('：')
@@ -626,7 +628,7 @@ const coreFeatures = computed(() => {
       }
     }
     // 默认：前20个字符作为标题，剩余作为副标题
-    const title = pro.length > 20 ? pro.substring(0, 20) + '...' : pro
+    const title = pro.length > 20 ? `${pro.substring(0, 20)}...` : pro
     const subtitle = pro.length > 20 ? pro.substring(20) : ''
     return {
       title,

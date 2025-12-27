@@ -4,148 +4,150 @@
 
 /* ===== Design Tokens（全局变量）===== */
 :root {
-  /* Nuxt Green HSL */
-  --primary-h: 160;
-  --primary-s: 84%;
-  --primary-l: 45%;
-  --primary: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+	/* Nuxt Green HSL */
+	--primary-h: 160;
+	--primary-s: 84%;
+	--primary-l: 45%;
+	--primary: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
 
-  --gray-100: hsl(0 0% 95%);
-  --gray-700: hsl(0 0% 40%);
-  --gray-900: hsl(0 0% 15%);
+	--gray-100: hsl(0 0% 95%);
+	--gray-700: hsl(0 0% 40%);
+	--gray-900: hsl(0 0% 15%);
 
-  /* 现代大圆角 */
-  --radius: 12px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-4: 16px;
+	/* 现代大圆角 */
+	--radius: 12px;
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-4: 16px;
 
-  /* 更加柔和深邃的阴影 */
-  --shadow-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-3: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+	/* 更加柔和深邃的阴影 */
+	--shadow-1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	--shadow-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	--shadow-3:
+		0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
-  /* 统一过渡 */
-  --dur: 150ms;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+	/* 统一过渡 */
+	--dur: 150ms;
+	--ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark:root {
-  --primary-l: 50%;
+	--primary-l: 50%;
 }
 
 /* 自定义样式 */
 .glass-card {
-  @apply bg-white/30 dark:bg-gray-900/30 
-         backdrop-blur-xl 
-         border border-white/20 dark:border-gray-700/30 
-         shadow-lg hover:shadow-xl 
-         transition-all duration-300;
+	@apply bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-lg hover:shadow-xl transition-all duration-300;
 }
 
 /* 其他自定义样式... */
 
 /* ===== 全局滚动条美化（跨浏览器） ===== */
 :root {
-  /* Nuxt 绿色系 */
-  --theme-primary-500: #00dc82; 
-  --theme-primary-600: #00bb6e; 
-  --theme-primary-400: #34e49a; 
+	/* Nuxt 绿色系 */
+	--theme-primary-500: #00dc82;
+	--theme-primary-600: #00bb6e;
+	--theme-primary-400: #34e49a;
 
-  --scrollbar-track: rgba(0, 0, 0, 0.05);
-  --scrollbar-thumb: #e2e8f0;
-  --scrollbar-thumb-hover: #cbd5e1;
-  --scrollbar-corner: transparent;
-  --scrollbar-size: 5px; /* 默认更细 */
-  --scrollbar-radius: 9999px; /* 圆角 */
+	--scrollbar-track: rgba(0, 0, 0, 0.05);
+	--scrollbar-thumb: #e2e8f0;
+	--scrollbar-thumb-hover: #cbd5e1;
+	--scrollbar-corner: transparent;
+	--scrollbar-size: 5px; /* 默认更细 */
+	--scrollbar-radius: 9999px; /* 圆角 */
 }
 
 .dark:root {
-  /* 主题主色（暗色模式），略微提高亮度以增强对比 */
-  --theme-primary-500: #60a5fa; /* blue-400 近似 */
-  --theme-primary-600: #3b82f6; /* blue-500 */
-  --theme-primary-400: #93c5fd; /* blue-300 */
+	/* 主题主色（暗色模式），略微提高亮度以增强对比 */
+	--theme-primary-500: #60a5fa; /* blue-400 近似 */
+	--theme-primary-600: #3b82f6; /* blue-500 */
+	--theme-primary-400: #93c5fd; /* blue-300 */
 
-  --scrollbar-track: rgba(255, 255, 255, 0.10); /* 暗色模式轨道略更亮以区分背景 */
-  --scrollbar-thumb: rgba(255, 255, 255, 0.7); /* 深色模式：中性浅灰白 */
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.9);
-  --scrollbar-corner: transparent;
+	--scrollbar-track: rgba(
+		255,
+		255,
+		255,
+		0.1
+	); /* 暗色模式轨道略更亮以区分背景 */
+	--scrollbar-thumb: rgba(255, 255, 255, 0.7); /* 深色模式：中性浅灰白 */
+	--scrollbar-thumb-hover: rgba(255, 255, 255, 0.9);
+	--scrollbar-corner: transparent;
 }
 
 /* Firefox */
 html {
-  scrollbar-width: thin; /* auto | thin | none */
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+	scrollbar-width: thin; /* auto | thin | none */
+	scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* WebKit (Chrome/Safari/Edge) */
 .custom-scrollbar::-webkit-scrollbar {
-  width: var(--scrollbar-size);
-  height: var(--scrollbar-size);
+	width: var(--scrollbar-size);
+	height: var(--scrollbar-size);
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: var(--scrollbar-radius);
+	background: var(--scrollbar-track);
+	border-radius: var(--scrollbar-radius);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.85),
-    var(--scrollbar-thumb)
-  );
-  border-radius: var(--scrollbar-radius);
-  border: 2px solid transparent; 
-  background-clip: padding-box;
+	background: linear-gradient(
+		to bottom right,
+		rgba(255, 255, 255, 0.85),
+		var(--scrollbar-thumb)
+	);
+	border-radius: var(--scrollbar-radius);
+	border: 2px solid transparent;
+	background-clip: padding-box;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.95),
-    var(--scrollbar-thumb-hover)
-  );
+	background: linear-gradient(
+		to bottom right,
+		rgba(255, 255, 255, 0.95),
+		var(--scrollbar-thumb-hover)
+	);
 }
 
 /* 强制隐藏滚动条工具类 */
 .no-scrollbar::-webkit-scrollbar {
-  display: none !important;
+	display: none;
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
 }
 
 *::-webkit-scrollbar-corner {
-  background: var(--scrollbar-corner);
+	background: var(--scrollbar-corner);
 }
 
 /* 可选：针对有强对比背景区域的滚动容器提供浅色变体 */
 .scrollbar-light {
-  --scrollbar-track: rgba(0, 0, 0, 0.05);
-  --scrollbar-thumb: rgba(31, 41, 55, 0.35); /* slate-800 */
-  --scrollbar-thumb-hover: rgba(31, 41, 55, 0.6);
+	--scrollbar-track: rgba(0, 0, 0, 0.05);
+	--scrollbar-thumb: rgba(31, 41, 55, 0.35); /* slate-800 */
+	--scrollbar-thumb-hover: rgba(31, 41, 55, 0.6);
 }
 
 /* 可选：更细的滚动条，用于紧凑区域 */
 .scrollbar-thin {
-  --scrollbar-size: 5px; /* 与全局一致，用于显式声明 */
+	--scrollbar-size: 5px; /* 与全局一致，用于显式声明 */
 }
 
 /* 更细：超细模式 */
 .scrollbar-ultra-thin {
-  --scrollbar-size: 4px; /* 更细一档 */
+	--scrollbar-size: 4px; /* 更细一档 */
 }
 
 /* 可选：在移动端或小屏禁用滚动条装饰，避免视觉拥挤 */
 @media (max-width: 640px) {
-  html {
-    scrollbar-width: thin;
-  }
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
+	html {
+		scrollbar-width: thin;
+	}
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 5px;
+		height: 5px;
+	}
 }

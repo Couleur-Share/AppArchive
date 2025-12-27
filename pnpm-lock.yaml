@@ -121,7 +121,7 @@ importers:
         version: 3.25.76
     devDependencies:
       '@biomejs/biome':
-        specifier: 2.3.10
+        specifier: ^2.3.10
         version: 2.3.10
       '@iconify-json/logos':
         specifier: ^1.2.9
@@ -181,7 +181,7 @@ importers:
         specifier: ~5.0.4
         version: 5.0.4
       ultracite:
-        specifier: 6.5.0
+        specifier: ^6.5.0
         version: 6.5.0(typescript@5.0.4)
       unplugin-icons:
         specifier: ^22.2.0

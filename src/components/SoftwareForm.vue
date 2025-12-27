@@ -439,55 +439,55 @@
 
 <script setup lang="ts">
 import {
-  ref,
-  watch,
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+} from '@headlessui/vue'
+import { useDebounceFn } from '@vueuse/core'
+import {
+  AlertCircle,
+  Bot,
+  Check,
+  ChevronDown,
+  Loader2,
+  X,
+} from 'lucide-vue-next'
+import {
+  computed,
+  nextTick,
   onMounted,
   onUnmounted,
   reactive,
-  nextTick,
-  computed,
+  ref,
+  watch,
 } from 'vue'
+import { z } from 'zod'
+import { useAIAnalysis } from '@/composables/useAIAnalysis'
+import { LICENSES, SYSTEMS } from '@/types/constants'
 import {
-  Listbox,
-  ListboxButton,
-  ListboxOptions,
-  ListboxOption,
-} from '@headlessui/vue'
+  inferFromWebsite,
+  inferSupportedSystemsFromText,
+  normalizeSystem,
+} from '@/utils/system'
+import { mergeUnique, normalizeList } from '@/utils/text'
 import {
-  Check,
-  ChevronDown,
-  X,
-  Loader2,
-  AlertCircle,
-  Bot,
-} from 'lucide-vue-next'
-import {
-  type Software,
   type DownloadLink,
   type SecretItem,
+  type Software,
   type SystemType,
 } from '../types'
 import { AppError, ErrorCode } from '../types/error'
 import { errorHandler } from '../utils/error-handler'
-import { useDebounceFn } from '@vueuse/core'
 import logger from '../utils/logger'
-import { z } from 'zod'
-import { useAIAnalysis } from '@/composables/useAIAnalysis'
-import { SYSTEMS, LICENSES } from '@/types/constants'
-import { normalizeList, mergeUnique } from '@/utils/text'
-import {
-  normalizeSystem,
-  inferSupportedSystemsFromText,
-  inferFromWebsite,
-} from '@/utils/system'
-import IconUploader from './IconUploader.vue'
-import ProsConsEditor from './ProsConsEditor.vue'
 import AdvancedSection from './AdvancedSection.vue'
 import AIOverlay from './AIOverlay.vue'
-import SystemIcon from './SystemIcon.vue'
 import BlurFade from './animations/BlurFade.vue'
 import BaseButton from './common/BaseButton.vue'
 import IconButton from './common/IconButton.vue'
+import IconUploader from './IconUploader.vue'
+import ProsConsEditor from './ProsConsEditor.vue'
+import SystemIcon from './SystemIcon.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -679,11 +679,11 @@ const validateAll = () => {
     const file = formData.icon
     const okType = /^(image\/(png|jpeg|webp|svg\+xml|x-icon))$/i.test(file.type)
     if (!okType) {
-      fieldErrors.value['icon'] = '仅支持 PNG/JPEG/WebP/SVG/ICO 格式'
+      fieldErrors.value.icon = '仅支持 PNG/JPEG/WebP/SVG/ICO 格式'
     }
     const maxSize = 1024 * 1024
     if (file.size > maxSize) {
-      fieldErrors.value['icon'] = '图片过大，请控制在 1MB 以内'
+      fieldErrors.value.icon = '图片过大，请控制在 1MB 以内'
     }
   }
 
@@ -691,7 +691,7 @@ const validateAll = () => {
   const secrets = formData.secrets as any[] | undefined
   if (Array.isArray(secrets)) {
     secrets.forEach((sec, idx) => {
-      const hasId = Boolean(sec && sec.id)
+      const hasId = Boolean(sec?.id)
       const hasCipher = sec && typeof sec.value === 'undefined' // 旧项通常不带 value
       const valueFilled =
         typeof sec?.value === 'string' && sec.value.trim().length > 0
@@ -713,7 +713,7 @@ const validateAll = () => {
     )
     if (exists) {
       nameError.value = '已存在同名软件'
-      fieldErrors.value['name'] = nameError.value
+      fieldErrors.value.name = nameError.value
     }
   }
 }
@@ -1006,9 +1006,9 @@ const scrollToField = async (key: string) => {
 const validateNameBasic = () => {
   const name = (formData.name || '').trim()
   if (name.length < 2) {
-    fieldErrors.value['name'] = '名称至少 2 个字符'
+    fieldErrors.value.name = '名称至少 2 个字符'
   } else {
-    delete fieldErrors.value['name']
+    delete fieldErrors.value.name
   }
 }
 
@@ -1016,13 +1016,13 @@ const validateNameBasic = () => {
 const validateWebsite = () => {
   const website = (formData.website || '').trim()
   if (!website) {
-    delete fieldErrors.value['website']
+    delete fieldErrors.value.website
     return
   }
   if (!/^https?:\/\//i.test(website)) {
-    fieldErrors.value['website'] = '请输入合法网址（http/https）'
+    fieldErrors.value.website = '请输入合法网址（http/https）'
   } else {
-    delete fieldErrors.value['website']
+    delete fieldErrors.value.website
   }
 }
 
@@ -1030,7 +1030,7 @@ const validateWebsite = () => {
 const validateDownloadLink = (idx: number) => {
   const key = `download_links.${idx}.url`
   const url =
-    (formData.download_links && formData.download_links[idx]?.url) || ''
+    (formData.download_links?.[idx]?.url) || ''
   const v = url.trim()
   if (!v) {
     fieldErrors.value[key] = '下载链接不能为空'

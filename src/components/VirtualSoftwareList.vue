@@ -31,9 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import SoftwareCard from './SoftwareCard.vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Software } from '../types'
+import SoftwareCard from './SoftwareCard.vue'
 
 const props = defineProps<{
   items: Software[]

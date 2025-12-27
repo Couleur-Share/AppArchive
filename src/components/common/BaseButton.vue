@@ -19,8 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
+import { computed } from 'vue'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'link'
 type Size = 'md' | 'sm' | 'xs'
@@ -69,7 +69,6 @@ const variantClass = computed(() => {
       return 'bg-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
     case 'link':
       return 'bg-transparent text-blue-600 dark:text-blue-300 hover:underline'
-    case 'secondary':
     default:
       return 'border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'
   }

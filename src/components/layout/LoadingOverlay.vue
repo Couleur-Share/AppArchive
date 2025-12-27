@@ -135,8 +135,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, nextTick } from 'vue'
 import { gsap } from 'gsap'
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   show: boolean

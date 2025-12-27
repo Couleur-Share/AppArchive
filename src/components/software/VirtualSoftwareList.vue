@@ -221,13 +221,13 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpRight, Edit, Trash, MoreVertical } from 'lucide-vue-next'
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
-import type { Software } from '../../types'
-import { getIconUrl } from '../../services/localIconCache'
-import SystemIcon from '../SystemIcon.vue'
-import { isSignedIn } from '../../lib/clerk'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { gsap } from 'gsap'
+import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
+import { isSignedIn } from '../../lib/clerk'
+import { getIconUrl } from '../../services/localIconCache'
+import type { Software } from '../../types'
+import SystemIcon from '../SystemIcon.vue'
 
 const props = defineProps<{
   items: Software[]

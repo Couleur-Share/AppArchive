@@ -96,11 +96,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { X, CheckCircle2, XCircle } from 'lucide-vue-next'
-import type { Software } from '../types'
+import { CheckCircle2, X, XCircle } from 'lucide-vue-next'
+import { onMounted, ref, watch } from 'vue'
 import { getIconUrl } from '../services/localIconCache'
+import type { Software } from '../types'
 
 const props = defineProps<{
   isOpen: boolean

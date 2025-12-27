@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 
@@ -49,7 +49,6 @@ const computeTransform = (visible: boolean) => {
       return `translate3d(-${props.offset}px, 0, 0)`
     case 'up':
       return `translate3d(0, ${props.offset}px, 0)`
-    case 'down':
     default:
       return `translate3d(0, -${props.offset}px, 0)`
   }
@@ -84,7 +83,7 @@ const observeIfNeeded = () => {
   }
   observer = new IntersectionObserver((entries) => {
     const entry = entries[0]
-    if (entry && entry.isIntersecting) {
+    if (entry?.isIntersecting) {
       isVisible.value = true
       if (props.once && observer) {
         observer.disconnect()

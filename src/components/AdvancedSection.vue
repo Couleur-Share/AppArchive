@@ -73,11 +73,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
 import { AlertCircle } from 'lucide-vue-next'
+import { nextTick, ref, watch } from 'vue'
 import type { DownloadLink, SecretItem } from '@/types'
-import { getSecretKindClass, getSecretKindLabel } from '@/utils/secret'
 import { copyToClipboard } from '@/utils/clipboard'
+import { getSecretKindClass, getSecretKindLabel } from '@/utils/secret'
 
 const props = defineProps<{
   downloadLinks: DownloadLink[] | undefined

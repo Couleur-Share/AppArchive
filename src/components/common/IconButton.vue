@@ -18,8 +18,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
+import { computed } from 'vue'
 
 type Size = 'md' | 'sm' | 'xs'
 type TagName = 'button' | 'a'
@@ -65,7 +65,6 @@ const variantClass = computed(() => {
       return 'hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-300'
     case 'danger':
       return 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400'
-    case 'default':
     default:
       return 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
   }

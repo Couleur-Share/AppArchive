@@ -195,9 +195,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { X, Monitor, Smartphone, ArrowUp, ArrowDown, LayoutGrid, List } from 'lucide-vue-next'
+import { ArrowDown, ArrowUp, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
 import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{

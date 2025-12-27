@@ -82,8 +82,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { Loader2, ImageIcon, Upload, Info, AlertCircle, X } from 'lucide-vue-next'
+import { AlertCircle, ImageIcon, Info, Loader2, Upload, X } from 'lucide-vue-next'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string | undefined
@@ -103,7 +103,7 @@ const hasIcon = computed(() => Boolean(previewFile.value || previewUrl.value))
 
 // 清理预览URL（释放内存）
 const cleanupPreview = () => {
-  if (previewUrl.value && previewUrl.value.startsWith('blob:')) {
+  if (previewUrl.value?.startsWith('blob:')) {
     URL.revokeObjectURL(previewUrl.value)
     previewUrl.value = null
   }
@@ -125,7 +125,7 @@ const onDrop = (e: DragEvent) => {
   e.preventDefault()
   if (props.disabled) return
   const file = e.dataTransfer?.files?.[0]
-  if (file && file.type.startsWith('image/')) {
+  if (file?.type.startsWith('image/')) {
     handleFileSelect(file)
   }
 }
@@ -212,7 +212,7 @@ onMounted(() => {
   pasteHandler = (e: ClipboardEvent) => {
     if (props.disabled) return
     const file = e.clipboardData?.files?.[0]
-    if (file && file.type.startsWith('image/')) {
+    if (file?.type.startsWith('image/')) {
       handleFileSelect(file)
     }
   }

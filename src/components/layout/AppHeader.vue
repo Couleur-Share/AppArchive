@@ -67,15 +67,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue'
-import { RotateCcw, Settings } from 'lucide-vue-next'
 import { gsap } from 'gsap'
+import { RotateCcw, Settings } from 'lucide-vue-next'
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { useToast } from '../../composables/useToast'
+import { openSignIn as clerkOpenSignIn, signOut } from '../../lib/clerk'
+import logger from '../../utils/logger'
+import UserMenu from '../auth/UserMenu.vue'
 import SearchBar from '../common/SearchBar.vue'
 import ThemeToggle from '../common/ThemeToggle.vue'
-import UserMenu from '../auth/UserMenu.vue'
-import { signOut, openSignIn as clerkOpenSignIn } from '../../lib/clerk'
-import { useToast } from '../../composables/useToast'
-import logger from '../../utils/logger'
 
 // 使用 useToast 组合式函数
 const { showToast } = useToast()

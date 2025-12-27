@@ -122,15 +122,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { ArrowUpRight, Edit, Trash, MoreVertical } from 'lucide-vue-next'
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { gsap } from 'gsap'
+import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { isSignedIn } from '../lib/clerk'
+import { getErrorPlaceholder, getIconUrl, preloadIcon } from '../services/localIconCache'
 import type { Software } from '../types'
-import { getIconUrl, getErrorPlaceholder, preloadIcon } from '../services/localIconCache'
 import logger from '../utils/logger'
 import SystemIcon from './SystemIcon.vue'
-import { isSignedIn } from '../lib/clerk'
 
 const props = defineProps<{
   software: Software

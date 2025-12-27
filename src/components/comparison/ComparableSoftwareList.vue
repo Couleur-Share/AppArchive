@@ -33,9 +33,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import type { Software } from '../../types'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getIconUrl } from '../../services/localIconCache'
+import type { Software } from '../../types'
 
 const props = defineProps<{
   items: Software[]
@@ -44,9 +44,7 @@ const props = defineProps<{
   rowHeight?: number
 }>()
 
-defineEmits<{
-  (e: 'toggle', sw: Software): void
-}>()
+defineEmits<(e: 'toggle', sw: Software) => void>()
 
 const listRef = ref<HTMLElement | null>(null)
 const scrollTop = ref(0)
