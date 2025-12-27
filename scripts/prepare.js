@@ -55,8 +55,9 @@ async function main() {
   execSync('npm cache clean --force', { stdio: 'inherit', cwd: rootDir });
   
   // 3. 安装完整依赖（包括 devDependencies，用于构建）
+  // 使用 --ignore-scripts 防止递归调用（如果此脚本被配置为 prepare 钩子）
   console.log('📥 安装完整依赖（包括 devDependencies）...');
-  execSync('npm install --no-audit --no-fund', { 
+  execSync('npm install --no-audit --no-fund --ignore-scripts', { 
     stdio: 'inherit', 
     cwd: rootDir 
   });

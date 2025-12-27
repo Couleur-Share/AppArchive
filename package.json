@@ -4,16 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"yellow,cyan\" \"npm run server\" \"vite\"",
     "build": "vite build",
-    "preview": "vite preview",
     "server": "node server/index.js",
-    "dev:full": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"yellow,cyan\" \"npm run server\" \"npm run dev\"",
-    "start": "node scripts/start.js",
-    "prepare": "node scripts/prepare.js",
-    "download-icons": "node scripts/download-icons.js",
-    "migrate:up": "node scripts/run-migrations.js up",
-    "migrate:down": "node scripts/run-migrations.js down"
+    "start": "node server/index.js",
+    "deploy": "node scripts/prepare.js"
   },
   "dependencies": {
     "@clerk/clerk-js": "^5.32.0",
