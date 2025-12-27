@@ -580,7 +580,7 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 				: {}),
 		};
 
-		const loopMessages = [...messages];
+		let loopMessages = [...messages];
 		let safety = 0;
 		while (true) {
 			const response = await fetch(`${KIMI_API_BASE}/chat/completions`, {

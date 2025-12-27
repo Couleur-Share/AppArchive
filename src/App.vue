@@ -823,14 +823,14 @@ const isEllipsis = (page: number) => {
 img,
 button,
 .transition-none {
-  transition: none;
+  transition: none !important;
 }
 
 /* 只针对图标链接的样式 */
 .icon-link > svg {
-  animation: none;
-  transform: none;
-  background: none;
+  animation: none !important;
+  transform: none !important;
+  background: none !important;
 }
 
 /* 确保渐变效果不被其他样式覆盖 */
@@ -838,7 +838,7 @@ button,
   background-image: linear-gradient(
     to bottom right,
     var(--tw-gradient-stops)
-  );
+  ) !important;
 }
 
 .category-move, /* 应用于移动中的元素 */
@@ -876,7 +876,7 @@ button,
 /* 确保动画不会影响性能 */
 @media (prefers-reduced-motion: reduce) {
   .animate__animated {
-    animation: none;
+    animation: none !important;
   }
 }
 

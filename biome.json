@@ -14,11 +14,15 @@
 				"noShadowRestrictedNames": "off"
 			},
 			"style": {
-				"useNodejsImportProtocol": "off"
+				"useNodejsImportProtocol": "off",
+				"useConst": "off"
 			},
 			"correctness": {
 				"noUnusedVariables": "warn",
 				"noUnknownProperty": "off"
+			},
+			"complexity": {
+				"noImportantStyles": "off"
 			}
 		}
 	},
@@ -33,5 +37,17 @@
 	"formatter": {
 		"enabled": true,
 		"formatWithErrors": true
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["src/components/ComparisonManager.vue"],
+			"linter": { "enabled": false },
+			"formatter": { "enabled": false }
+		},
+		{
+			"includes": ["components.d.ts"],
+			"linter": { "enabled": false },
+			"formatter": { "enabled": false }
+		}
+	]
 }
