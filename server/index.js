@@ -20,11 +20,9 @@ import {
 import { handleDatabaseError, pool, testConnection } from "./database.js";
 import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
 
-// 加载环境变量
-// 不使用 override，这样系统环境变量（如 1Panel/Docker 设置的）优先于 .env 文件
-// 优先级：系统环境变量 > .env.local > .env
-dotenv.config({ path: ".env.local" }); // 先读 .env.local（若存在）
-dotenv.config(); // 再读 .env（仅填充未设置的变量）
+// 加载环境变量（允许覆盖已存在的变量，避免系统级 PG* 干扰）
+dotenv.config({ override: true }); // 默认读取 .env
+dotenv.config({ path: ".env.local", override: true }); // 额外读取 .env.local（若存在）
 
 // 兼容前端变量名：若仅设置了 VITE_KIMI_API_KEY，则作为后端 KIMI_API_KEY 使用
 if (!process.env.KIMI_API_KEY && process.env.VITE_KIMI_API_KEY) {
@@ -45,31 +43,14 @@ app.use(
 // CORS: 仅生产环境限制来源
 const allowedOrigins = (process.env.CORS_ORIGINS || "")
 	.split(",")
-	.map((s) => s.trim().replace(/\/$/, "")) // 去掉尾部斜杠
+	.map((s) => s.trim())
 	.filter(Boolean);
-
-console.log(
-	`🔒 CORS 配置: ${allowedOrigins.length ? allowedOrigins.join(", ") : "允许所有来源"}`,
-);
-
 app.use(
 	cors({
 		origin: (origin, callback) => {
-			// 无 Origin 头（如服务器间请求、同源请求）直接放行
 			if (!origin) return callback(null, true);
-
-			// 未配置白名单时允许所有来源
-			if (!allowedOrigins.length) return callback(null, true);
-
-			// 标准化 origin（去掉尾部斜杠）
-			const normalizedOrigin = origin.replace(/\/$/, "");
-
-			if (allowedOrigins.includes(normalizedOrigin)) {
+			if (!allowedOrigins.length || allowedOrigins.includes(origin))
 				return callback(null, true);
-			}
-
-			// 调试日志：打印被拒绝的 origin
-			console.warn(`⚠️ CORS 拒绝: origin=${origin}, 允许列表=${allowedOrigins.join(",")}`);
 			return callback(new Error("Not allowed by CORS"));
 		},
 	}),

@@ -2,9 +2,8 @@ import dotenv from "dotenv";
 import { Pool } from "pg";
 
 // ESM import 会在 index.js 的 dotenv.config() 之前执行，因此这里需先加载环境变量
-// 不使用 override，这样系统环境变量（如 1Panel/Docker 设置的）优先于 .env 文件
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+dotenv.config({ override: true });
+dotenv.config({ path: ".env.local", override: true });
 
 const useConnectionString = process.env.DATABASE_URL;
 
