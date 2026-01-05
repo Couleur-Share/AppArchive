@@ -558,6 +558,7 @@ import { CheckCircle2, Copy, Edit, ExternalLink, FileSearch, Plus, X, XCircle } 
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 import { getIconUrl } from '../services/localIconCache'
+import { buildApiUrl } from '../services/apiBase'
 import type { DownloadLink, SecretItem, Software } from '../types'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
@@ -860,7 +861,7 @@ const showSecretToast = () => {
 }
 
 const fetchSecretValue = async (secretId: string) => {
-  const res = await fetch(`${location.origin.replace(/:\d+$/, '')}:${import.meta.env.VITE_SERVER_PORT || '3001'}/api/software/${props.software.id}/secret/${secretId}`)
+  const res = await fetch(buildApiUrl(`/software/${props.software.id}/secret/${secretId}`))
   if (!res.ok) throw new Error('获取密钥失败')
   const data = await res.json()
   return data.value as string

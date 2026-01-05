@@ -4,10 +4,15 @@ export const getApiBase = () => {
 	}
 
 	if (typeof window !== "undefined") {
-		const host = window.location.hostname;
-		if (host !== "localhost" && host !== "127.0.0.1") {
-			return `http://${host}:3001/api`;
+		const { hostname } = window.location;
+
+		// 本地开发：前端通常跑在 5173，后端跑在 3001
+		if (hostname === "localhost" || hostname === "127.0.0.1") {
+			return "http://localhost:3001/api";
 		}
+
+		// 线上默认走同源（避免 https 页面去请求 http 导致 Mixed Content）
+		return `${window.location.origin}/api`;
 	}
 
 	return "http://localhost:3001/api";

@@ -47,7 +47,8 @@
 # 后端服务
 PORT=3001
 JSON_LIMIT=1mb
-CORS_ORIGINS=http://localhost:5173
+# 多个来源用逗号分隔；生产环境请把你的 https 域名也加上
+CORS_ORIGINS=http://localhost:5173,https://your-domain.com
 
 # PostgreSQL（或使用 DATABASE_URL）
 PGHOST=localhost
@@ -71,7 +72,8 @@ KIMI_API_BASE=https://api.moonshot.cn/v1
 
 # 认证
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
-VITE_API_BASE_URL=http://your-server-ip:3001/api
+# 生产环境（HTTPS）推荐使用同源 /api（需在反向代理中把 /api 转发到后端 3001）
+VITE_API_BASE_URL=/api
 ```
 
 > 密钥曾经入库的请立即吊销旧密钥并清理 Git 历史。后台仅接受带 `X-User-Id` 的请求。
@@ -138,6 +140,12 @@ VITE_API_BASE_URL=http://your-server-ip:3001/api
   - 解决：已在本仓库移除相关导入与类型声明。如确需使用请安装 `npm i vuenime` 并在 `src/main.ts` 中 `app.use(Vuenime)`。
 - 端口被占用（如 5173/3001）：结束占用进程或修改端口后重启。
   - Windows 可在 PowerShell 使用 `Get-Process -Id <PID>` / `Stop-Process -Id <PID>`。
+
+### HTTPS 域名访问提示（Mixed Content）
+- 若你用 `https://your-domain.com` 访问前端，但前端去请求 `http://.../api`，浏览器会拦截并出现“获取数据失败 / Mixed Content”。
+- 生产环境推荐做法：
+  - **域名(443)反向代理到后端 3001**（或至少把 `/api` 反代到 3001）
+  - 构建时设置 `VITE_API_BASE_URL=/api`，然后重新构建再部署
 
 ## 📝 数据模型
 
