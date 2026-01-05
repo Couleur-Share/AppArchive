@@ -43,14 +43,31 @@ app.use(
 // CORS: 仅生产环境限制来源
 const allowedOrigins = (process.env.CORS_ORIGINS || "")
 	.split(",")
-	.map((s) => s.trim())
+	.map((s) => s.trim().replace(/\/$/, "")) // 去掉尾部斜杠
 	.filter(Boolean);
+
+console.log(
+	`🔒 CORS 配置: ${allowedOrigins.length ? allowedOrigins.join(", ") : "允许所有来源"}`,
+);
+
 app.use(
 	cors({
 		origin: (origin, callback) => {
+			// 无 Origin 头（如服务器间请求、同源请求）直接放行
 			if (!origin) return callback(null, true);
-			if (!allowedOrigins.length || allowedOrigins.includes(origin))
+
+			// 未配置白名单时允许所有来源
+			if (!allowedOrigins.length) return callback(null, true);
+
+			// 标准化 origin（去掉尾部斜杠）
+			const normalizedOrigin = origin.replace(/\/$/, "");
+
+			if (allowedOrigins.includes(normalizedOrigin)) {
 				return callback(null, true);
+			}
+
+			// 调试日志：打印被拒绝的 origin
+			console.warn(`⚠️ CORS 拒绝: origin=${origin}, 允许列表=${allowedOrigins.join(",")}`);
 			return callback(new Error("Not allowed by CORS"));
 		},
 	}),
