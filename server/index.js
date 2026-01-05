@@ -20,9 +20,11 @@ import {
 import { handleDatabaseError, pool, testConnection } from "./database.js";
 import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
 
-// 加载环境变量（允许覆盖已存在的变量，避免系统级 PG* 干扰）
-dotenv.config({ override: true }); // 默认读取 .env
-dotenv.config({ path: ".env.local", override: true }); // 额外读取 .env.local（若存在）
+// 加载环境变量
+// 不使用 override，这样系统环境变量（如 1Panel/Docker 设置的）优先于 .env 文件
+// 优先级：系统环境变量 > .env.local > .env
+dotenv.config({ path: ".env.local" }); // 先读 .env.local（若存在）
+dotenv.config(); // 再读 .env（仅填充未设置的变量）
 
 // 兼容前端变量名：若仅设置了 VITE_KIMI_API_KEY，则作为后端 KIMI_API_KEY 使用
 if (!process.env.KIMI_API_KEY && process.env.VITE_KIMI_API_KEY) {
