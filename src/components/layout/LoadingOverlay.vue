@@ -21,7 +21,7 @@
             <div class="flex items-center gap-3">
               <div
                 ref="loadingIconRef"
-                class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+                class="w-10 h-10 bg-gray-700 dark:bg-gray-600 rounded-xl flex items-center justify-center"
               >
                 <svg
                   class="w-5 h-5 text-white animate-spin"
@@ -43,7 +43,7 @@
             </div>
             <div
               ref="statusDotRef"
-              class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"
+              class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"
             ></div>
           </div>
 
@@ -53,7 +53,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transform -translate-x-full"
+                class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
               ></div>
             </div>
             <div
@@ -61,7 +61,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transform -translate-x-full"
+                class="h-full bg-gray-500 rounded-full transform -translate-x-full"
               ></div>
             </div>
             <div
@@ -69,7 +69,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full transform -translate-x-full"
+                class="h-full bg-gray-400 rounded-full transform -translate-x-full"
               ></div>
             </div>
           </div>
@@ -79,7 +79,7 @@
       <!-- 文本信息 -->
       <div class="text-center">
         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          加载中<span ref="dotsRef" class="text-blue-600">...</span>
+          加载中<span ref="dotsRef" class="text-emerald-500">...</span>
         </h3>
         <p
           ref="statusTextRef"
@@ -94,7 +94,7 @@
         >
           <div
             ref="mainProgressRef"
-            class="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transform -translate-x-full"
+            class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
           ></div>
         </div>
 
@@ -105,21 +105,21 @@
           <div class="flex items-center gap-1">
             <div
               ref="indicator1Ref"
-              class="w-2 h-2 bg-blue-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-emerald-500 rounded-full opacity-30"
             ></div>
             <span>数据加载</span>
           </div>
           <div class="flex items-center gap-1">
             <div
               ref="indicator2Ref"
-              class="w-2 h-2 bg-purple-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-gray-500 rounded-full opacity-30"
             ></div>
             <span>资源准备</span>
           </div>
           <div class="flex items-center gap-1">
             <div
               ref="indicator3Ref"
-              class="w-2 h-2 bg-pink-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-gray-400 rounded-full opacity-30"
             ></div>
             <span>界面渲染</span>
           </div>
