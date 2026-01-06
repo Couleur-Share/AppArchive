@@ -15,7 +15,7 @@
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4">
+        <div class="flex min-h-full items-center justify-center p-0 sm:p-4">
           <TransitionChild>
             <DialogPanel 
               @click.stop
@@ -23,35 +23,46 @@
               @mouseup.stop
               @pointerdown.stop
               @pointerup.stop
-              class="relative transform overflow-hidden rounded-lg 
+              class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
-                     w-full min-h-[400px] max-h-[90vh]
+                     w-full min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
+                     sm:rounded-lg
                      flex flex-col"
               :class="{
-                'max-w-2xl': activeTab !== 'comparison',
-                'max-w-[95vw] lg:max-w-6xl xl:max-w-7xl': activeTab === 'comparison'
+                'sm:max-w-2xl': activeTab !== 'comparison',
+                'sm:max-w-[95vw] lg:max-w-6xl xl:max-w-7xl': activeTab === 'comparison'
               }"
               v-gsap="{ y: 10, duration: 0.24, ease: 'power2.out', force3D: true, to: { y: 0, duration: 0.24, ease: 'power2.out', force3D: true } }"
             >
               <!-- 标题栏 -->
-              <div class="flex items-start justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <div class="flex items-center gap-4 flex-1">
-                  <div class="w-12 h-12 rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 gap-3 sm:gap-0">
+                <div class="flex items-center gap-3 sm:gap-4 flex-1">
+                  <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
                     <img :src="getIconUrl(software.icon)" :alt="software.name" class="w-full h-full object-cover" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <DialogTitle as="h3" class="text-2xl font-bold text-gray-900 dark:text-white">
+                    <DialogTitle as="h3" class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                       {{ software.name }}
                     </DialogTitle>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                       {{ software.category }}
                     </p>
                   </div>
+                  <!-- 移动端关闭按钮 -->
+                  <button
+                    @click="$emit('update:isOpen', false)"
+                    class="sm:hidden p-2 rounded-lg transition-all duration-200 
+                           text-gray-600 dark:text-gray-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700"
+                    aria-label="关闭"
+                  >
+                    <X class="h-5 w-5" />
+                  </button>
                 </div>
-                <div class="flex items-center gap-3 ml-4">
+                <div class="flex items-center gap-2 sm:gap-3 sm:ml-4 flex-wrap sm:flex-nowrap">
                   <!-- 授权类型标签 -->
-                  <span class="px-3 py-1.5 rounded-full text-sm font-medium"
+                  <span class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium"
                     :class="{
                       'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300': software.license === '收费' || software.license === '已购',
                       'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-700 dark:text-cyan-200': software.license === '免费',
@@ -60,16 +71,16 @@
                     {{ software.license }}
                   </span>
                   <!-- 支持系统 -->
-                  <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <span>{{ (software.systems || []).slice(0, 2).join(' · ') }}</span>
                   </div>
-                  <!-- 关闭按钮 -->
+                  <!-- 桌面端关闭按钮 -->
                   <button
                     @click="$emit('update:isOpen', false)"
-                    class="p-2 rounded-lg transition-all duration-200 
+                    class="hidden sm:block p-2 rounded-lg transition-all duration-200 
                            text-gray-600 dark:text-gray-400
                            hover:bg-gray-100 dark:hover:bg-gray-700 
                            hover:text-gray-900 dark:hover:text-white
@@ -83,12 +94,12 @@
               </div>
 
               <!-- 导航标签页 -->
-              <div class="flex items-center gap-1 px-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center gap-0.5 sm:gap-1 px-3 sm:px-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar">
                 <button
                   v-for="tab in tabs"
                   :key="tab.id"
                   @click="activeTab = tab.id"
-                  class="px-4 py-3 text-sm font-medium transition-colors duration-200 relative"
+                  class="px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-colors duration-200 relative whitespace-nowrap flex-shrink-0"
                   :class="[
                     activeTab === tab.id
                       ? 'text-gray-900 dark:text-white'
@@ -104,21 +115,21 @@
               </div>
 
               <!-- 内容区域 -->
-              <div class="flex-1 overflow-y-auto p-6">
+              <div class="flex-1 overflow-y-auto p-4 sm:p-6">
                 <!-- 概览页 -->
-                <div v-if="activeTab === 'overview'" class="space-y-6">
+                <div v-if="activeTab === 'overview'" class="space-y-4 sm:space-y-6">
                   <!-- 产品描述 -->
                   <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">产品描述</h3>
-                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap break-words">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3">产品描述</h3>
+                    <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap break-words">
                       {{ software.description || '暂无描述' }}
                     </p>
                   </div>
 
                   <!-- 核心特性 -->
                   <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">核心特性</h3>
-                    <div class="grid grid-cols-2 gap-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">核心特性</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div
                         v-for="(feature, index) in coreFeatures"
                         :key="index"

@@ -1,11 +1,11 @@
 <template>
-  <div class="relative w-48">
+  <div class="relative w-36 sm:w-48 lg:w-56">
     <input
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       type="text"
       placeholder="搜索软件..."
-      class="w-full px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-gray-800 border border-transparent focus:bg-white dark:focus:bg-gray-900 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
+      class="w-full px-3 sm:px-4 py-2 rounded-xl text-sm bg-gray-100 dark:bg-gray-800 border border-transparent focus:bg-white dark:focus:bg-gray-900 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
     />
     <button
       v-show="modelValue"

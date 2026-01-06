@@ -12,7 +12,7 @@
 
     <div class="w-full relative z-30">
       <div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 mb-12">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-8 mb-6 sm:mb-12">
           <div class="flex-1 min-w-0">
             <CategoryFilter
               v-model="activeCategory"
@@ -25,10 +25,10 @@
           </div>
 
           <!-- 布局切换按钮 -->
-          <div class="flex items-center gap-4 shrink-0">
+          <div class="flex items-center gap-2 sm:gap-4 shrink-0">
             <button
               @click="toggleViewMode"
-              class="w-11 h-11 rounded-xl flex items-center justify-center 
+              class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center 
                      bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
                      border border-gray-200 dark:border-gray-800 
                      text-gray-600 dark:text-gray-300 
@@ -36,14 +36,14 @@
                      transition-all duration-200"
               title="切换布局"
             >
-              <LayoutGrid v-if="viewMode === 'grid'" class="w-5 h-5" />
-              <List v-else class="w-5 h-5" />
+              <LayoutGrid v-if="viewMode === 'grid'" class="w-4 h-4 sm:w-5 sm:h-5" />
+              <List v-else class="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <button
               v-if="canEditSoftware"
               @click="showAddDialog = true"
-              class="w-11 h-11 rounded-xl flex items-center justify-center 
+              class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center 
                      bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
                      border border-gray-200 dark:border-gray-800 
                      text-gray-600 dark:text-gray-300 
@@ -51,7 +51,7 @@
                      transition-all duration-200"
               title="添加软件"
             >
-              <Plus class="h-5 w-5" />
+              <Plus class="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
