@@ -26,7 +26,7 @@
               class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
-                     w-screen sm:w-[680px] h-screen sm:h-[80vh]
+                     w-screen sm:w-[85vw] sm:max-w-[900px] h-screen sm:h-[80vh]
                      sm:rounded-lg
                      flex flex-col"
               v-gsap="{ y: 10, duration: 0.24, ease: 'power2.out', force3D: true, to: { y: 0, duration: 0.24, ease: 'power2.out', force3D: true } }"
