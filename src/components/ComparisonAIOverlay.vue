@@ -21,7 +21,7 @@
             <div class="flex items-center gap-3">
               <div
                 ref="aiIconRef"
-                class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+                class="w-10 h-10 bg-gray-700 dark:bg-gray-600 rounded-xl flex items-center justify-center"
               >
                 <span class="text-white font-bold text-lg">AI</span>
               </div>
@@ -46,7 +46,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transform -translate-x-full"
+                class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
               ></div>
             </div>
             <div
@@ -54,7 +54,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transform -translate-x-full"
+                class="h-full bg-gray-500 rounded-full transform -translate-x-full"
               ></div>
             </div>
             <div
@@ -62,7 +62,7 @@
               class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
             >
               <div
-                class="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full transform -translate-x-full"
+                class="h-full bg-gray-400 rounded-full transform -translate-x-full"
               ></div>
             </div>
           </div>
@@ -71,7 +71,7 @@
         <!-- 浮动数据卡片 - 针对对比分析定制 -->
         <div
           ref="dataCard1Ref"
-          class="absolute -top-4 -left-4 w-16 h-20 bg-blue-500 rounded-lg shadow-lg opacity-0 transform rotate-12"
+          class="absolute -top-4 -left-4 w-16 h-20 bg-emerald-500 rounded-lg shadow-lg opacity-0 transform rotate-12"
         >
           <div class="p-2 text-white text-xs">
             <div class="font-bold">功能</div>
@@ -81,7 +81,7 @@
 
         <div
           ref="dataCard2Ref"
-          class="absolute -top-4 -right-4 w-16 h-20 bg-purple-500 rounded-lg shadow-lg opacity-0 transform -rotate-12"
+          class="absolute -top-4 -right-4 w-16 h-20 bg-gray-600 rounded-lg shadow-lg opacity-0 transform -rotate-12"
         >
           <div class="p-2 text-white text-xs">
             <div class="font-bold">性能</div>
@@ -91,7 +91,7 @@
 
         <div
           ref="dataCard3Ref"
-          class="absolute -bottom-4 -left-4 w-16 h-20 bg-pink-500 rounded-lg shadow-lg opacity-0 transform -rotate-6"
+          class="absolute -bottom-4 -left-4 w-16 h-20 bg-gray-500 rounded-lg shadow-lg opacity-0 transform -rotate-6"
         >
           <div class="p-2 text-white text-xs">
             <div class="font-bold">差异</div>
@@ -101,7 +101,7 @@
 
         <div
           ref="dataCard4Ref"
-          class="absolute -bottom-4 -right-4 w-16 h-20 bg-indigo-500 rounded-lg shadow-lg opacity-0 transform rotate-6"
+          class="absolute -bottom-4 -right-4 w-16 h-20 bg-gray-700 rounded-lg shadow-lg opacity-0 transform rotate-6"
         >
           <div class="p-2 text-white text-xs">
             <div class="font-bold">推荐</div>
@@ -113,7 +113,7 @@
       <!-- 文本信息 -->
       <div class="text-center">
         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          AI 对比分析中<span ref="dotsRef" class="text-blue-600">...</span>
+          AI 对比分析中<span ref="dotsRef" class="text-emerald-500">...</span>
         </h3>
         <p
           ref="statusTextRef"
@@ -128,7 +128,7 @@
         >
           <div
             ref="mainProgressRef"
-            class="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transform -translate-x-full"
+            class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
           ></div>
         </div>
 
@@ -139,21 +139,21 @@
           <div class="flex items-center gap-1">
             <div
               ref="indicator1Ref"
-              class="w-2 h-2 bg-blue-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-emerald-500 rounded-full opacity-30"
             ></div>
             <span>数据收集</span>
           </div>
           <div class="flex items-center gap-1">
             <div
               ref="indicator2Ref"
-              class="w-2 h-2 bg-purple-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-gray-500 rounded-full opacity-30"
             ></div>
             <span>对比分析</span>
           </div>
           <div class="flex items-center gap-1">
             <div
               ref="indicator3Ref"
-              class="w-2 h-2 bg-pink-500 rounded-full opacity-30"
+              class="w-2 h-2 bg-gray-400 rounded-full opacity-30"
             ></div>
             <span>结果生成</span>
           </div>
