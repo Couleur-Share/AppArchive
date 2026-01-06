@@ -26,7 +26,7 @@
               class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
-                     w-full h-screen sm:h-auto min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
+                     w-screen sm:w-full max-w-none h-screen sm:h-auto min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
                      sm:rounded-lg
                      flex flex-col"
               :class="{
@@ -217,7 +217,7 @@
                           v-for="sw in [software, ...comparedSoftwares]"
                           :key="sw.id"
                           :class="[
-                            'compare-card flex-none flex flex-col gap-4 p-5 rounded-2xl border shadow-sm transition-shadow bg-white dark:bg-gray-800 min-w-[320px] max-w-[360px]',
+                            'compare-card flex-none flex flex-col gap-4 p-4 sm:p-5 rounded-2xl border shadow-sm transition-shadow bg-white dark:bg-gray-800 w-[85vw] sm:min-w-[320px] sm:max-w-[360px]',
                             'border-gray-200 dark:border-gray-700'
                           ]"
                         >
