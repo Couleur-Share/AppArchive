@@ -28,7 +28,8 @@
                      text-left shadow-level3 will-change-transform will-change-opacity
                      w-screen sm:w-full max-w-none h-screen sm:h-auto min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
                      sm:rounded-lg
-                     flex flex-col"
+                     flex flex-col
+                     transition-[max-width] duration-300 ease-out"
               :class="{
                 'sm:max-w-2xl': activeTab !== 'comparison',
                 'sm:max-w-[95vw] lg:max-w-6xl xl:max-w-7xl': activeTab === 'comparison'
