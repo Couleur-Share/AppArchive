@@ -15,7 +15,7 @@
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-0 sm:p-4">
+        <div class="flex min-h-full items-start sm:items-center justify-center p-0 sm:p-4">
           <TransitionChild>
             <DialogPanel 
               @click.stop
@@ -26,7 +26,7 @@
               class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
-                     w-full min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
+                     w-full h-screen sm:h-auto min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
                      sm:rounded-lg
                      flex flex-col"
               :class="{
