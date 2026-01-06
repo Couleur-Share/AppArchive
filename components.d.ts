@@ -48,8 +48,8 @@ declare module 'vue' {
     SystemIcon: typeof import('./src/components/SystemIcon.vue')['default']
     TagBadge: typeof import('./src/components/common/TagBadge.vue')['default']
     ThemeToggle: typeof import('./src/components/common/ThemeToggle.vue')['default']
-    Toast: typeof import('./src/components/common/Toast.vue')['default']
+    Toast: typeof import('./src/components/Toast.vue')['default']
     UserMenu: typeof import('./src/components/auth/UserMenu.vue')['default']
-    VirtualSoftwareList: typeof import('./src/components/software/VirtualSoftwareList.vue')['default']
+    VirtualSoftwareList: typeof import('./src/components/VirtualSoftwareList.vue')['default']
   }
 }
