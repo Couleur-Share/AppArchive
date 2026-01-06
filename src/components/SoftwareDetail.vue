@@ -90,7 +90,7 @@
               </div>
 
               <!-- 导航标签页 -->
-              <div class="flex items-center gap-0.5 sm:gap-1 px-3 sm:px-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar">
+              <div class="flex items-center gap-0.5 sm:gap-1 px-3 sm:px-6 py-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar shrink-0">
                 <button
                   v-for="tab in tabs"
                   :key="tab.id"
