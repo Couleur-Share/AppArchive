@@ -488,9 +488,11 @@
                     <ExternalLink class="w-4 h-4" />
                     访问官网
                   </BaseButton>
+                  <!-- 移动端隐藏复制Markdown和分享图片按钮 -->
                   <BaseButton
                     @click="copyMarkdownCard"
                     variant="secondary"
+                    class="hidden sm:inline-flex"
                   >
                     <Copy class="w-4 h-4" />
                     复制 Markdown
@@ -498,6 +500,7 @@
                   <BaseButton
                     @click="generateShareImage"
                     variant="secondary"
+                    class="hidden sm:inline-flex"
                   >
                     预览分享图片
                   </BaseButton>
