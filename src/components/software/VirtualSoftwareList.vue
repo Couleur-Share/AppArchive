@@ -184,8 +184,8 @@
               {{ item.license }}
             </span>
             
-            <!-- 操作按钮组 (GSAP 动画控制) -->
-            <div class="action-buttons w-0 overflow-hidden opacity-0 flex items-center justify-end gap-1 ml-0" @click.stop>
+            <!-- 操作按钮组 (GSAP 动画控制) - 移动端隐藏 -->
+            <div class="action-buttons w-0 overflow-hidden opacity-0 hidden sm:flex items-center justify-end gap-1 ml-0" @click.stop>
               <button 
                 v-if="item.website"
                 @click="openWebsite(item.website)"
