@@ -13,20 +13,11 @@
       />
     </div>
   </button>
-
-  <Teleport to="body">
-    <div
-      v-if="isAnimating"
-      class="theme-spread-overlay"
-      :class="spreadClass"
-      :style="spreadStyle"
-    ></div>
-  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { Moon, Sun } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -35,86 +26,49 @@ const props = defineProps<{
 const emit = defineEmits<(e: 'update:modelValue', value: boolean) => void>()
 
 const toggleBtn = ref<HTMLButtonElement | null>(null)
-const isAnimating = ref(false)
-const spreadOrigin = ref({ x: 0, y: 0 })
-const targetDark = ref(false)
 
-const spreadClass = computed(() => targetDark.value ? 'to-dark' : 'to-light')
-
-const spreadStyle = computed(() => {
-  const maxSize = Math.max(window.innerWidth, window.innerHeight) * 2.5
-  return {
-    '--spread-x': `${spreadOrigin.value.x}px`,
-    '--spread-y': `${spreadOrigin.value.y}px`,
-    '--spread-size': `${maxSize}px`,
-  }
-})
-
-const handleToggle = (event: MouseEvent) => {
+const handleToggle = async (event: MouseEvent) => {
   const rect = toggleBtn.value?.getBoundingClientRect()
-  if (rect) {
-    spreadOrigin.value = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    }
+  if (!rect) {
+    emit('update:modelValue', !props.modelValue)
+    return
   }
 
-  targetDark.value = !props.modelValue
-  isAnimating.value = true
+  const x = rect.left + rect.width / 2
+  const y = rect.top + rect.height / 2
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  )
 
-  setTimeout(() => {
+  const supportsViewTransitions = 'startViewTransition' in document
+
+  if (supportsViewTransitions) {
+    const transition = (document as any).startViewTransition(() => {
+      emit('update:modelValue', !props.modelValue)
+    })
+
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ]
+
+      document.documentElement.animate(
+        {
+          clipPath: props.modelValue ? clipPath : clipPath.reverse(),
+        },
+        {
+          duration: 500,
+          easing: 'ease-in-out',
+          pseudoElement: props.modelValue
+            ? '::view-transition-new(root)'
+            : '::view-transition-old(root)',
+        }
+      )
+    })
+  } else {
     emit('update:modelValue', !props.modelValue)
-  }, 300)
-
-  setTimeout(() => {
-    isAnimating.value = false
-  }, 600)
+  }
 }
 </script>
-
-<style scoped>
-.theme-spread-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.theme-spread-overlay::before {
-  content: '';
-  position: absolute;
-  left: var(--spread-x);
-  top: var(--spread-y);
-  width: var(--spread-size);
-  height: var(--spread-size);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  animation: spread 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.theme-spread-overlay.to-dark::before {
-  background: radial-gradient(circle, #111827 0%, #030712 100%);
-}
-
-.theme-spread-overlay.to-light::before {
-  background: radial-gradient(circle, #ffffff 0%, #f3f4f6 100%);
-}
-
-@keyframes spread {
-  0% {
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
-}
-</style>
