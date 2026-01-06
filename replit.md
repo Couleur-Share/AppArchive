@@ -50,6 +50,16 @@ Uses Replit's built-in PostgreSQL database. Tables:
 - `VITE_API_BASE_URL` - API base URL (default: /api)
 - `DATABASE_URL` - PostgreSQL connection string (auto-configured)
 
+## Mobile Responsiveness
+The app is fully responsive with mobile-optimized features:
+- **Header**: Collapsible search bar on mobile, compact navigation
+- **View Mode**: Defaults to list mode on mobile (≤640px), grid on desktop
+- **Toggle Button**: Hidden on mobile since list mode is enforced
+- **Detail Dialog**: Full-screen on mobile with scrollable tabs
+- **Touch Targets**: Minimum 36px for better touch interaction
+
+User preferences saved in localStorage override the mobile default.
+
 ## Deployment
 For production, build and run:
 ```bash

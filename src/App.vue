@@ -26,9 +26,10 @@
 
           <!-- 布局切换按钮 -->
           <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+            <!-- 移动端隐藏切换按钮，默认使用列表模式 -->
             <button
               @click="toggleViewMode"
-              class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center 
+              class="hidden sm:flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center 
                      bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
                      border border-gray-200 dark:border-gray-800 
                      text-gray-600 dark:text-gray-300 
@@ -721,6 +722,8 @@ const updateSettings = (settings: {
 onMounted(async () => {
   // 读取设置
   const savedSettings = localStorage.getItem('app-settings')
+  let hasViewModePreference = false
+  
   if (savedSettings) {
     try {
       const settings = JSON.parse(savedSettings)
@@ -731,9 +734,18 @@ onMounted(async () => {
       }
       if (settings.viewMode) {
         viewMode.value = settings.viewMode
+        hasViewModePreference = true
       }
     } catch (e) {
       logger.error('读取设置失败', e)
+    }
+  }
+  
+  // 移动端默认使用列表模式（仅当没有保存的偏好时）
+  if (!hasViewModePreference) {
+    const isMobile = window.matchMedia('(max-width: 640px)').matches
+    if (isMobile) {
+      viewMode.value = 'list'
     }
   }
   
