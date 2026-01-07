@@ -29,7 +29,7 @@ export async function fetchWithRetry(
 			// 针对 401/403 提供更明确的提示
 			if (response.status === 401 || response.status === 403) {
 				throw new AppError(
-					`认证失败(${response.status})，请检查 VITE_KIMI_API_KEY 是否正确以及是否拥有调用权限。${detail ? ` 详情: ${detail}` : ""}`,
+					`认证失败(${response.status})，请检查 PERPLEXITY_API_KEY 是否正确以及是否拥有调用权限。${detail ? ` 详情: ${detail}` : ""}`,
 					ErrorCode.API_ERROR,
 					response.status,
 				);

@@ -18,11 +18,11 @@ export interface AIConfig {
 
 // 默认配置（从环境变量或代码中读取）
 const defaultConfig: AIConfig = {
-	apiBase: import.meta.env.VITE_KIMI_API_BASE || "https://api.moonshot.cn/v1",
-	apiKey: import.meta.env.VITE_KIMI_API_KEY || "",
-	model: import.meta.env.VITE_KIMI_MODEL || "kimi-k2-turbo-preview",
-	temperature: Number(import.meta.env.VITE_KIMI_TEMPERATURE || 0.7),
-	maxTokens: Number(import.meta.env.VITE_KIMI_MAX_TOKENS || 1024),
+	apiBase: import.meta.env.VITE_PERPLEXITY_API_BASE || "https://api.perplexity.ai",
+	apiKey: import.meta.env.VITE_PERPLEXITY_API_KEY || "",
+	model: import.meta.env.VITE_PERPLEXITY_MODEL || "sonar",
+	temperature: Number(import.meta.env.VITE_PERPLEXITY_TEMPERATURE || 0.7),
+	maxTokens: Number(import.meta.env.VITE_PERPLEXITY_MAX_TOKENS || 1024),
 	prompts: {
 		softwareAnalysis: `请基于下列软件信息，输出用于快速决策的精准优缺点清单（准确性优先，不要凑数，不要长篇大论）：
 名称：{name}

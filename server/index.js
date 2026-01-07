@@ -24,9 +24,9 @@ import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
 dotenv.config({ override: true }); // 默认读取 .env
 dotenv.config({ path: ".env.local", override: true }); // 额外读取 .env.local（若存在）
 
-// 兼容前端变量名：若仅设置了 VITE_KIMI_API_KEY，则作为后端 KIMI_API_KEY 使用
-if (!process.env.KIMI_API_KEY && process.env.VITE_KIMI_API_KEY) {
-        process.env.KIMI_API_KEY = process.env.VITE_KIMI_API_KEY;
+// 兼容前端变量名：若仅设置了 VITE_PERPLEXITY_API_KEY，则作为后端 PERPLEXITY_API_KEY 使用
+if (!process.env.PERPLEXITY_API_KEY && process.env.VITE_PERPLEXITY_API_KEY) {
+	process.env.PERPLEXITY_API_KEY = process.env.VITE_PERPLEXITY_API_KEY;
 }
 
 const app = express();
@@ -77,13 +77,11 @@ app.use(
         ),
 );
 
-// ========== Kimi API 配置 ==========
-const KIMI_API_BASE = process.env.KIMI_API_BASE || "https://api.moonshot.cn/v1";
-const KIMI_MODEL = process.env.KIMI_MODEL || "kimi-k2-0905-preview";
-const KIMI_TEMPERATURE = Number(process.env.KIMI_TEMPERATURE ?? 0.6);
-const KIMI_MAX_TOKENS = Number(process.env.KIMI_MAX_TOKENS ?? 1024);
-const KIMI_ENABLE_WEB_SEARCH =
-        String(process.env.KIMI_ENABLE_WEB_SEARCH ?? "true").toLowerCase() === "true";
+// ========== Perplexity API 配置 ==========
+const PERPLEXITY_API_BASE = process.env.PERPLEXITY_API_BASE || "https://api.perplexity.ai";
+const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || "sonar";
+const PERPLEXITY_TEMPERATURE = Number(process.env.PERPLEXITY_TEMPERATURE ?? 0.6);
+const PERPLEXITY_MAX_TOKENS = Number(process.env.PERPLEXITY_MAX_TOKENS ?? 1024);
 
 // 启动时做一次基础连接验证，便于快速发现凭据配置问题
 testConnection().catch((err) => {
@@ -242,39 +240,39 @@ const requireAuth = (req, res, next) => {
 };
 
 // ========== AI 辅助函数 ==========
-const ensureKimiKey = () => {
-        if (!process.env.KIMI_API_KEY) {
-                const error = new Error("后端缺少 KIMI_API_KEY 环境变量");
-                error.status = 500;
-                throw error;
-        }
+const ensurePerplexityKey = () => {
+	if (!process.env.PERPLEXITY_API_KEY) {
+		const error = new Error("后端缺少 PERPLEXITY_API_KEY 环境变量");
+		error.status = 500;
+		throw error;
+	}
 };
 
-const callKimiChatCompletions = async (messages, options = {}) => {
-        ensureKimiKey();
-        const response = await fetch(`${KIMI_API_BASE}/chat/completions`, {
-                method: "POST",
-                headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${process.env.KIMI_API_KEY}`,
-                },
-                body: JSON.stringify({
-                        model: KIMI_MODEL,
-                        messages,
-                        temperature: KIMI_TEMPERATURE,
-                        max_tokens: KIMI_MAX_TOKENS,
-                        ...options,
-                }),
-        });
+const callPerplexityChatCompletions = async (messages, options = {}) => {
+	ensurePerplexityKey();
+	const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+		},
+		body: JSON.stringify({
+			model: PERPLEXITY_MODEL,
+			messages,
+			temperature: PERPLEXITY_TEMPERATURE,
+			max_tokens: PERPLEXITY_MAX_TOKENS,
+			...options,
+		}),
+	});
 
-        if (!response.ok) {
-                const text = await response.text().catch(() => "");
-                const error = new Error(`Kimi API 调用失败: ${response.status} ${text}`);
-                error.status = response.status;
-                throw error;
-        }
+	if (!response.ok) {
+		const text = await response.text().catch(() => "");
+		const error = new Error(`Perplexity API 调用失败: ${response.status} ${text}`);
+		error.status = response.status;
+		throw error;
+	}
 
-        return response.json();
+	return response.json();
 };
 
 // 测试路由
@@ -517,167 +515,87 @@ app.post(
 // ===== AI 代理路由 =====
 // 软件优缺点分析
 app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
-        const startedAt = Date.now();
-        const userId = req.userId || "anonymous";
-        try {
-                const { software } = req.body || {};
-                if (!software || !software.name) {
-                        return res
-                                .status(400)
-                                .json({ error: "缺少必要信息", message: "软件名称不能为空" });
-                }
+	const startedAt = Date.now();
+	const userId = req.userId || "anonymous";
+	try {
+		const { software } = req.body || {};
+		if (!software || !software.name) {
+			return res
+				.status(400)
+				.json({ error: "缺少必要信息", message: "软件名称不能为空" });
+		}
 
-                const messages = buildAnalyzeMessages(software);
+		const messages = buildAnalyzeMessages(software);
 
-                const schema = {
-                        type: "object",
-                        properties: {
-                                description: { type: "string", minLength: 10, maxLength: 200 },
-                                pros: {
-                                        type: "array",
-                                        items: { type: "string", minLength: 2, maxLength: 80 },
-                                        maxItems: 5,
-                                },
-                                cons: {
-                                        type: "array",
-                                        items: { type: "string", minLength: 2, maxLength: 80 },
-                                        maxItems: 5,
-                                },
-                                systems: {
-                                        type: "array",
-                                        items: {
-                                                type: "string",
-                                                enum: ["Windows", "macOS", "Linux", "Android", "iOS", "HarmonyOS"],
-                                        },
-                                        maxItems: 6,
-                                },
-                        },
-                        required: ["description"],
-                        additionalProperties: false,
-                };
+		// Perplexity API内置网络搜索功能，无需额外配置tool_calls
+		// 使用JSON对象格式请求结构化输出
+		ensurePerplexityKey();
+		const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+			},
+			body: JSON.stringify({
+				model: PERPLEXITY_MODEL,
+				messages,
+				temperature: PERPLEXITY_TEMPERATURE,
+				max_tokens: PERPLEXITY_MAX_TOKENS,
+			}),
+		});
 
-                const requestBodyBase = {
-                        model: KIMI_MODEL,
-                        temperature: KIMI_TEMPERATURE,
-                        max_tokens: KIMI_MAX_TOKENS,
-                        response_format: {
-                                type: "json_schema",
-                                json_schema: {
-                                        name: "SoftwareAnalysis",
-                                        strict: true,
-                                        schema,
-                                },
-                        },
-                        ...(KIMI_ENABLE_WEB_SEARCH
-                                ? {
-                                                tools: [
-                                                        {
-                                                                type: "builtin_function",
-                                                                function: { name: "$web_search" },
-                                                        },
-                                                ],
-                                        }
-                                : {}),
-                };
+		if (!response.ok) {
+			const text = await response.text().catch(() => "");
+			const error = new Error(
+				`Perplexity API 调用失败: ${response.status} ${text}`,
+			);
+			error.status = response.status;
+			throw error;
+		}
 
-                let loopMessages = [...messages];
-                let safety = 0;
-                while (true) {
-                        const response = await fetch(`${KIMI_API_BASE}/chat/completions`, {
-                                method: "POST",
-                                headers: {
-                                        "Content-Type": "application/json",
-                                        Authorization: `Bearer ${process.env.KIMI_API_KEY}`,
-                                },
-                                body: JSON.stringify({
-                                        ...requestBodyBase,
-                                        messages: loopMessages,
-                                }),
-                        });
-
-                        if (!response.ok) {
-                                const text = await response.text().catch(() => "");
-                                const error = new Error(
-                                        `Kimi API 调用失败: ${response.status} ${text}`,
-                                );
-                                error.status = response.status;
-                                throw error;
-                        }
-
-                        const data = await response.json();
-                        const choice = data?.choices?.[0];
-                        const finish = choice?.finish_reason;
-
-                        if (finish === "tool_calls" && KIMI_ENABLE_WEB_SEARCH) {
-                                loopMessages.push(choice.message);
-                                const calls = Array.isArray(choice.message?.tool_calls)
-                                        ? choice.message.tool_calls
-                                        : [];
-                                for (const call of calls) {
-                                        let args = call?.function?.arguments || "{}";
-                                        try {
-                                                const parsed = JSON.parse(args);
-                                                args = JSON.stringify(parsed);
-                                        } catch {}
-                                        loopMessages.push({
-                                                role: "tool",
-                                                tool_call_id: call.id,
-                                                name: call?.function?.name || "$web_search",
-                                                content: args,
-                                        });
-                                }
-                                safety += 1;
-                                if (safety > 6) {
-                                        return res
-                                                .status(500)
-                                                .json({ error: "AI分析失败", message: "工具调用次数过多" });
-                                }
-                                continue;
-                        }
-
-                        return res.json(data);
-                }
-        } catch (error) {
-                console.error("AI分析错误:", error);
-                res
-                        .status(error.status || 500)
-                        .json({ error: "AI分析失败", message: error.message });
-        } finally {
-                const duration = Date.now() - startedAt;
-                console.log(
-                        `[AI_ANALYZE_METRIC] user=${userId} duration=${duration}ms model=${KIMI_MODEL}`,
-                );
-        }
+		const data = await response.json();
+		return res.json(data);
+	} catch (error) {
+		console.error("AI分析错误:", error);
+		res
+			.status(error.status || 500)
+			.json({ error: "AI分析失败", message: error.message });
+	} finally {
+		const duration = Date.now() - startedAt;
+		console.log(
+			`[AI_ANALYZE_METRIC] user=${userId} duration=${duration}ms model=${PERPLEXITY_MODEL}`,
+		);
+	}
 });
 
 // 多软件对比
 app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
-        const startedAt = Date.now();
-        const userId = req.userId || "anonymous";
-        try {
-                const { softwares } = req.body || {};
-                if (!Array.isArray(softwares) || softwares.length < 2) {
-                        return res.status(400).json({
-                                error: "缺少必要信息",
-                                message: "至少需要两个软件才能进行对比",
-                        });
-                }
+	const startedAt = Date.now();
+	const userId = req.userId || "anonymous";
+	try {
+		const { softwares } = req.body || {};
+		if (!Array.isArray(softwares) || softwares.length < 2) {
+			return res.status(400).json({
+				error: "缺少必要信息",
+				message: "至少需要两个软件才能进行对比",
+			});
+		}
 
-                const messages = buildCompareMessages(softwares);
+		const messages = buildCompareMessages(softwares);
 
-                const data = await callKimiChatCompletions(messages);
-                res.json(data);
-        } catch (error) {
-                console.error("AI对比错误:", error);
-                res
-                        .status(error.status || 500)
-                        .json({ error: "AI对比失败", message: error.message });
-        } finally {
-                const duration = Date.now() - startedAt;
-                console.log(
-                        `[AI_COMPARE_METRIC] user=${userId} duration=${duration}ms model=${KIMI_MODEL}`,
-                );
-        }
+		const data = await callPerplexityChatCompletions(messages);
+		res.json(data);
+	} catch (error) {
+		console.error("AI对比错误:", error);
+		res
+			.status(error.status || 500)
+			.json({ error: "AI对比失败", message: error.message });
+	} finally {
+		const duration = Date.now() - startedAt;
+		console.log(
+			`[AI_COMPARE_METRIC] user=${userId} duration=${duration}ms model=${PERPLEXITY_MODEL}`,
+		);
+	}
 });
 
 // ========== 用户AI配置API ==========
