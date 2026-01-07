@@ -26,13 +26,9 @@
               class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
-                     w-screen sm:w-full max-w-none h-screen sm:h-auto min-h-screen sm:min-h-[400px] max-h-screen sm:max-h-[90vh]
+                     w-screen sm:w-[85vw] sm:max-w-[900px] h-screen sm:h-[80vh]
                      sm:rounded-lg
                      flex flex-col"
-              :class="{
-                'sm:max-w-2xl': activeTab !== 'comparison',
-                'sm:max-w-[95vw] lg:max-w-6xl xl:max-w-7xl': activeTab === 'comparison'
-              }"
               v-gsap="{ y: 10, duration: 0.24, ease: 'power2.out', force3D: true, to: { y: 0, duration: 0.24, ease: 'power2.out', force3D: true } }"
             >
               <!-- 标题栏 -->
@@ -94,7 +90,7 @@
               </div>
 
               <!-- 导航标签页 -->
-              <div class="flex items-center gap-0.5 sm:gap-1 px-3 sm:px-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar">
+              <div class="flex items-center gap-0.5 sm:gap-1 px-3 sm:px-6 py-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar shrink-0">
                 <button
                   v-for="tab in tabs"
                   :key="tab.id"
