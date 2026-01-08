@@ -1,10 +1,13 @@
 <template>
   <div
     v-if="show"
-    class="fixed inset-0 z-[60] flex items-center justify-center bg-gray-950"
+    class="fixed inset-0 z-[60] flex items-center justify-center"
   >
+    <!-- 背景遮罩 -->
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+
     <!-- 背景粒子效果 -->
-    <div class="absolute inset-0 overflow-hidden">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div
         v-for="i in 20"
         :key="i"
