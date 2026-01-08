@@ -9,7 +9,7 @@
     <!-- 主要内容 -->
     <div class="relative flex flex-col items-center px-4">
       <!-- 对比动画：两个元素合并 -->
-      <div class="relative w-48 h-32 mb-8">
+      <div class="relative w-52 h-32 mb-8">
         <!-- 左侧软件卡片 -->
         <div
           ref="leftCardRef"
@@ -28,43 +28,39 @@
           <div class="w-10 h-1.5 bg-gray-500 rounded"></div>
         </div>
 
-        <!-- 中心连接线 -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12">
-          <div
-            ref="connectLine1Ref"
-            class="h-0.5 bg-emerald-500/60 rounded-full mb-2 origin-left scale-x-0"
-          ></div>
-          <div
-            ref="connectLine2Ref"
-            class="h-0.5 bg-gray-400/60 rounded-full mb-2 origin-left scale-x-0"
-          ></div>
-          <div
-            ref="connectLine3Ref"
-            class="h-0.5 bg-emerald-400/60 rounded-full origin-left scale-x-0"
-          ></div>
-        </div>
-
-        <!-- 中心分析图标 -->
+        <!-- 中心 VS 图标 -->
         <div
           ref="centerIconRef"
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center shadow-xl opacity-0 scale-50"
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center shadow-xl border-2 border-emerald-500/50"
         >
-          <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
+          <span class="text-emerald-400 font-bold text-lg tracking-tight">VS</span>
         </div>
 
-        <!-- 数据流动粒子 -->
+        <!-- 左侧粒子（从左向中心） -->
         <div
-          ref="particle1Ref"
+          ref="particleL1Ref"
           class="absolute w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50 opacity-0"
         ></div>
         <div
-          ref="particle2Ref"
+          ref="particleL2Ref"
           class="absolute w-1.5 h-1.5 bg-gray-300 rounded-full opacity-0"
         ></div>
         <div
-          ref="particle3Ref"
+          ref="particleL3Ref"
+          class="absolute w-1.5 h-1.5 bg-emerald-300 rounded-full shadow-lg shadow-emerald-300/50 opacity-0"
+        ></div>
+
+        <!-- 右侧粒子（从右向中心） -->
+        <div
+          ref="particleR1Ref"
+          class="absolute w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50 opacity-0"
+        ></div>
+        <div
+          ref="particleR2Ref"
+          class="absolute w-1.5 h-1.5 bg-gray-300 rounded-full opacity-0"
+        ></div>
+        <div
+          ref="particleR3Ref"
           class="absolute w-1.5 h-1.5 bg-emerald-300 rounded-full shadow-lg shadow-emerald-300/50 opacity-0"
         ></div>
       </div>
@@ -123,13 +119,13 @@ const props = defineProps<{ active: boolean }>()
 
 const leftCardRef = ref<HTMLElement | null>(null)
 const rightCardRef = ref<HTMLElement | null>(null)
-const connectLine1Ref = ref<HTMLElement | null>(null)
-const connectLine2Ref = ref<HTMLElement | null>(null)
-const connectLine3Ref = ref<HTMLElement | null>(null)
 const centerIconRef = ref<HTMLElement | null>(null)
-const particle1Ref = ref<HTMLElement | null>(null)
-const particle2Ref = ref<HTMLElement | null>(null)
-const particle3Ref = ref<HTMLElement | null>(null)
+const particleL1Ref = ref<HTMLElement | null>(null)
+const particleL2Ref = ref<HTMLElement | null>(null)
+const particleL3Ref = ref<HTMLElement | null>(null)
+const particleR1Ref = ref<HTMLElement | null>(null)
+const particleR2Ref = ref<HTMLElement | null>(null)
+const particleR3Ref = ref<HTMLElement | null>(null)
 const statusTextRef = ref<HTMLElement | null>(null)
 const progressBarRef = ref<HTMLElement | null>(null)
 const step1Ref = ref<HTMLElement | null>(null)
@@ -150,9 +146,9 @@ const startAnimations = async () => {
 
   const leftCard = leftCardRef.value
   const rightCard = rightCardRef.value
-  const connectLines = [connectLine1Ref.value, connectLine2Ref.value, connectLine3Ref.value]
   const centerIcon = centerIconRef.value
-  const particles = [particle1Ref.value, particle2Ref.value, particle3Ref.value]
+  const leftParticles = [particleL1Ref.value, particleL2Ref.value, particleL3Ref.value]
+  const rightParticles = [particleR1Ref.value, particleR2Ref.value, particleR3Ref.value]
   const statusText = statusTextRef.value
   const progressBar = progressBarRef.value
   const steps = [step1Ref.value, step2Ref.value, step3Ref.value, step4Ref.value]
@@ -160,7 +156,7 @@ const startAnimations = async () => {
   // 左右卡片呼吸动画
   if (leftCard) {
     const anim = gsap.to(leftCard, {
-      x: 8,
+      x: 6,
       duration: 1.5,
       ease: 'sine.inOut',
       repeat: -1,
@@ -171,7 +167,7 @@ const startAnimations = async () => {
 
   if (rightCard) {
     const anim = gsap.to(rightCard, {
-      x: -8,
+      x: -6,
       duration: 1.5,
       ease: 'sine.inOut',
       repeat: -1,
@@ -180,44 +176,49 @@ const startAnimations = async () => {
     animations.push(anim)
   }
 
-  // 连接线依次展开
-  connectLines.forEach((line, i) => {
-    if (line) {
-      const anim = gsap.timeline({ repeat: -1, delay: i * 0.3 })
-        .to(line, { scaleX: 1, duration: 0.8, ease: 'power2.out' })
-        .to(line, { opacity: 0.3, duration: 1 })
-        .to(line, { scaleX: 0, opacity: 1, duration: 0.5 })
+  // 中心 VS 图标脉冲动画
+  if (centerIcon) {
+    const anim = gsap.to(centerIcon, {
+      scale: 1.1,
+      duration: 0.8,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+    })
+    animations.push(anim)
+  }
+
+  // 左侧粒子动画（从左向中心）
+  const centerX = 104
+  leftParticles.forEach((particle, i) => {
+    if (particle) {
+      const startX = 64
+      const y = 56 + (i - 1) * 10
+      
+      gsap.set(particle, { left: startX, top: y })
+      
+      const anim = gsap.timeline({ repeat: -1, delay: i * 0.5 })
+        .set(particle, { left: startX, opacity: 0 })
+        .to(particle, { opacity: 1, duration: 0.15 })
+        .to(particle, { left: centerX - 10, duration: 0.8, ease: 'power1.inOut' })
+        .to(particle, { opacity: 0, duration: 0.15 })
       animations.push(anim)
     }
   })
 
-  // 中心图标动画
-  if (centerIcon) {
-    const anim = gsap.timeline({ repeat: -1 })
-      .to(centerIcon, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.7)' })
-      .to(centerIcon, { rotation: 5, duration: 0.3, ease: 'sine.inOut' })
-      .to(centerIcon, { rotation: -5, duration: 0.6, ease: 'sine.inOut' })
-      .to(centerIcon, { rotation: 0, duration: 0.3, ease: 'sine.inOut' })
-      .to(centerIcon, { scale: 1.1, duration: 0.5 })
-      .to(centerIcon, { scale: 1, opacity: 0, duration: 0.5, delay: 0.5 })
-      .set(centerIcon, { scale: 0.5 })
-    animations.push(anim)
-  }
-
-  // 粒子流动动画
-  particles.forEach((particle, i) => {
+  // 右侧粒子动画（从右向中心）
+  rightParticles.forEach((particle, i) => {
     if (particle) {
-      const startX = 16
-      const endX = 176
-      const y = 56 + i * 8
+      const startX = 144
+      const y = 56 + (i - 1) * 10
       
       gsap.set(particle, { left: startX, top: y })
       
-      const anim = gsap.timeline({ repeat: -1, delay: i * 0.8 })
+      const anim = gsap.timeline({ repeat: -1, delay: i * 0.5 + 0.25 })
         .set(particle, { left: startX, opacity: 0 })
-        .to(particle, { opacity: 1, duration: 0.2 })
-        .to(particle, { left: endX, duration: 1.5, ease: 'power1.inOut' })
-        .to(particle, { opacity: 0, duration: 0.2 })
+        .to(particle, { opacity: 1, duration: 0.15 })
+        .to(particle, { left: centerX + 10, duration: 0.8, ease: 'power1.inOut' })
+        .to(particle, { opacity: 0, duration: 0.15 })
       animations.push(anim)
     }
   })
