@@ -4,158 +4,99 @@
     class="fixed inset-0 z-[60] flex items-center justify-center"
   >
     <!-- 背景遮罩 -->
-    <div
-      class="absolute inset-0 bg-black/80 backdrop-blur-sm"
-    ></div>
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
 
-    <!-- 主要动画容器 -->
-    <div class="relative flex flex-col items-center">
-      <!-- 卡片容器 -->
-      <div class="relative w-80 h-48 mb-8">
-        <!-- 主分析卡片 -->
+    <!-- 主要内容 -->
+    <div class="relative flex flex-col items-center px-4">
+      <!-- 动态圆环动画 -->
+      <div class="relative w-32 h-32 mb-8">
+        <!-- 外圈旋转 -->
         <div
-          ref="mainCardRef"
-          class="absolute inset-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-level3 border border-white/20 p-6 transform-gpu"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <div
-                ref="aiIconRef"
-                class="w-10 h-10 bg-gray-700 dark:bg-gray-600 rounded-xl flex items-center justify-center"
-              >
-                <span class="text-white font-bold text-lg">AI</span>
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">
-                  智能分析
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  正在处理中...
-                </p>
-              </div>
-            </div>
-            <div
-              ref="statusDotRef"
-              class="w-3 h-3 bg-green-500 rounded-full animate-pulse"
-            ></div>
-          </div>
-
-          <div class="space-y-3">
-            <div
-              ref="progressLine1Ref"
-              class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-            >
-              <div
-                class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
-              ></div>
-            </div>
-            <div
-              ref="progressLine2Ref"
-              class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-            >
-              <div
-                class="h-full bg-gray-500 rounded-full transform -translate-x-full"
-              ></div>
-            </div>
-            <div
-              ref="progressLine3Ref"
-              class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-            >
-              <div
-                class="h-full bg-gray-400 rounded-full transform -translate-x-full"
-              ></div>
-            </div>
+          ref="outerRingRef"
+          class="absolute inset-0 rounded-full border-2 border-emerald-500/30"
+        ></div>
+        
+        <!-- 中圈旋转（反向） -->
+        <div
+          ref="middleRingRef"
+          class="absolute inset-2 rounded-full border-2 border-dashed border-gray-400/40"
+        ></div>
+        
+        <!-- 内圈 -->
+        <div
+          ref="innerRingRef"
+          class="absolute inset-4 rounded-full border-2 border-emerald-400/50"
+        ></div>
+        
+        <!-- 中心图标 -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div
+            ref="centerIconRef"
+            class="w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl flex items-center justify-center shadow-xl"
+          >
+            <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
           </div>
         </div>
-
-        <!-- 浮动数据卡片 -->
+        
+        <!-- 轨道粒子 -->
         <div
-          ref="dataCard1Ref"
-          class="absolute -top-4 -left-4 w-16 h-20 bg-emerald-500 rounded-lg shadow-lg opacity-0 transform rotate-12"
-        >
-          <div class="p-2 text-white text-xs">
-            <div class="font-bold">特征</div>
-            <div class="mt-1">✓ 分析中</div>
-          </div>
-        </div>
-
+          ref="particle1Ref"
+          class="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50"
+          style="top: 0; left: 50%; transform: translateX(-50%)"
+        ></div>
         <div
-          ref="dataCard2Ref"
-          class="absolute -top-4 -right-4 w-16 h-20 bg-gray-600 rounded-lg shadow-lg opacity-0 transform -rotate-12"
-        >
-          <div class="p-2 text-white text-xs">
-            <div class="font-bold">优点</div>
-            <div class="mt-1">✓ 提取中</div>
-          </div>
-        </div>
-
+          ref="particle2Ref"
+          class="absolute w-1.5 h-1.5 bg-gray-300 rounded-full"
+          style="top: 50%; right: 0; transform: translateY(-50%)"
+        ></div>
         <div
-          ref="dataCard3Ref"
-          class="absolute -bottom-4 -left-4 w-16 h-20 bg-gray-500 rounded-lg shadow-lg opacity-0 transform -rotate-6"
-        >
-          <div class="p-2 text-white text-xs">
-            <div class="font-bold">缺点</div>
-            <div class="mt-1">✓ 识别中</div>
-          </div>
-        </div>
-
-        <div
-          ref="dataCard4Ref"
-          class="absolute -bottom-4 -right-4 w-16 h-20 bg-gray-700 rounded-lg shadow-lg opacity-0 transform rotate-6"
-        >
-          <div class="p-2 text-white text-xs">
-            <div class="font-bold">建议</div>
-            <div class="mt-1">✓ 生成中</div>
-          </div>
-        </div>
+          ref="particle3Ref"
+          class="absolute w-2 h-2 bg-emerald-300 rounded-full shadow-lg shadow-emerald-300/50"
+          style="bottom: 0; left: 50%; transform: translateX(-50%)"
+        ></div>
       </div>
 
-      <!-- 文本信息 -->
-      <div class="text-center">
-        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-          AI 智能分析中<span ref="dotsRef" class="text-emerald-500">...</span>
+      <!-- 标题与状态 -->
+      <div class="text-center mb-6">
+        <h3 class="text-lg font-semibold text-white mb-1">
+          AI 智能填充
         </h3>
         <p
           ref="statusTextRef"
-          class="text-sm text-gray-600 dark:text-gray-400 mb-4"
+          class="text-sm text-gray-400"
         >
-          正在启动分析引擎
+          正在分析软件信息
         </p>
+      </div>
 
-        <!-- 主进度条 -->
-        <div
-          class="w-80 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
-        >
+      <!-- 进度条 -->
+      <div class="w-64 sm:w-80">
+        <div class="h-1 bg-gray-700 rounded-full overflow-hidden">
           <div
-            ref="mainProgressRef"
-            class="h-full bg-emerald-500 rounded-full transform -translate-x-full"
+            ref="progressBarRef"
+            class="h-full w-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
           ></div>
         </div>
-
-        <!-- 状态指示器 -->
-        <div
-          class="flex justify-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400"
-        >
-          <div class="flex items-center gap-1">
-            <div
-              ref="indicator1Ref"
-              class="w-2 h-2 bg-emerald-500 rounded-full opacity-30"
-            ></div>
-            <span>数据收集</span>
+        
+        <!-- 步骤指示 -->
+        <div class="flex justify-between mt-3 text-xs text-gray-500">
+          <div ref="step1Ref" class="flex items-center gap-1.5 opacity-40">
+            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+            <span>解析</span>
           </div>
-          <div class="flex items-center gap-1">
-            <div
-              ref="indicator2Ref"
-              class="w-2 h-2 bg-gray-500 rounded-full opacity-30"
-            ></div>
-            <span>特征分析</span>
+          <div ref="step2Ref" class="flex items-center gap-1.5 opacity-40">
+            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+            <span>提取</span>
           </div>
-          <div class="flex items-center gap-1">
-            <div
-              ref="indicator3Ref"
-              class="w-2 h-2 bg-gray-400 rounded-full opacity-30"
-            ></div>
-            <span>结果生成</span>
+          <div ref="step3Ref" class="flex items-center gap-1.5 opacity-40">
+            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+            <span>生成</span>
+          </div>
+          <div ref="step4Ref" class="flex items-center gap-1.5 opacity-40">
+            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+            <span>完成</span>
           </div>
         </div>
       </div>
@@ -169,23 +110,19 @@ import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ active: boolean }>()
 
-// 引用所有动画元素
-const mainCardRef = ref<HTMLElement | null>(null)
-const aiIconRef = ref<HTMLElement | null>(null)
-const statusDotRef = ref<HTMLElement | null>(null)
-const progressLine1Ref = ref<HTMLElement | null>(null)
-const progressLine2Ref = ref<HTMLElement | null>(null)
-const progressLine3Ref = ref<HTMLElement | null>(null)
-const dataCard1Ref = ref<HTMLElement | null>(null)
-const dataCard2Ref = ref<HTMLElement | null>(null)
-const dataCard3Ref = ref<HTMLElement | null>(null)
-const dataCard4Ref = ref<HTMLElement | null>(null)
-const dotsRef = ref<HTMLElement | null>(null)
+const outerRingRef = ref<HTMLElement | null>(null)
+const middleRingRef = ref<HTMLElement | null>(null)
+const innerRingRef = ref<HTMLElement | null>(null)
+const centerIconRef = ref<HTMLElement | null>(null)
+const particle1Ref = ref<HTMLElement | null>(null)
+const particle2Ref = ref<HTMLElement | null>(null)
+const particle3Ref = ref<HTMLElement | null>(null)
 const statusTextRef = ref<HTMLElement | null>(null)
-const mainProgressRef = ref<HTMLElement | null>(null)
-const indicator1Ref = ref<HTMLElement | null>(null)
-const indicator2Ref = ref<HTMLElement | null>(null)
-const indicator3Ref = ref<HTMLElement | null>(null)
+const progressBarRef = ref<HTMLElement | null>(null)
+const step1Ref = ref<HTMLElement | null>(null)
+const step2Ref = ref<HTMLElement | null>(null)
+const step3Ref = ref<HTMLElement | null>(null)
+const step4Ref = ref<HTMLElement | null>(null)
 
 let animations: (gsap.core.Tween | gsap.core.Timeline)[] = []
 
@@ -198,160 +135,123 @@ const startAnimations = async () => {
   await nextTick()
   stopAnimations()
 
-  const mainCard = mainCardRef.value
-  const aiIcon = aiIconRef.value
-  const progressLine1 = progressLine1Ref.value
-  const progressLine2 = progressLine2Ref.value
-  const progressLine3 = progressLine3Ref.value
-  const dataCard1 = dataCard1Ref.value
-  const dataCard2 = dataCard2Ref.value
-  const dataCard3 = dataCard3Ref.value
-  const dataCard4 = dataCard4Ref.value
-  const dots = dotsRef.value
+  const outerRing = outerRingRef.value
+  const middleRing = middleRingRef.value
+  const innerRing = innerRingRef.value
+  const centerIcon = centerIconRef.value
+  const particle1 = particle1Ref.value
+  const particle2 = particle2Ref.value
+  const particle3 = particle3Ref.value
   const statusText = statusTextRef.value
-  const mainProgress = mainProgressRef.value
-  const indicator1 = indicator1Ref.value
-  const indicator2 = indicator2Ref.value
-  const indicator3 = indicator3Ref.value
+  const progressBar = progressBarRef.value
+  const steps = [step1Ref.value, step2Ref.value, step3Ref.value, step4Ref.value]
 
-  // 设置初始状态
-  if (mainCard) {
-    gsap.set(mainCard, { scale: 0.8, opacity: 0, y: 20 })
-  }
-
-  // 主卡片入场动画
-  if (mainCard) {
-    const cardAnim = gsap.to(mainCard, {
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      duration: 0.8,
-      ease: 'back.out(1.7)',
-    })
-    animations.push(cardAnim)
-  }
-
-  // AI图标旋转
-  if (aiIcon) {
-    const iconAnim = gsap.to(aiIcon, {
+  // 外圈旋转
+  if (outerRing) {
+    const anim = gsap.to(outerRing, {
       rotation: 360,
-      duration: 3,
+      duration: 8,
       ease: 'none',
       repeat: -1,
     })
-    animations.push(iconAnim)
+    animations.push(anim)
   }
 
-  // 进度条动画
-  const progressBars = [progressLine1, progressLine2, progressLine3]
-  progressBars.forEach((bar, i) => {
-    if (bar) {
-      const progressBar = bar.querySelector('div')
-      if (progressBar) {
-        const progressAnim = gsap
-          .timeline({ repeat: -1, delay: i * 0.5 })
-          .to(progressBar, { x: '0%', duration: 2, ease: 'power2.inOut' })
-          .to(progressBar, { x: '100%', duration: 0.5, ease: 'power2.in' })
-          .set(progressBar, { x: '-100%' })
-        animations.push(progressAnim)
-      }
+  // 中圈反向旋转
+  if (middleRing) {
+    const anim = gsap.to(middleRing, {
+      rotation: -360,
+      duration: 12,
+      ease: 'none',
+      repeat: -1,
+    })
+    animations.push(anim)
+  }
+
+  // 内圈缩放呼吸
+  if (innerRing) {
+    const anim = gsap.to(innerRing, {
+      scale: 1.05,
+      opacity: 0.8,
+      duration: 1.5,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+    })
+    animations.push(anim)
+  }
+
+  // 中心图标呼吸
+  if (centerIcon) {
+    const anim = gsap.to(centerIcon, {
+      scale: 1.08,
+      duration: 1.2,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+    })
+    animations.push(anim)
+  }
+
+  // 粒子轨道运动
+  const particles = [
+    { el: particle1, duration: 3, delay: 0 },
+    { el: particle2, duration: 4, delay: 1 },
+    { el: particle3, duration: 3.5, delay: 0.5 },
+  ]
+
+  particles.forEach(({ el, duration, delay }) => {
+    if (el) {
+      gsap.set(el, { transformOrigin: '64px 64px' })
+      const anim = gsap.to(el, {
+        rotation: 360,
+        duration,
+        ease: 'none',
+        repeat: -1,
+        delay,
+      })
+      animations.push(anim)
     }
   })
 
-  // 数据卡片动画
-  const dataCards = [dataCard1, dataCard2, dataCard3, dataCard4]
-  dataCards.forEach((card, i) => {
-    if (card) {
-      const cardAnim = gsap
-        .timeline({ repeat: -1, delay: i * 0.8 })
-        .to(card, {
-          opacity: 1,
-          scale: 1.1,
-          duration: 0.6,
-          ease: 'back.out(2)',
-        })
-        .to(card, {
-          scale: 1,
-          duration: 0.4,
-          ease: 'power2.out',
-        })
-        .to(card, {
-          opacity: 0.7,
-          duration: 1.5,
-        })
-        .to(card, {
-          opacity: 0,
-          duration: 0.5,
-        })
-      animations.push(cardAnim)
-    }
-  })
-
-  // 点点点动画
-  if (dots) {
-    const dotsAnim = gsap
-      .timeline({ repeat: -1 })
-      .to(dots, { opacity: 0.3, duration: 0.5 })
-      .to(dots, { opacity: 1, duration: 0.5 })
-    animations.push(dotsAnim)
-  }
-
-  // 状态文本动画
+  // 状态文本循环
   if (statusText) {
     const messages = [
-      '正在启动分析引擎',
-      '收集软件数据',
-      '分析功能特性',
-      '提取优点信息',
-      '识别潜在问题',
-      '生成改进建议',
-      '整理分析结果',
-      '准备输出报告',
+      '正在分析软件信息',
+      '提取核心特征',
+      '识别优缺点',
+      '生成智能建议',
     ]
+    let index = 0
 
     const textAnim = gsap.timeline({ repeat: -1 })
-    messages.forEach((message, i) => {
+    messages.forEach((msg, i) => {
       textAnim
-        .to(
-          statusText,
-          {
-            duration: 0.1,
-            onStart: () => {
-              statusText.textContent = message
-            },
-          },
-          i * 2.5
-        )
-        .to(statusText, { duration: 2.4 }, i * 2.5 + 0.1)
+        .to(statusText, { opacity: 0, duration: 0.2 }, i * 2.5)
+        .call(() => { statusText.textContent = msg }, [], i * 2.5 + 0.2)
+        .to(statusText, { opacity: 1, duration: 0.2 }, i * 2.5 + 0.2)
+        .to({}, { duration: 2.1 }, i * 2.5 + 0.4)
     })
     animations.push(textAnim)
   }
 
-  // 主进度条动画
-  if (mainProgress) {
-    const mainProgressAnim = gsap
-      .timeline({ repeat: -1 })
-      .to(mainProgress, { x: '0%', duration: 3, ease: 'power2.inOut' })
-      .to(mainProgress, { x: '100%', duration: 1, ease: 'power2.in' })
-      .set(mainProgress, { x: '-100%' })
-    animations.push(mainProgressAnim)
+  // 进度条无限循环
+  if (progressBar) {
+    const anim = gsap.timeline({ repeat: -1 })
+      .to(progressBar, { width: '100%', duration: 4, ease: 'power1.inOut' })
+      .to(progressBar, { opacity: 0.5, duration: 0.3 })
+      .set(progressBar, { width: '0%' })
+      .to(progressBar, { opacity: 1, duration: 0.3 })
+    animations.push(anim)
   }
 
-  // 状态指示器动画
-  const indicators = [indicator1, indicator2, indicator3]
-  indicators.forEach((indicator, i) => {
-    if (indicator) {
-      const indicatorAnim = gsap
-        .timeline({ repeat: -1, delay: i * 1.5 })
-        .to(indicator, {
-          opacity: 1,
-          scale: 1.2,
-          duration: 0.5,
-          ease: 'power2.out',
-        })
-        .to(indicator, { scale: 1, duration: 0.3, ease: 'power2.out' })
-        .to(indicator, { opacity: 0.3, duration: 2 })
-      animations.push(indicatorAnim)
+  // 步骤依次高亮
+  steps.forEach((step, i) => {
+    if (step) {
+      const anim = gsap.timeline({ repeat: -1, delay: i * 1 })
+        .to(step, { opacity: 1, duration: 0.3 })
+        .to(step, { opacity: 0.4, duration: 0.3, delay: 3 })
+      animations.push(anim)
     }
   })
 }
@@ -372,24 +272,3 @@ onUnmounted(() => {
   stopAnimations()
 })
 </script>
-
-<style scoped>
-.transform-gpu {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-</style>
