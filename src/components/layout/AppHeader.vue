@@ -64,13 +64,15 @@
           </button>
         </div>
 
-        <!-- 用户菜单 -->
-        <UserMenu 
-          :is-signed-in="isSignedIn"
-          :user="user"
-          @sign-in="openSignIn"
-          @sign-out="handleSignOut"
-        />
+        <!-- 用户菜单 - 移动端隐藏 -->
+        <div class="hidden sm:block">
+          <UserMenu 
+            :is-signed-in="isSignedIn"
+            :user="user"
+            @sign-in="openSignIn"
+            @sign-out="handleSignOut"
+          />
+        </div>
       </div>
     </div>
     
