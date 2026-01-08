@@ -44,7 +44,7 @@
             <button
               v-if="canEditSoftware"
               @click="showAddDialog = true"
-              class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center 
+              class="hidden sm:flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center 
                      bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
                      border border-gray-200 dark:border-gray-800 
                      text-gray-600 dark:text-gray-300 
