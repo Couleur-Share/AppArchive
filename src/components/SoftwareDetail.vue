@@ -18,11 +18,15 @@
         <div class="flex min-h-full items-start sm:items-center justify-center p-0 sm:p-4">
           <TransitionChild>
             <DialogPanel 
+              ref="dialogPanelRef"
               @click.stop
               @mousedown.stop
               @mouseup.stop
               @pointerdown.stop
               @pointerup.stop
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
               class="relative transform overflow-hidden 
                      bg-white dark:bg-gray-800 
                      text-left shadow-level3 will-change-transform will-change-opacity
@@ -744,6 +748,71 @@ watch(() => props.isOpen, (isOpen) => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
+
+// ===== 移动端触摸滑动手势支持 =====
+const dialogPanelRef = ref<HTMLElement | null>(null)
+let touchStartX = 0
+let touchStartY = 0
+let touchStartTime = 0
+let isSwiping = false
+
+const SWIPE_THRESHOLD = 80  // 最小滑动距离（像素）
+const SWIPE_VELOCITY_THRESHOLD = 0.3  // 最小滑动速度（像素/毫秒）
+const VERTICAL_THRESHOLD_RATIO = 0.5  // 垂直/水平比例阈值，超过则视为垂直滑动
+
+const handleTouchStart = (e: TouchEvent) => {
+  // 仅在有导航功能时启用
+  if (!showNavigation.value) return
+  // 子弹窗打开时不响应
+  if (showSharePreview.value || showComparisonManager.value) return
+  
+  const touch = e.touches[0]
+  touchStartX = touch.clientX
+  touchStartY = touch.clientY
+  touchStartTime = Date.now()
+  isSwiping = true
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (!isSwiping) return
+  
+  const touch = e.touches[0]
+  const deltaX = touch.clientX - touchStartX
+  const deltaY = touch.clientY - touchStartY
+  
+  // 如果垂直滑动距离大于水平滑动距离的一定比例，则认为是垂直滚动，取消滑动切换
+  if (Math.abs(deltaY) > Math.abs(deltaX) * VERTICAL_THRESHOLD_RATIO && Math.abs(deltaY) > 10) {
+    isSwiping = false
+  }
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  if (!isSwiping) return
+  isSwiping = false
+  
+  const touch = e.changedTouches[0]
+  const deltaX = touch.clientX - touchStartX
+  const deltaY = touch.clientY - touchStartY
+  const deltaTime = Date.now() - touchStartTime
+  
+  // 计算滑动速度
+  const velocity = Math.abs(deltaX) / deltaTime
+  
+  // 检查是否是有效的水平滑动
+  const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.5
+  const isLongEnough = Math.abs(deltaX) >= SWIPE_THRESHOLD
+  const isFastEnough = velocity >= SWIPE_VELOCITY_THRESHOLD
+  
+  if (isHorizontalSwipe && (isLongEnough || isFastEnough)) {
+    if (deltaX > 0) {
+      // 向右滑动 -> 上一个
+      navigateToPrev()
+    } else {
+      // 向左滑动 -> 下一个
+      navigateToNext()
+    }
+  }
+}
 
 // 核心特性：将前4个pros转换为特性卡片格式
 const coreFeatures = computed(() => {
