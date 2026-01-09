@@ -169,6 +169,8 @@
     v-if="selectedSoftware"
     v-model:is-open="showDetailDialog"
     :software="selectedSoftware"
+    :software-list="filteredSoftwares"
+    @navigate="handleSoftwareNavigate"
   />
 
   <LoadingOverlay :show="isLoading" />
@@ -679,6 +681,15 @@ const showSoftwareDetail = (software: Software) => {
     systems: software.systems as SystemType[]
   }
   showDetailDialog.value = true
+}
+
+// 处理详情弹窗中的软件导航切换
+const handleSoftwareNavigate = (software: Software) => {
+  selectedSoftware.value = {
+    ...software,
+    license: software.license as LicenseType,
+    systems: software.systems as SystemType[]
+  }
 }
 
 // 添加更新设置的方法

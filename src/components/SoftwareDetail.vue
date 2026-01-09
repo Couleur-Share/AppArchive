@@ -111,7 +111,7 @@
               </div>
 
               <!-- 内容区域 -->
-              <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+              <div class="flex-1 overflow-y-auto p-4 sm:p-6 software-content" :key="software.id">
                 <!-- 概览页 -->
                 <div v-if="activeTab === 'overview'" class="space-y-4 sm:space-y-6">
                   <!-- 产品描述 -->
@@ -473,8 +473,27 @@
               </div>
 
               <!-- 底部操作区 -->
-              <div class="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex items-center gap-3">
+              <div class="flex items-center justify-between p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
+                <!-- 左侧：上一个按钮 -->
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="showNavigation"
+                    @click="navigateToPrev"
+                    :disabled="!hasPrev"
+                    class="flex items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           text-gray-600 dark:text-gray-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700 
+                           hover:text-gray-900 dark:hover:text-white"
+                    :title="hasPrev ? `上一个: ${prevSoftware?.name}` : '已是第一个'"
+                  >
+                    <ChevronLeft class="w-5 h-5" />
+                    <span class="hidden sm:inline">上一个</span>
+                  </button>
+                </div>
+
+                <!-- 中间：操作按钮组 -->
+                <div class="flex items-center gap-2 sm:gap-3">
                   <BaseButton
                     v-if="software.website"
                     @click="openWebsite"
@@ -482,7 +501,7 @@
                     class="rounded-full"
                   >
                     <ExternalLink class="w-4 h-4" />
-                    访问官网
+                    <span class="hidden sm:inline">访问官网</span>
                   </BaseButton>
                   <!-- 移动端隐藏复制Markdown和分享图片按钮 -->
                   <BaseButton
@@ -500,6 +519,31 @@
                   >
                     预览分享图片
                   </BaseButton>
+                  <!-- 位置指示器 -->
+                  <span 
+                    v-if="showNavigation && currentIndex >= 0" 
+                    class="text-xs text-gray-400 dark:text-gray-500 tabular-nums hidden sm:inline"
+                  >
+                    {{ currentIndex + 1 }} / {{ softwareList?.length }}
+                  </span>
+                </div>
+
+                <!-- 右侧：下一个按钮 -->
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="showNavigation"
+                    @click="navigateToNext"
+                    :disabled="!hasNext"
+                    class="flex items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           text-gray-600 dark:text-gray-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700 
+                           hover:text-gray-900 dark:hover:text-white"
+                    :title="hasNext ? `下一个: ${nextSoftware?.name}` : '已是最后一个'"
+                  >
+                    <span class="hidden sm:inline">下一个</span>
+                    <ChevronRight class="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </DialogPanel>
@@ -564,8 +608,8 @@
 
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { CheckCircle2, Copy, Edit, ExternalLink, FileSearch, Plus, X, XCircle } from 'lucide-vue-next'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, FileSearch, Plus, X, XCircle } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 import { getIconUrl } from '../services/localIconCache'
 import { buildApiUrl } from '../services/apiBase'
@@ -597,6 +641,7 @@ import ShareCardPreview from './ShareCardPreview.vue'
 const props = defineProps<{
   isOpen: boolean
   software: Software
+  softwareList?: Software[]  // 软件列表，用于导航切换
 }>()
 
 // 标签页管理
@@ -614,6 +659,90 @@ const tabs = computed(() => {
     baseTabs.push({ id: 'private' as TabId, label: '私密信息' })
   }
   return baseTabs
+})
+
+// ===== 导航切换功能 =====
+// 计算当前软件在列表中的索引
+const currentIndex = computed(() => {
+  if (!props.softwareList || props.softwareList.length === 0) return -1
+  return props.softwareList.findIndex(s => s.id === props.software.id)
+})
+
+// 是否有上一个软件
+const hasPrev = computed(() => {
+  return currentIndex.value > 0
+})
+
+// 是否有下一个软件
+const hasNext = computed(() => {
+  if (!props.softwareList) return false
+  return currentIndex.value >= 0 && currentIndex.value < props.softwareList.length - 1
+})
+
+// 上一个软件
+const prevSoftware = computed(() => {
+  if (!hasPrev.value || !props.softwareList) return null
+  return props.softwareList[currentIndex.value - 1]
+})
+
+// 下一个软件
+const nextSoftware = computed(() => {
+  if (!hasNext.value || !props.softwareList) return null
+  return props.softwareList[currentIndex.value + 1]
+})
+
+// 显示导航控制（仅当有软件列表时）
+const showNavigation = computed(() => {
+  return props.softwareList && props.softwareList.length > 1
+})
+
+// 导航到上一个软件
+const navigateToPrev = () => {
+  if (prevSoftware.value) {
+    emit('navigate', prevSoftware.value)
+  }
+}
+
+// 导航到下一个软件
+const navigateToNext = () => {
+  if (nextSoftware.value) {
+    emit('navigate', nextSoftware.value)
+  }
+}
+
+// ===== 键盘快捷键支持 =====
+const handleKeydown = (e: KeyboardEvent) => {
+  // 仅在弹窗打开且没有其他弹窗（如分享预览）打开时响应
+  if (!props.isOpen || showSharePreview.value || showComparisonManager.value) return
+  
+  // 如果焦点在输入框内，不响应快捷键
+  const activeElement = document.activeElement
+  if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) return
+  
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.preventDefault()
+      navigateToPrev()
+      break
+    case 'ArrowRight':
+      e.preventDefault()
+      navigateToNext()
+      break
+  }
+}
+
+// 在弹窗打开时添加键盘监听，关闭时移除
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    window.addEventListener('keydown', handleKeydown)
+  } else {
+    window.removeEventListener('keydown', handleKeydown)
+  }
+}, { immediate: true })
+
+// 组件卸载时确保移除监听器
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 
 // 核心特性：将前4个pros转换为特性卡片格式
@@ -1001,6 +1130,7 @@ const saveSharePreviewImage = async () => {
 
 const emit = defineEmits<{
   'update:isOpen': [value: boolean]
+  'navigate': [software: Software]  // 导航到指定软件
 }>()
 
 const initialFocusRef = ref<HTMLElement | null>(null)
@@ -1112,5 +1242,21 @@ const handleDetailClose = () => {
 }
 .summary-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* 软件切换过渡动画 */
+.software-content {
+  animation: fadeSlideIn 0.25s ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style> 

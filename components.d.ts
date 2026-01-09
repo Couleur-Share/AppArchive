@@ -19,6 +19,7 @@ declare module 'vue' {
     BaseButton: typeof import('./src/components/common/BaseButton.vue')['default']
     BlurFade: typeof import('./src/components/animations/BlurFade.vue')['default']
     CategoryFilter: typeof import('./src/components/common/CategoryFilter.vue')['default']
+    CitationText: typeof import('./src/components/CitationText.vue')['default']
     ComparableSoftwareList: typeof import('./src/components/comparison/ComparableSoftwareList.vue')['default']
     ComparisonAIOverlay: typeof import('./src/components/ComparisonAIOverlay.vue')['default']
     ComparisonEditor: typeof import('./src/components/comparison/ComparisonEditor.vue')['default']
@@ -48,8 +49,8 @@ declare module 'vue' {
     SystemIcon: typeof import('./src/components/SystemIcon.vue')['default']
     TagBadge: typeof import('./src/components/common/TagBadge.vue')['default']
     ThemeToggle: typeof import('./src/components/common/ThemeToggle.vue')['default']
-    Toast: typeof import('./src/components/Toast.vue')['default']
+    Toast: typeof import('./src/components/common/Toast.vue')['default']
     UserMenu: typeof import('./src/components/auth/UserMenu.vue')['default']
-    VirtualSoftwareList: typeof import('./src/components/VirtualSoftwareList.vue')['default']
+    VirtualSoftwareList: typeof import('./src/components/software/VirtualSoftwareList.vue')['default']
   }
 }

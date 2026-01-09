@@ -248,6 +248,21 @@ const ensurePerplexityKey = () => {
 	}
 };
 
+// 移除 Perplexity 返回内容中的引用序号（如 [1]、[2]、[3] 等）
+const removeCitationMarkers = (text) => {
+	if (typeof text !== "string") return text;
+	// 匹配 [数字] 格式的引用标记，包括连续多个如 [1][2]
+	return text.replace(/\[\d+\]/g, "").replace(/\s{2,}/g, " ").trim();
+};
+
+// 清理 Perplexity API 响应中的引用标记
+const cleanPerplexityResponse = (data) => {
+	if (!data?.choices?.[0]?.message?.content) return data;
+	const content = data.choices[0].message.content;
+	data.choices[0].message.content = removeCitationMarkers(content);
+	return data;
+};
+
 const callPerplexityChatCompletions = async (messages, options = {}) => {
 	ensurePerplexityKey();
 	const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
@@ -272,7 +287,9 @@ const callPerplexityChatCompletions = async (messages, options = {}) => {
 		throw error;
 	}
 
-	return response.json();
+	const data = await response.json();
+	// 移除 Perplexity 自动添加的引用序号
+	return cleanPerplexityResponse(data);
 };
 
 // 测试路由
@@ -527,8 +544,8 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 
 		const messages = buildAnalyzeMessages(software);
 
-		// Perplexity API内置网络搜索功能，无需额外配置tool_calls
-		// 使用JSON对象格式请求结构化输出
+		// Perplexity API内置网络搜索功能
+		// 配置搜索参数以获取更优质的软件信息
 		ensurePerplexityKey();
 		const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
 			method: "POST",
@@ -541,6 +558,8 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 				messages,
 				temperature: PERPLEXITY_TEMPERATURE,
 				max_tokens: PERPLEXITY_MAX_TOKENS,
+				// Perplexity 搜索增强：优先获取近期信息，确保软件信息时效性
+				search_recency_filter: "month",
 			}),
 		});
 
@@ -554,7 +573,8 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 		}
 
 		const data = await response.json();
-		return res.json(data);
+		// 移除 Perplexity 自动添加的引用序号 [1]、[2] 等
+		return res.json(cleanPerplexityResponse(data));
 	} catch (error) {
 		console.error("AI分析错误:", error);
 		res
@@ -583,7 +603,10 @@ app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
 
 		const messages = buildCompareMessages(softwares);
 
-		const data = await callPerplexityChatCompletions(messages);
+		// Perplexity 搜索增强：优先近期信息
+		const data = await callPerplexityChatCompletions(messages, {
+			search_recency_filter: "month",
+		});
 		res.json(data);
 	} catch (error) {
 		console.error("AI对比错误:", error);
