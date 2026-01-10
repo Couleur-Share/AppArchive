@@ -4,102 +4,67 @@
     class="fixed inset-0 z-[60] flex items-center justify-center"
   >
     <!-- 背景遮罩 -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+
+    <!-- 动态网格背景 -->
+    <div 
+      ref="gridBg" 
+      class="absolute inset-0 opacity-20"
+      style="background-image: radial-gradient(#10B981 1px, transparent 1px); background-size: 30px 30px;"
+    ></div>
 
     <!-- 主要内容 -->
-    <div class="relative flex flex-col items-center px-4">
-      <!-- 动态圆环动画 -->
-      <div class="relative w-32 h-32 mb-8">
-        <!-- 外圈旋转 -->
-        <div
-          ref="outerRingRef"
-          class="absolute inset-0 rounded-full border-2 border-emerald-500/30"
-        ></div>
+    <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6">
+      
+      <!-- 核心 AI 动画 -->
+      <div class="relative w-40 h-40 mb-10 flex items-center justify-center">
+        <!-- 外部数据流环 -->
+        <div ref="dataRing" class="absolute inset-0 rounded-full border border-emerald-500/30"></div>
         
-        <!-- 中圈旋转（反向） -->
-        <div
-          ref="middleRingRef"
-          class="absolute inset-2 rounded-full border-2 border-dashed border-gray-400/40"
-        ></div>
-        
-        <!-- 内圈 -->
-        <div
-          ref="innerRingRef"
-          class="absolute inset-4 rounded-full border-2 border-emerald-400/50"
-        ></div>
-        
-        <!-- 中心图标 -->
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div
-            ref="centerIconRef"
-            class="w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl flex items-center justify-center shadow-xl"
-          >
-            <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        <!-- 旋转片段 -->
+        <svg class="absolute inset-0 w-full h-full animate-spin-slow" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="20 160" stroke-linecap="round" opacity="0.5" />
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#34D399" stroke-width="1" stroke-dasharray="60 180" stroke-linecap="round" opacity="0.3" />
+        </svg>
+
+        <!-- 中心核心 -->
+        <div ref="core" class="relative z-10 w-20 h-20 bg-gray-900 rounded-xl flex items-center justify-center border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+          <div ref="coreIcon" class="text-emerald-400">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
         </div>
-        
-        <!-- 轨道粒子 -->
-        <div
-          ref="particle1Ref"
-          class="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50"
-          style="top: 0; left: 50%; transform: translateX(-50%)"
-        ></div>
-        <div
-          ref="particle2Ref"
-          class="absolute w-1.5 h-1.5 bg-gray-300 rounded-full"
-          style="top: 50%; right: 0; transform: translateY(-50%)"
-        ></div>
-        <div
-          ref="particle3Ref"
-          class="absolute w-2 h-2 bg-emerald-300 rounded-full shadow-lg shadow-emerald-300/50"
-          style="bottom: 0; left: 50%; transform: translateX(-50%)"
-        ></div>
+
+        <!-- 浮动粒子 -->
+        <div ref="particles" class="absolute inset-0 pointer-events-none"></div>
       </div>
 
-      <!-- 标题与状态 -->
-      <div class="text-center mb-6">
-        <h3 class="text-lg font-semibold text-white mb-1">
-          AI 智能填充
-        </h3>
-        <p
-          ref="statusTextRef"
-          class="text-sm text-gray-400"
+      <!-- 状态文字 -->
+      <div class="text-center w-full space-y-4">
+        <h3 
+          ref="titleText"
+          class="text-xl font-bold text-white tracking-widest font-mono"
         >
-          正在分析软件信息
-        </p>
+          AI_ANALYSIS_INIT
+        </h3>
+        
+        <!-- 代码流解码效果 -->
+        <div class="h-16 flex items-center justify-center">
+           <p 
+            ref="decodeText" 
+            class="text-sm text-emerald-400/80 font-mono h-full flex flex-col items-center justify-center gap-1"
+          >
+            <span>Wait...</span>
+          </p>
+        </div>
       </div>
 
-      <!-- 进度条 -->
-      <div class="w-64 sm:w-80">
-        <div class="h-1 bg-gray-700 rounded-full overflow-hidden">
-          <div
-            ref="progressBarRef"
-            class="h-full w-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
-          ></div>
-        </div>
-        
-        <!-- 步骤指示 -->
-        <div class="flex justify-between mt-3 text-xs text-gray-500">
-          <div ref="step1Ref" class="flex items-center gap-1.5 opacity-40">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>解析</span>
-          </div>
-          <div ref="step2Ref" class="flex items-center gap-1.5 opacity-40">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>提取</span>
-          </div>
-          <div ref="step3Ref" class="flex items-center gap-1.5 opacity-40">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>生成</span>
-          </div>
-          <div ref="step4Ref" class="flex items-center gap-1.5 opacity-40">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>完成</span>
-          </div>
-        </div>
+      <!-- 进度指示器 -->
+      <div class="w-full mt-6 bg-gray-800/50 h-1 rounded-full overflow-hidden">
+        <div ref="progressBar" class="h-full bg-emerald-500 w-0"></div>
       </div>
+
     </div>
   </div>
 </template>
@@ -110,165 +75,136 @@ import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ active: boolean }>()
 
-const outerRingRef = ref<HTMLElement | null>(null)
-const middleRingRef = ref<HTMLElement | null>(null)
-const innerRingRef = ref<HTMLElement | null>(null)
-const centerIconRef = ref<HTMLElement | null>(null)
-const particle1Ref = ref<HTMLElement | null>(null)
-const particle2Ref = ref<HTMLElement | null>(null)
-const particle3Ref = ref<HTMLElement | null>(null)
-const statusTextRef = ref<HTMLElement | null>(null)
-const progressBarRef = ref<HTMLElement | null>(null)
-const step1Ref = ref<HTMLElement | null>(null)
-const step2Ref = ref<HTMLElement | null>(null)
-const step3Ref = ref<HTMLElement | null>(null)
-const step4Ref = ref<HTMLElement | null>(null)
+const gridBg = ref<HTMLElement | null>(null)
+const dataRing = ref<HTMLElement | null>(null)
+const core = ref<HTMLElement | null>(null)
+const coreIcon = ref<HTMLElement | null>(null)
+const particles = ref<HTMLElement | null>(null)
+const titleText = ref<HTMLElement | null>(null)
+const decodeText = ref<HTMLElement | null>(null)
+const progressBar = ref<HTMLElement | null>(null)
 
-let animations: (gsap.core.Tween | gsap.core.Timeline)[] = []
-
-const stopAnimations = () => {
-  animations.forEach((anim) => anim.kill())
-  animations = []
-}
+let ctx: gsap.Context | null = null
 
 const startAnimations = async () => {
   await nextTick()
-  stopAnimations()
+  
+  ctx = gsap.context(() => {
+    // 0. 初始化
+    gsap.set(gridBg.value, { scale: 1.2, opacity: 0 })
+    gsap.set(core.value, { scale: 0, rotation: 180 })
+    gsap.set(dataRing.value, { scale: 0.8, opacity: 0 })
+    
+    // 1. 入场
+    const tl = gsap.timeline()
+    
+    tl.to(gridBg.value, { opacity: 0.15, duration: 1 })
+      .to(core.value, { 
+        scale: 1, 
+        rotation: 0, 
+        duration: 0.8, 
+        ease: 'elastic.out(1, 0.5)' 
+      }, '-=0.5')
+      .to(dataRing.value, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.5
+      }, '-=0.4')
 
-  const outerRing = outerRingRef.value
-  const middleRing = middleRingRef.value
-  const innerRing = innerRingRef.value
-  const centerIcon = centerIconRef.value
-  const particle1 = particle1Ref.value
-  const particle2 = particle2Ref.value
-  const particle3 = particle3Ref.value
-  const statusText = statusTextRef.value
-  const progressBar = progressBarRef.value
-  const steps = [step1Ref.value, step2Ref.value, step3Ref.value, step4Ref.value]
-
-  // 外圈旋转
-  if (outerRing) {
-    const anim = gsap.to(outerRing, {
-      rotation: 360,
-      duration: 8,
-      ease: 'none',
-      repeat: -1,
-    })
-    animations.push(anim)
-  }
-
-  // 中圈反向旋转
-  if (middleRing) {
-    const anim = gsap.to(middleRing, {
-      rotation: -360,
-      duration: 12,
-      ease: 'none',
-      repeat: -1,
-    })
-    animations.push(anim)
-  }
-
-  // 内圈缩放呼吸
-  if (innerRing) {
-    const anim = gsap.to(innerRing, {
-      scale: 1.05,
+    // 2. 核心呼吸与脉冲
+    gsap.to(coreIcon.value, {
+      scale: 1.2,
       opacity: 0.8,
       duration: 1.5,
-      ease: 'sine.inOut',
-      repeat: -1,
       yoyo: true,
-    })
-    animations.push(anim)
-  }
-
-  // 中心图标呼吸
-  if (centerIcon) {
-    const anim = gsap.to(centerIcon, {
-      scale: 1.08,
-      duration: 1.2,
-      ease: 'sine.inOut',
       repeat: -1,
-      yoyo: true,
+      ease: 'sine.inOut'
     })
-    animations.push(anim)
-  }
+    
+    gsap.to(dataRing.value, {
+      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+      duration: 1,
+      yoyo: true,
+      repeat: -1
+    })
 
-  // 粒子轨道运动
-  const particles = [
-    { el: particle1, duration: 3, delay: 0 },
-    { el: particle2, duration: 4, delay: 1 },
-    { el: particle3, duration: 3.5, delay: 0.5 },
-  ]
-
-  particles.forEach(({ el, duration, delay }) => {
-    if (el) {
-      gsap.set(el, { transformOrigin: '64px 64px' })
-      const anim = gsap.to(el, {
-        rotation: 360,
-        duration,
-        ease: 'none',
-        repeat: -1,
-        delay,
-      })
-      animations.push(anim)
-    }
-  })
-
-  // 状态文本循环
-  if (statusText) {
+    // 3. 文字解码特效 (模拟黑客帝国效果)
     const messages = [
-      '正在分析软件信息',
-      '提取核心特征',
-      '识别优缺点',
-      '生成智能建议',
+      "SCANNING_SOFTWARE_ARCH...",
+      "EXTRACTING_FEATURES...",
+      "IDENTIFYING_PROS_CONS...",
+      "GENERATING_INSIGHTS..."
     ]
-    let index = 0
-
-    const textAnim = gsap.timeline({ repeat: -1 })
-    messages.forEach((msg, i) => {
-      textAnim
-        .to(statusText, { opacity: 0, duration: 0.2 }, i * 2.5)
-        .call(() => { statusText.textContent = msg }, [], i * 2.5 + 0.2)
-        .to(statusText, { opacity: 1, duration: 0.2 }, i * 2.5 + 0.2)
-        .to({}, { duration: 2.1 }, i * 2.5 + 0.4)
+    
+    const textTl = gsap.timeline({ repeat: -1 })
+    messages.forEach(msg => {
+      // 使用 TextPlugin 的标准打字机效果 (免费)
+      textTl.to(decodeText.value, {
+        duration: 1,
+        text: {
+          value: msg,
+          delimiter: ""
+        },
+        ease: "none"
+      })
+      .to({}, { duration: 1.5 }) // 停留
+      .to(decodeText.value, {
+        duration: 0.5,
+        text: {
+          value: "", // 清空
+          delimiter: ""
+        },
+        ease: "none"
+      })
     })
-    animations.push(textAnim)
-  }
 
-  // 进度条无限循环
-  if (progressBar) {
-    const anim = gsap.timeline({ repeat: -1 })
-      .to(progressBar, { width: '100%', duration: 4, ease: 'power1.inOut' })
-      .to(progressBar, { opacity: 0.5, duration: 0.3 })
-      .set(progressBar, { width: '0%' })
-      .to(progressBar, { opacity: 1, duration: 0.3 })
-    animations.push(anim)
-  }
+    // 4. 标题Glitch效果
+    const glitchTl = gsap.timeline({ repeat: -1, repeatDelay: 3 })
+    glitchTl.to(titleText.value, { skewX: 20, duration: 0.1, color: '#34D399' })
+            .to(titleText.value, { skewX: -20, duration: 0.1, color: '#F87171' })
+            .to(titleText.value, { skewX: 0, duration: 0.1, color: '#fff' })
 
-  // 步骤依次高亮
-  steps.forEach((step, i) => {
-    if (step) {
-      const anim = gsap.timeline({ repeat: -1, delay: i * 1 })
-        .to(step, { opacity: 1, duration: 0.3 })
-        .to(step, { opacity: 0.4, duration: 0.3, delay: 3 })
-      animations.push(anim)
-    }
+    // 5. 进度条
+    gsap.to(progressBar.value, {
+      width: '100%',
+      duration: 8, // 假设分析大概8秒
+      ease: 'power1.inOut'
+    })
+    
+    // 背景网格移动
+    gsap.to(gridBg.value, {
+      backgroundPosition: '30px 30px',
+      duration: 2,
+      repeat: -1,
+      ease: 'none'
+    })
+
   })
 }
 
 watch(
   () => props.active,
-  async (v) => {
+  (v) => {
     if (v) {
-      await startAnimations()
+      startAnimations()
     } else {
-      stopAnimations()
+      ctx?.revert()
     }
   },
   { immediate: true }
 )
 
 onUnmounted(() => {
-  stopAnimations()
+  ctx?.revert()
 })
 </script>
+
+<style scoped>
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

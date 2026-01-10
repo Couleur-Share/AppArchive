@@ -1,5 +1,8 @@
 import { gsap } from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
 import type { App, DirectiveBinding } from "vue";
+
+gsap.registerPlugin(TextPlugin);
 
 // 预设动画
 const presets: Record<

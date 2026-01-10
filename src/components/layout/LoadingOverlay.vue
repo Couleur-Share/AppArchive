@@ -4,83 +4,37 @@
     class="fixed inset-0 z-[60] flex items-center justify-center"
   >
     <!-- 背景遮罩 -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-md"></div>
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
 
-    <!-- 背景粒子效果 -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        v-for="i in 20"
-        :key="i"
-        :ref="el => setBgParticleRef(el, i)"
-        class="absolute w-1 h-1 bg-emerald-500/30 rounded-full"
-      ></div>
-    </div>
+    <!-- 背景粒子容器 -->
+    <div ref="particleContainer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
     <!-- 主要内容 -->
     <div class="relative flex flex-col items-center px-4">
       <!-- Logo 动画区域 -->
       <div class="relative w-32 h-32 mb-8">
-        <!-- 外层旋转环 -->
-        <div
-          ref="outerRingRef"
-          class="absolute inset-0 rounded-full border-2 border-emerald-500/20"
-        ></div>
-        
-        <!-- 中层脉冲环 -->
-        <div
-          ref="pulseRing1Ref"
-          class="absolute inset-2 rounded-full border border-emerald-500/40"
-        ></div>
-        <div
-          ref="pulseRing2Ref"
-          class="absolute inset-2 rounded-full border border-emerald-400/30"
-        ></div>
-        
-        <!-- 内层旋转环 -->
-        <div
-          ref="innerRingRef"
-          class="absolute inset-4 rounded-full border-2 border-dashed border-gray-600"
-        ></div>
-
-        <!-- 进度弧线 -->
-        <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 128 128">
-          <circle
-            cx="64"
-            cy="64"
-            r="56"
-            fill="none"
-            stroke="rgba(16, 185, 129, 0.1)"
-            stroke-width="4"
+        <!-- 装饰圆环 -->
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+          <circle 
+            ref="outerRing"
+            cx="50" cy="50" r="48" 
+            fill="none" stroke="#10B981" stroke-width="1" stroke-opacity="0.2"
+            stroke-dasharray="10 10"
           />
-          <circle
-            ref="progressArcRef"
-            cx="64"
-            cy="64"
-            r="56"
-            fill="none"
-            stroke="url(#arcGradient)"
-            stroke-width="4"
-            stroke-linecap="round"
-            stroke-dasharray="352"
-            stroke-dashoffset="352"
+          <circle 
+            ref="innerRing"
+            cx="50" cy="50" r="40" 
+            fill="none" stroke="#10B981" stroke-width="0.5" stroke-opacity="0.4"
           />
-          <defs>
-            <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#10B981"/>
-              <stop offset="50%" stop-color="#34D399"/>
-              <stop offset="100%" stop-color="#10B981"/>
-            </linearGradient>
-          </defs>
         </svg>
 
-        <!-- 中心图标 -->
+        <!-- 中心 Logo -->
         <div
-          ref="centerLogoRef"
-          class="absolute inset-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center shadow-2xl border border-gray-700/50"
+          ref="centerLogo"
+          class="absolute inset-8 bg-gray-900 rounded-2xl flex items-center justify-center shadow-2xl border border-emerald-500/20 z-10"
         >
           <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
-              ref="logoPathRef"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="1.5"
@@ -89,61 +43,32 @@
           </svg>
         </div>
 
-        <!-- 轨道粒子 -->
-        <div
-          ref="orbitParticle1Ref"
-          class="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50"
-          style="top: 0; left: 50%; transform: translateX(-50%)"
-        ></div>
-        <div
-          ref="orbitParticle2Ref"
-          class="absolute w-1.5 h-1.5 bg-emerald-300 rounded-full"
-          style="top: 50%; right: 0; transform: translateY(-50%)"
+        <!-- 扫描线 -->
+        <div 
+          ref="scanner"
+          class="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent z-0 opacity-0"
         ></div>
       </div>
 
       <!-- 标题 -->
-      <div class="text-center mb-6">
-        <h2 ref="titleRef" class="text-2xl font-bold text-white mb-2">
-          <span class="text-emerald-400">软件</span>清单
+      <div class="text-center mb-8 h-16">
+        <h2 class="text-2xl font-bold text-white mb-2 tracking-wider">
+          SOFTWARE<span class="text-emerald-500">LIST</span>
         </h2>
         <p
-          ref="statusTextRef"
-          class="text-sm text-gray-400 h-5"
+          ref="statusText"
+          class="text-sm font-mono text-emerald-400/80"
         >
-          正在初始化应用
+          INITIALIZING_SYSTEM...
         </p>
       </div>
 
-      <!-- 底部进度条 -->
-      <div class="w-64 sm:w-72">
-        <div class="relative h-1 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            ref="progressBarRef"
-            class="absolute inset-y-0 left-0 w-0 rounded-full"
-            style="background: linear-gradient(90deg, #10B981, #34D399, #10B981)"
-          ></div>
-          <div
-            ref="progressShineRef"
-            class="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full opacity-0"
-          ></div>
-        </div>
-        
-        <!-- 加载步骤 -->
-        <div class="flex justify-between mt-4 text-xs text-gray-500">
-          <div ref="step1Ref" class="flex items-center gap-1.5 opacity-30">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>数据加载</span>
-          </div>
-          <div ref="step2Ref" class="flex items-center gap-1.5 opacity-30">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>资源准备</span>
-          </div>
-          <div ref="step3Ref" class="flex items-center gap-1.5 opacity-30">
-            <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            <span>界面渲染</span>
-          </div>
-        </div>
+      <!-- 进度条 -->
+      <div class="w-64 relative h-1 bg-gray-800 rounded-full overflow-hidden">
+        <div
+          ref="progressBar"
+          class="absolute inset-y-0 left-0 w-0 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+        ></div>
       </div>
     </div>
   </div>
@@ -157,217 +82,148 @@ const props = defineProps<{
   show: boolean
 }>()
 
-const outerRingRef = ref<HTMLElement | null>(null)
-const pulseRing1Ref = ref<HTMLElement | null>(null)
-const pulseRing2Ref = ref<HTMLElement | null>(null)
-const innerRingRef = ref<HTMLElement | null>(null)
-const progressArcRef = ref<SVGCircleElement | null>(null)
-const centerLogoRef = ref<HTMLElement | null>(null)
-const logoPathRef = ref<SVGPathElement | null>(null)
-const orbitParticle1Ref = ref<HTMLElement | null>(null)
-const orbitParticle2Ref = ref<HTMLElement | null>(null)
-const titleRef = ref<HTMLElement | null>(null)
-const statusTextRef = ref<HTMLElement | null>(null)
-const progressBarRef = ref<HTMLElement | null>(null)
-const progressShineRef = ref<HTMLElement | null>(null)
-const step1Ref = ref<HTMLElement | null>(null)
-const step2Ref = ref<HTMLElement | null>(null)
-const step3Ref = ref<HTMLElement | null>(null)
+const particleContainer = ref<HTMLElement | null>(null)
+const outerRing = ref<SVGElement | null>(null)
+const innerRing = ref<SVGElement | null>(null)
+const centerLogo = ref<HTMLElement | null>(null)
+const scanner = ref<HTMLElement | null>(null)
+const statusText = ref<HTMLElement | null>(null)
+const progressBar = ref<HTMLElement | null>(null)
 
-const bgParticleRefs: (HTMLElement | null)[] = []
-const setBgParticleRef = (el: unknown, index: number) => {
-  bgParticleRefs[index - 1] = el as HTMLElement | null
-}
+let ctx: gsap.Context | null = null
 
-let animations: (gsap.core.Tween | gsap.core.Timeline)[] = []
-
-const stopAnimations = () => {
-  animations.forEach((anim) => anim.kill())
-  animations = []
+const initParticles = () => {
+  if (!particleContainer.value) return
+  
+  // 清除旧粒子
+  particleContainer.value.innerHTML = ''
+  
+  // 创建新粒子
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div')
+    p.className = 'absolute bg-emerald-500 rounded-full opacity-0'
+    const size = Math.random() * 3 + 1
+    p.style.width = `${size}px`
+    p.style.height = `${size}px`
+    p.style.left = `${Math.random() * 100}%`
+    p.style.top = `${Math.random() * 100}%`
+    particleContainer.value.appendChild(p)
+    
+    gsap.to(p, {
+      y: -100 - Math.random() * 100,
+      opacity: Math.random() * 0.5,
+      duration: 2 + Math.random() * 3,
+      repeat: -1,
+      ease: 'none',
+      delay: Math.random() * 2
+    })
+  }
 }
 
 const startAnimations = async () => {
   await nextTick()
-  stopAnimations()
-
-  // 背景粒子漂浮
-  bgParticleRefs.forEach((particle, i) => {
-    if (particle) {
-      const startX = Math.random() * 100
-      const startY = Math.random() * 100
-      const size = 1 + Math.random() * 2
-      
-      gsap.set(particle, {
-        left: `${startX}%`,
-        top: `${startY}%`,
-        width: size,
-        height: size,
-        opacity: 0.1 + Math.random() * 0.3,
-      })
-      
-      const anim = gsap.to(particle, {
-        y: -30 - Math.random() * 50,
-        x: (Math.random() - 0.5) * 30,
-        opacity: 0,
-        duration: 3 + Math.random() * 2,
-        ease: 'none',
-        repeat: -1,
-        delay: Math.random() * 2,
-      })
-      animations.push(anim)
-    }
-  })
-
-  // 外环旋转
-  if (outerRingRef.value) {
-    const anim = gsap.to(outerRingRef.value, {
+  
+  // 使用 gsap.context 自动管理清理
+  ctx = gsap.context(() => {
+    const tl = gsap.timeline()
+    
+    // 0. 初始化状态
+    gsap.set([outerRing.value, innerRing.value], { 
+      transformOrigin: 'center center',
+      opacity: 0,
+      scale: 0.8 
+    })
+    gsap.set(centerLogo.value, { 
+      scale: 0, 
+      rotation: -45,
+      opacity: 0 
+    })
+    
+    // 1. 核心入场序列
+    tl.to(centerLogo.value, {
+      scale: 1,
+      rotation: 0,
+      opacity: 1,
+      duration: 0.8,
+      ease: 'back.out(1.7)'
+    })
+    .to([outerRing.value, innerRing.value], {
+      opacity: 1,
+      scale: 1,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power2.out'
+    }, '-=0.4')
+    
+    // 2. 持续循环动画
+    // 外环旋转
+    gsap.to(outerRing.value, {
       rotation: 360,
       duration: 20,
-      ease: 'none',
       repeat: -1,
+      ease: 'none'
     })
-    animations.push(anim)
-  }
-
-  // 脉冲环
-  if (pulseRing1Ref.value) {
-    const anim = gsap.to(pulseRing1Ref.value, {
-      scale: 1.3,
-      opacity: 0,
-      duration: 2,
-      ease: 'power1.out',
-      repeat: -1,
-    })
-    animations.push(anim)
-  }
-
-  if (pulseRing2Ref.value) {
-    const anim = gsap.to(pulseRing2Ref.value, {
-      scale: 1.3,
-      opacity: 0,
-      duration: 2,
-      ease: 'power1.out',
-      repeat: -1,
-      delay: 1,
-    })
-    animations.push(anim)
-  }
-
-  // 内环反向旋转
-  if (innerRingRef.value) {
-    const anim = gsap.to(innerRingRef.value, {
+    // 内环反向旋转
+    gsap.to(innerRing.value, {
       rotation: -360,
-      duration: 10,
-      ease: 'none',
+      duration: 15,
       repeat: -1,
+      ease: 'none'
     })
-    animations.push(anim)
-  }
-
-  // 进度弧线
-  if (progressArcRef.value) {
-    const anim = gsap.timeline({ repeat: -1 })
-      .to(progressArcRef.value, { strokeDashoffset: 0, duration: 2, ease: 'power2.inOut' })
-      .to(progressArcRef.value, { strokeDashoffset: -352, duration: 2, ease: 'power2.inOut' })
-    animations.push(anim)
-  }
-
-  // 中心 Logo 呼吸
-  if (centerLogoRef.value) {
-    const anim = gsap.to(centerLogoRef.value, {
-      scale: 1.05,
-      duration: 1.5,
-      ease: 'sine.inOut',
+    // 扫描线效果
+    gsap.to(scanner.value, {
+      top: '100%',
+      opacity: 0.5,
+      duration: 2,
       repeat: -1,
-      yoyo: true,
+      ease: 'power1.inOut',
+      yoyo: true
     })
-    animations.push(anim)
-  }
-
-  // 轨道粒子
-  const orbitParticles = [
-    { el: orbitParticle1Ref.value, duration: 3 },
-    { el: orbitParticle2Ref.value, duration: 4 },
-  ]
-
-  orbitParticles.forEach(({ el, duration }) => {
-    if (el) {
-      gsap.set(el, { transformOrigin: '64px 64px' })
-      const anim = gsap.to(el, {
-        rotation: 360,
-        duration,
-        ease: 'none',
-        repeat: -1,
+    
+    // 3. 文字打字机效果
+    const messages = ['LOADING_ASSETS...', 'CONNECTING_DB...', 'RENDERING_UI...', 'ALMOST_READY...']
+    const textTl = gsap.timeline({ repeat: -1 })
+    
+    messages.forEach(msg => {
+      textTl.to(statusText.value, {
+        duration: 1,
+        text: {
+          value: msg,
+          delimiter: "" 
+        },
+        ease: "none"
       })
-      animations.push(anim)
-    }
-  })
-
-  // 状态文本
-  if (statusTextRef.value) {
-    const messages = [
-      '正在初始化应用',
-      '加载软件数据',
-      '准备用户界面',
-      '即将完成',
-    ]
-
-    const textAnim = gsap.timeline({ repeat: -1 })
-    messages.forEach((msg, i) => {
-      textAnim
-        .to(statusTextRef.value!, { opacity: 0, y: -5, duration: 0.2 }, i * 2.5)
-        .call(() => { if (statusTextRef.value) statusTextRef.value.textContent = msg }, [], i * 2.5 + 0.2)
-        .to(statusTextRef.value!, { opacity: 1, y: 0, duration: 0.2 }, i * 2.5 + 0.2)
-        .to({}, { duration: 2.1 }, i * 2.5 + 0.4)
+      .to({}, { duration: 0.5 }) // 停顿
     })
-    animations.push(textAnim)
-  }
 
-  // 进度条
-  if (progressBarRef.value) {
-    const anim = gsap.timeline({ repeat: -1 })
-      .to(progressBarRef.value, { width: '100%', duration: 3, ease: 'power1.inOut' })
-      .to(progressBarRef.value, { opacity: 0.5, duration: 0.2 })
-      .set(progressBarRef.value, { width: '0%' })
-      .to(progressBarRef.value, { opacity: 1, duration: 0.2 })
-    animations.push(anim)
-  }
+    // 4. 进度条加载
+    gsap.to(progressBar.value, {
+      width: '100%',
+      duration: 3.5,
+      ease: 'expo.inOut',
+      repeat: -1,
+      yoyo: true // 让它更有动感，满了之后会缩回去再加载
+    })
 
-  // 进度条光泽
-  if (progressShineRef.value) {
-    const anim = gsap.timeline({ repeat: -1, delay: 0.5 })
-      .set(progressShineRef.value, { left: '-10%', opacity: 0 })
-      .to(progressShineRef.value, { opacity: 1, duration: 0.2 })
-      .to(progressShineRef.value, { left: '100%', duration: 1.5, ease: 'power1.inOut' })
-      .to(progressShineRef.value, { opacity: 0, duration: 0.2 })
-    animations.push(anim)
-  }
-
-  // 步骤指示器
-  const steps = [step1Ref.value, step2Ref.value, step3Ref.value]
-  steps.forEach((step, i) => {
-    if (step) {
-      const anim = gsap.timeline({ repeat: -1, delay: i * 1 })
-        .to(step, { opacity: 1, duration: 0.3 })
-        .to(step, { opacity: 0.3, duration: 0.3, delay: 2.5 })
-      animations.push(anim)
-    }
+    // 初始化背景粒子
+    initParticles()
+    
   })
 }
 
 watch(
   () => props.show,
-  async (v) => {
+  (v) => {
     if (v) {
-      await startAnimations()
+      startAnimations()
     } else {
-      stopAnimations()
+      ctx?.revert() // 清理所有动画
     }
   },
   { immediate: true }
 )
 
 onUnmounted(() => {
-  stopAnimations()
+  ctx?.revert()
 })
 </script>

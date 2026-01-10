@@ -893,9 +893,27 @@ const loadComparisons = async () => {
 
 // 渲染Markdown
 const renderedSummary = computed(() => {
-  return comparisonSummary.value 
-    ? getMarkdownRenderer().render(comparisonSummary.value)
-    : ''
+  if (!comparisonSummary.value) return ''
+  
+  let content = comparisonSummary.value
+
+  // 预处理：修复常见的 Markdown 格式问题（AI 有时会输出紧凑的文本）
+  
+  // 1. 修复标题前缺少换行的问题 (e.g. "Text### Title" -> "Text\n\n### Title")
+  content = content.replace(/([^\n])\s*(#{1,6}\s)/g, '$1\n\n$2')
+
+  // 2. 修复列表项前缺少换行的问题
+  // 针对一级列表 (e.g. "Text - **Software**" -> "Text\n- **Software**")
+  content = content.replace(/([^\n])\s*-\s*(\*\*)/g, '$1\n- $2')
+  
+  // 针对二级列表 (e.g. "Text - 优点" -> "Text\n  - 优点")
+  // 这种主要针对已知关键词进行优化
+  content = content.replace(/([^\n])\s*-\s*(优点|缺点)/g, '$1\n  - $2')
+
+  // 3. 修复标题后缺少换行的问题 (e.g. "### TitleText" -> "### Title\nText")
+  content = content.replace(/(#{1,6}\s+.*?)(\s*-\s)/g, '$1\n$2')
+
+  return getMarkdownRenderer().render(content)
 })
 
 // 监听标签页切换，切换到对比分析时加载数据
@@ -915,6 +933,15 @@ watch(() => props.isOpen, (isOpen) => {
     comparedSoftwares.value = []
     comparisonSummary.value = ''
   }
+})
+
+// 监听软件切换（通过导航切换），重置状态
+watch(() => props.software.id, () => {
+  // 切换软件时，重置为概览标签页，并清空对比数据
+  activeTab.value = 'overview'
+  comparedSoftwares.value = []
+  comparisonSummary.value = ''
+  isLoadingComparison.value = false
 })
 
 // 监听登录状态，如果未登录且当前在私密信息标签页，则切换回概览
