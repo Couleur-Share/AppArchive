@@ -766,6 +766,12 @@ const handleTouchStart = (e: TouchEvent) => {
   // 子弹窗打开时不响应
   if (showSharePreview.value || showComparisonManager.value) return
   
+  // 检查是否在水平滚动容器内（如对比卡片容器、标签页容器）
+  const target = e.target as HTMLElement
+  if (target.closest('.scroll-mask') || target.closest('.no-scrollbar')) {
+    return
+  }
+  
   const touch = e.touches[0]
   touchStartX = touch.clientX
   touchStartY = touch.clientY
