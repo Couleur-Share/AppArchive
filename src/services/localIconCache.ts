@@ -1,8 +1,12 @@
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { buildApiUrl } from "./apiBase";
 
-// 签名 URL 缓存（响应式，用于自动更新视图）
-const signedUrlCache = reactive<Map<string, string>>(new Map());
+// 签名 URL 缓存
+const signedUrlCache = new Map<string, string>();
+
+// 缓存版本号（用于触发响应式更新）
+// 每次缓存更新时递增，组件可以 watch 这个值来响应变化
+const cacheVersion = ref(0);
 
 // 签名 URL 获取状态（避免重复请求）
 const pendingRequests = new Map<string, Promise<string | null>>();
@@ -97,6 +101,8 @@ async function getSignedUrlWithCache(
 		if (signedUrl) {
 			signedUrlCache.set(originalUrl, signedUrl);
 			cacheTimestamps.set(originalUrl, Date.now());
+			// 递增版本号，触发响应式更新
+			cacheVersion.value++;
 		}
 
 		return signedUrl;
@@ -143,13 +149,19 @@ async function batchFetchSignedUrls(
 		const data = await response.json();
 		if (data.success && data.signedUrls) {
 			const now = Date.now();
+			let hasUpdates = false;
 			for (const [originalUrl, signedUrl] of Object.entries(
 				data.signedUrls as Record<string, string | null>,
 			)) {
 				if (signedUrl) {
 					signedUrlCache.set(originalUrl, signedUrl);
 					cacheTimestamps.set(originalUrl, now);
+					hasUpdates = true;
 				}
+			}
+			// 批量更新完成后递增一次版本号
+			if (hasUpdates) {
+				cacheVersion.value++;
 			}
 		}
 
@@ -326,8 +338,14 @@ export const getIconCacheSize = (): number => {
 };
 
 /**
- * 获取签名 URL 缓存（响应式）
- * 组件可以通过 watch 这个缓存来响应签名 URL 的变化
+ * 获取缓存版本号（响应式 ref）
+ * 组件可以通过 watch 这个版本号来响应签名 URL 的变化
+ */
+export const getCacheVersion = () => cacheVersion;
+
+/**
+ * 获取签名 URL 缓存
+ * 返回原始的 Map 对象，用于直接读取缓存的签名 URL
  */
 export const getSignedUrlCache = () => signedUrlCache;
 

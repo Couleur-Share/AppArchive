@@ -128,7 +128,7 @@ import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { isSignedIn } from '../lib/clerk'
-import { getErrorPlaceholder, getIconUrl, getSignedUrlCache, preloadIcon, refreshSignedUrl } from '../services/localIconCache'
+import { getCacheVersion, getErrorPlaceholder, getIconUrl, preloadIcon, refreshSignedUrl } from '../services/localIconCache'
 import type { Software } from '../types'
 import logger from '../utils/logger'
 import SystemIcon from './SystemIcon.vue'
@@ -157,33 +157,36 @@ let iconHoverAnimation: gsap.core.Tween | null = null
 let cardHoverAnimation: gsap.core.Tween | null = null
 let iconEnterAnimation: gsap.core.Tween | null = null
 
-// 签名 URL 缓存（响应式）
-const signedUrlCache = getSignedUrlCache()
+// 缓存版本号（响应式 ref）
+const cacheVersion = getCacheVersion()
 
 // 用于强制更新图标 URL 的计数器
 const updateTrigger = ref(0)
 
-// 计算图标URL（响应签名 URL 缓存的变化）
+// 计算图标URL（响应签名 URL 缓存版本的变化）
 const iconUrl = computed(() => {
-  // 依赖 updateTrigger 来触发重新计算
+  // 依赖 updateTrigger 和 cacheVersion 来触发重新计算
   const _ = updateTrigger.value
-  // 依赖签名 URL 缓存
-  const iconPath = props.software.icon
-  if (iconPath) {
-    signedUrlCache.get(iconPath) // 触发响应式追踪
-  }
-  return getIconUrl(iconPath)
+  const __ = cacheVersion.value
+  return getIconUrl(props.software.icon)
 })
 
-// 监听签名 URL 缓存变化
+// Bug Fix 1: 监听图标 URL 变化，重置重试计数器和加载状态
 watch(
-  () => props.software.icon ? signedUrlCache.get(props.software.icon) : null,
-  (newUrl) => {
-    if (newUrl) {
+  () => props.software.icon,
+  (newIcon, oldIcon) => {
+    if (newIcon !== oldIcon) {
+      retryCount.value = 0
+      imageLoaded.value = false
       updateTrigger.value++
     }
   }
 )
+
+// Bug Fix 2: 监听缓存版本变化，触发图标 URL 更新
+watch(cacheVersion, () => {
+  updateTrigger.value++
+})
 
 // 预加载图标
 const preloadSoftwareIcon = async () => {

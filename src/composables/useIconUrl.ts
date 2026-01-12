@@ -1,7 +1,7 @@
 import { computed, ref, watch } from "vue";
 import {
+	getCacheVersion,
 	getIconUrl,
-	getSignedUrlCache,
 	refreshSignedUrl,
 } from "../services/localIconCache";
 
@@ -18,7 +18,8 @@ const DEFAULT_PLACEHOLDER = "/icons/placeholder.svg";
 export function useIconUrl(
 	iconPath: string | null | undefined | (() => string | null | undefined),
 ) {
-	const signedUrlCache = getSignedUrlCache();
+	// 获取缓存版本号（响应式 ref）
+	const cacheVersion = getCacheVersion();
 
 	// 将 iconPath 转换为响应式值
 	const path = computed(() => {
@@ -31,24 +32,21 @@ export function useIconUrl(
 	// 用于强制更新的计数器
 	const updateCounter = ref(0);
 
-	// 监听签名 URL 缓存的变化
-	watch(
-		() => {
-			const p = path.value;
-			if (!p) return null;
-			// 触发响应式追踪
-			return signedUrlCache.get(p);
-		},
-		() => {
-			// 签名 URL 更新时，增加计数器触发重新计算
-			updateCounter.value++;
-		},
-	);
+	// 监听缓存版本变化
+	watch(cacheVersion, () => {
+		updateCounter.value++;
+	});
+
+	// 监听路径变化，重置状态
+	watch(path, () => {
+		updateCounter.value++;
+	});
 
 	// 计算图标 URL
 	const iconUrl = computed(() => {
-		// 依赖 updateCounter 来触发重新计算
+		// 依赖 updateCounter 和 cacheVersion 来触发重新计算
 		const _ = updateCounter.value;
+		const __ = cacheVersion.value;
 		const p = path.value;
 		if (!p) return DEFAULT_PLACEHOLDER;
 		return getIconUrl(p);
@@ -81,7 +79,8 @@ export function useIconUrls(
 		| (string | null | undefined)[]
 		| (() => (string | null | undefined)[]),
 ) {
-	const signedUrlCache = getSignedUrlCache();
+	// 获取缓存版本号（响应式 ref）
+	const cacheVersion = getCacheVersion();
 
 	// 将 iconPaths 转换为响应式值
 	const paths = computed(() => {
@@ -94,19 +93,16 @@ export function useIconUrls(
 	// 用于强制更新的计数器
 	const updateCounter = ref(0);
 
-	// 监听签名 URL 缓存的变化
-	watch(
-		signedUrlCache,
-		() => {
-			updateCounter.value++;
-		},
-		{ deep: true },
-	);
+	// 监听缓存版本变化
+	watch(cacheVersion, () => {
+		updateCounter.value++;
+	});
 
 	// 计算图标 URL 映射
 	const iconUrls = computed(() => {
-		// 依赖 updateCounter 来触发重新计算
+		// 依赖 updateCounter 和 cacheVersion 来触发重新计算
 		const _ = updateCounter.value;
+		const __ = cacheVersion.value;
 		const result = new Map<string, string>();
 		for (const p of paths.value) {
 			if (p) {
