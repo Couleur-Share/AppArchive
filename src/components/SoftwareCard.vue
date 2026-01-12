@@ -126,9 +126,9 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { isSignedIn } from '../lib/clerk'
-import { getCacheVersion, getErrorPlaceholder, getIconUrl, preloadIcon, refreshSignedUrl } from '../services/localIconCache'
+import { getErrorPlaceholder, getIconUrl, preloadIcon } from '../services/localIconCache'
 import type { Software } from '../types'
 import logger from '../utils/logger'
 import SystemIcon from './SystemIcon.vue'
@@ -148,45 +148,13 @@ const iconContainerRef = ref<HTMLElement | null>(null)
 const iconImageRef = ref<HTMLImageElement | null>(null)
 const cardRef = ref<HTMLElement | null>(null)
 
-// 图片加载重试次数
-const retryCount = ref(0)
-const maxRetries = 2
-
 // GSAP 动画实例
 let iconHoverAnimation: gsap.core.Tween | null = null
 let cardHoverAnimation: gsap.core.Tween | null = null
 let iconEnterAnimation: gsap.core.Tween | null = null
 
-// 缓存版本号（响应式 ref）
-const cacheVersion = getCacheVersion()
-
-// 用于强制更新图标 URL 的计数器
-const updateTrigger = ref(0)
-
-// 计算图标URL（响应签名 URL 缓存版本的变化）
-const iconUrl = computed(() => {
-  // 依赖 updateTrigger 和 cacheVersion 来触发重新计算
-  const _ = updateTrigger.value
-  const __ = cacheVersion.value
-  return getIconUrl(props.software.icon)
-})
-
-// Bug Fix 1: 监听图标 URL 变化，重置重试计数器和加载状态
-watch(
-  () => props.software.icon,
-  (newIcon, oldIcon) => {
-    if (newIcon !== oldIcon) {
-      retryCount.value = 0
-      imageLoaded.value = false
-      updateTrigger.value++
-    }
-  }
-)
-
-// Bug Fix 2: 监听缓存版本变化，触发图标 URL 更新
-watch(cacheVersion, () => {
-  updateTrigger.value++
-})
+// 计算图标URL
+const iconUrl = computed(() => getIconUrl(props.software.icon))
 
 // 预加载图标
 const preloadSoftwareIcon = async () => {
@@ -242,24 +210,6 @@ const handleImageLoad = () => {
 
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  const iconPath = props.software.icon
-
-  // 如果是 COS 图片且还有重试次数，尝试刷新签名 URL
-  if (iconPath && retryCount.value < maxRetries && iconPath.includes('myqcloud.com')) {
-    retryCount.value++
-    logger.debug(`图标加载失败，尝试刷新签名 URL (${retryCount.value}/${maxRetries}):`, iconPath)
-    
-    // 刷新签名 URL 缓存
-    refreshSignedUrl(iconPath)
-    
-    // 延迟后触发重新加载
-    setTimeout(() => {
-      updateTrigger.value++
-    }, 500)
-    return
-  }
-
-  // 重试次数用尽，显示错误占位图
   img.src = getErrorPlaceholder()
   imageLoaded.value = true
   // 错误时也执行加载动画

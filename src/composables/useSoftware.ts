@@ -1,5 +1,4 @@
 import { ref } from "vue";
-import { preloadSignedUrls } from "../services/localIconCache";
 import { softwareService } from "../services/software";
 import type { LicenseType, Software, SystemType } from "../types";
 import logger from "../utils/logger";
@@ -17,22 +16,6 @@ export function useSoftware() {
 
 			const data = await softwareService.getAllSoftware();
 			logger.debug("获取到的数据:", data);
-
-			// 预加载所有图标的签名 URL（用于私有存储桶）
-			// 在设置 softwares 之前预加载，确保渲染时签名 URL 已就绪
-			const iconUrls = data
-				.map((s) => s.icon)
-				.filter((icon): icon is string => !!icon);
-			if (iconUrls.length > 0) {
-				try {
-					await preloadSignedUrls(iconUrls);
-					logger.debug("签名 URL 预加载完成");
-				} catch (err) {
-					logger.warn("预加载签名 URL 失败:", err);
-					// 预加载失败不阻塞列表显示
-				}
-			}
-
 			softwares.value = data;
 			logger.debug("数据加载完成，总数:", data.length);
 		} catch (error) {

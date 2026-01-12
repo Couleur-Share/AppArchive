@@ -281,60 +281,12 @@ export function extractKeyFromCosUrl(url) {
         }
 }
 
-/**
- * 生成带签名的临时访问 URL（用于私有存储桶）
- * @param {string} key COS 对象的 Key（路径）
- * @param {number} expires 签名有效期（秒），默认 1 小时
- * @returns {Promise<string>} 带签名的临时访问 URL
- */
-export async function getSignedUrl(key, expires = 3600) {
-	if (!COS_ENABLED) {
-		throw new Error("COS 未配置，无法生成签名 URL");
-	}
-
-	return new Promise((resolve, reject) => {
-		cos.getObjectUrl(
-			{
-				Bucket: COS_CONFIG.Bucket,
-				Region: COS_CONFIG.Region,
-				Key: key,
-				Sign: true,
-				Expires: expires,
-			},
-			(err, data) => {
-				if (err) {
-					console.error("生成签名 URL 失败:", err);
-					reject(new Error(`生成签名 URL 失败: ${err.message}`));
-				} else {
-					resolve(data.Url);
-				}
-			},
-		);
-	});
-}
-
-/**
- * 从 COS URL 生成带签名的临时访问 URL
- * @param {string} url 原始 COS URL
- * @param {number} expires 签名有效期（秒），默认 1 小时
- * @returns {Promise<string|null>} 带签名的临时访问 URL，如果不是 COS URL 则返回 null
- */
-export async function getSignedUrlFromCosUrl(url, expires = 3600) {
-	const key = extractKeyFromCosUrl(url);
-	if (!key) {
-		return null;
-	}
-	return getSignedUrl(key, expires);
-}
-
 export default {
-	uploadToCOS,
-	generateUniqueFileName,
-	checkFileExists,
-	renameFileInCOS,
-	generateUniqueFileNameFromSoftwareName,
-	deleteFileFromCOS,
-	extractKeyFromCosUrl,
-	getSignedUrl,
-	getSignedUrlFromCosUrl,
+        uploadToCOS,
+        generateUniqueFileName,
+        checkFileExists,
+        renameFileInCOS,
+        generateUniqueFileNameFromSoftwareName,
+        deleteFileFromCOS,
+        extractKeyFromCosUrl,
 };

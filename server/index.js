@@ -10,13 +10,12 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import multer from "multer";
 import {
-	deleteFileFromCOS,
-	extractKeyFromCosUrl,
-	generateUniqueFileName,
-	generateUniqueFileNameFromSoftwareName,
-	getSignedUrlFromCosUrl,
-	renameFileInCOS,
-	uploadToCOS,
+        deleteFileFromCOS,
+        extractKeyFromCosUrl,
+        generateUniqueFileName,
+        generateUniqueFileNameFromSoftwareName,
+        renameFileInCOS,
+        uploadToCOS,
 } from "./cos.js";
 import { handleDatabaseError, pool, testConnection } from "./database.js";
 import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
@@ -529,160 +528,6 @@ app.post(
                 }
         },
 );
-
-// ===== COS 签名 URL 接口（用于私有存储桶） =====
-// 签名 URL 缓存（内存缓存，避免频繁生成签名）
-const signedUrlCache = new Map();
-const SIGNED_URL_CACHE_TTL = 50 * 60 * 1000; // 缓存 50 分钟（签名有效期 1 小时）
-
-// 速率限制：防止滥用
-const signedUrlRateLimiter = rateLimit({
-	windowMs: 60 * 1000, // 1 分钟
-	max: 100, // 每分钟最多 100 个请求
-	standardHeaders: true,
-	legacyHeaders: false,
-	keyGenerator: rateLimitKey,
-});
-
-// 获取单个图标的签名 URL
-app.get("/api/icon/signed", signedUrlRateLimiter, async (req, res) => {
-	try {
-		const { url } = req.query;
-
-		if (!url || typeof url !== "string") {
-			return res.status(400).json({
-				error: "缺少参数",
-				message: "请提供 url 参数",
-			});
-		}
-
-		// 验证是否为 COS URL
-		if (!url.includes("cos.") || !url.includes("myqcloud.com")) {
-			return res.status(400).json({
-				error: "无效的 URL",
-				message: "只支持腾讯云 COS URL",
-			});
-		}
-
-		// 安全检查：只允许获取 AppArchive 目录下的文件
-		const storagePath = process.env.COS_STORAGE_PATH || "AppArchive/";
-		const key = extractKeyFromCosUrl(url);
-		if (!key || !key.startsWith(storagePath)) {
-			return res.status(403).json({
-				error: "访问被拒绝",
-				message: "无权访问该资源",
-			});
-		}
-
-		// 检查缓存
-		const cacheKey = url;
-		const cached = signedUrlCache.get(cacheKey);
-		if (cached && Date.now() - cached.timestamp < SIGNED_URL_CACHE_TTL) {
-			return res.json({ success: true, signedUrl: cached.signedUrl });
-		}
-
-		// 生成签名 URL（有效期 1 小时）
-		const signedUrl = await getSignedUrlFromCosUrl(url, 3600);
-
-		if (!signedUrl) {
-			return res.status(400).json({
-				error: "生成签名失败",
-				message: "无法为该 URL 生成签名",
-			});
-		}
-
-		// 缓存签名 URL
-		signedUrlCache.set(cacheKey, {
-			signedUrl,
-			timestamp: Date.now(),
-		});
-
-		res.json({ success: true, signedUrl });
-	} catch (error) {
-		console.error("获取签名 URL 失败:", error);
-		res.status(500).json({
-			error: "服务器错误",
-			message: error.message,
-		});
-	}
-});
-
-// 批量获取签名 URL（优化性能）
-app.post("/api/icon/signed/batch", signedUrlRateLimiter, async (req, res) => {
-	try {
-		const { urls } = req.body;
-
-		if (!Array.isArray(urls) || urls.length === 0) {
-			return res.status(400).json({
-				error: "缺少参数",
-				message: "请提供 urls 数组",
-			});
-		}
-
-		// 限制单次请求数量
-		if (urls.length > 50) {
-			return res.status(400).json({
-				error: "请求过多",
-				message: "单次最多请求 50 个签名 URL",
-			});
-		}
-
-		const storagePath = process.env.COS_STORAGE_PATH || "AppArchive/";
-		const results = {};
-
-		await Promise.all(
-			urls.map(async (url) => {
-				if (!url || typeof url !== "string") {
-					results[url] = null;
-					return;
-				}
-
-				// 验证是否为 COS URL
-				if (!url.includes("cos.") || !url.includes("myqcloud.com")) {
-					results[url] = null;
-					return;
-				}
-
-				// 安全检查
-				const key = extractKeyFromCosUrl(url);
-				if (!key || !key.startsWith(storagePath)) {
-					results[url] = null;
-					return;
-				}
-
-				// 检查缓存
-				const cached = signedUrlCache.get(url);
-				if (cached && Date.now() - cached.timestamp < SIGNED_URL_CACHE_TTL) {
-					results[url] = cached.signedUrl;
-					return;
-				}
-
-				try {
-					const signedUrl = await getSignedUrlFromCosUrl(url, 3600);
-					if (signedUrl) {
-						signedUrlCache.set(url, {
-							signedUrl,
-							timestamp: Date.now(),
-						});
-						results[url] = signedUrl;
-					} else {
-						results[url] = null;
-					}
-				} catch {
-					results[url] = null;
-				}
-			}),
-		);
-
-		res.json({ success: true, signedUrls: results });
-	} catch (error) {
-		console.error("批量获取签名 URL 失败:", error);
-		res.status(500).json({
-			error: "服务器错误",
-			message: error.message,
-		});
-	}
-});
 
 // ===== AI 代理路由 =====
 // 软件优缺点分析
