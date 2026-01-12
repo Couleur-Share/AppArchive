@@ -8,7 +8,7 @@
         class="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-600"
         :style="{ height: `${rowHeight}px` }"
       >
-        <img :src="getIconUrl(sw.icon)" :alt="sw.name" class="w-10 h-10 rounded-lg" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img :src="getIconUrl(sw.icon)" :alt="sw.name" class="w-10 h-10 rounded-lg" loading="lazy" decoding="async" referrerpolicy="origin">
         <div class="flex-1">
           <h5 class="font-medium text-gray-900 dark:text-gray-100">{{ sw.name }}</h5>
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ sw.category }}</p>

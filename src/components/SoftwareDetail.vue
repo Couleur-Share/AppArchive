@@ -39,7 +39,7 @@
               <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 gap-3 sm:gap-0">
                 <div class="flex items-center gap-3 sm:gap-4 flex-1">
                   <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden ring-1 ring-gray-200 dark:ring-gray-700 flex-shrink-0">
-                    <img :src="getIconUrl(software.icon)" :alt="software.name" class="w-full h-full object-cover" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                    <img :src="getIconUrl(software.icon)" :alt="software.name" class="w-full h-full object-cover" loading="lazy" decoding="async" referrerpolicy="origin" />
                   </div>
                   <div class="flex-1 min-w-0">
                     <DialogTitle as="h3" class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
@@ -226,7 +226,8 @@
                               <img 
                                 :src="getIconUrl(sw.icon)" 
                                 :alt="sw.name" 
-                                class="w-full h-full object-cover" 
+                                class="w-full h-full object-cover"
+                                referrerpolicy="origin"
                               />
                             </div>
                             <div class="flex-1 min-w-0">
@@ -562,7 +563,7 @@
   <div ref="shareCardRef" class="fixed -left-[9999px] top-0 w-[720px] p-8 bg-white text-gray-900">
     <div class="flex items-center gap-4 mb-6">
       <div class="w-16 h-16 rounded-xl overflow-hidden ring-1 ring-gray-200">
-        <img :src="getIconUrl(software.icon)" crossorigin="anonymous" alt="icon" class="w-full h-full object-cover" />
+        <img :src="getIconUrl(software.icon)" crossorigin="anonymous" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
       </div>
       <div>
         <div class="text-2xl font-bold">{{ software.name }}</div>

@@ -32,7 +32,7 @@
               class="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
               loading="lazy"
               decoding="async"
-              referrerpolicy="no-referrer"
+              referrerpolicy="origin"
             />
           </div>
         </div>
@@ -146,6 +146,7 @@
               :alt="item.name"
               class="w-full h-full object-cover"
               loading="lazy"
+              referrerpolicy="origin"
             />
           </div>
 

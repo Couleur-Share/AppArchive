@@ -67,6 +67,7 @@
                           :alt="sw.name" 
                           class="relative w-14 h-14 rounded-xl shadow-sm bg-white dark:bg-gray-700 object-contain p-1" 
                           loading="lazy"
+                          referrerpolicy="origin"
                         >
                       </div>
                       <div>

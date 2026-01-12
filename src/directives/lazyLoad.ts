@@ -41,6 +41,9 @@ export const vLazyLoad: Directive<HTMLImageElement, string> = {
 		// 添加原生懒加载属性
 		el.loading = "lazy";
 
+		// 设置 referrerPolicy 以确保发送 Referer 头，适配 COS 防盗链
+		el.referrerPolicy = "origin";
+
 		// 开始观察元素
 		observer.observe(el);
 	},

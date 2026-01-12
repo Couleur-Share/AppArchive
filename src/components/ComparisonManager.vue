@@ -110,7 +110,7 @@
                             class="w-5 h-5 rounded"
                             loading="lazy"
                             decoding="async"
-                            referrerpolicy="no-referrer"
+                            referrerpolicy="origin"
                           />
                           <span class="text-sm font-medium text-gray-900 dark:text-white">{{ comp.target.name }}</span>
                           <button
