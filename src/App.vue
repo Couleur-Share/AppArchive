@@ -200,8 +200,6 @@
     :is-deleting="isDeleting"
     @confirm="confirmDelete"
   />
-
-  <IconRadiusHelper />
 </template>
 
 <script setup lang="ts">
@@ -229,7 +227,6 @@ const DeleteConfirmDialog = defineAsyncComponent(() => import('./components/comm
 const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsDialog.vue'))
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
 const ComparisonResult = defineAsyncComponent(() => import('./components/ComparisonResult.vue'))
-const IconRadiusHelper = defineAsyncComponent(() => import('./components/debug/IconRadiusHelper.vue'))
 
 import { usePagination } from './composables/usePagination'
 import { useTheme } from './composables/useTheme'

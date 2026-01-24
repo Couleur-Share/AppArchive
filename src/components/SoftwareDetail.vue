@@ -847,7 +847,6 @@ const afterLeave = () => {
 .markdown-content :deep(a) { @apply text-blue-500 hover:underline; }
 
 .scroll-mask {
-  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   scrollbar-width: none;
 }
 .scroll-mask::-webkit-scrollbar { display: none; }

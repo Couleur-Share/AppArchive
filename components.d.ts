@@ -27,7 +27,6 @@ declare module 'vue' {
     DeleteConfirmDialog: typeof import('./src/components/common/DeleteConfirmDialog.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     IconButton: typeof import('./src/components/common/IconButton.vue')['default']
-    IconRadiusHelper: typeof import('./src/components/debug/IconRadiusHelper.vue')['default']
     IconUploader: typeof import('./src/components/IconUploader.vue')['default']
     ISimpleIconsApple: typeof import('~icons/simple-icons/apple')['default']
     ISimpleIconsHarmonyos: typeof import('~icons/simple-icons/harmonyos')['default']
