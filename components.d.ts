@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AdvancedSection: typeof import('./src/components/AdvancedSection.vue')['default']
     AIAnalysisDialog: typeof import('./src/components/AIAnalysisDialog.vue')['default']
+    AIFillButton: typeof import('./src/components/AIFillButton.vue')['default']
     AIOverlay: typeof import('./src/components/AIOverlay.vue')['default']
     AppFooter: typeof import('./src/components/layout/AppFooter.vue')['default']
     AppHeader: typeof import('./src/components/layout/AppHeader.vue')['default']

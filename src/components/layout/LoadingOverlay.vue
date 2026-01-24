@@ -1,77 +1,72 @@
 <template>
-  <div
-    v-if="show"
-    class="fixed inset-0 z-[60] flex items-center justify-center"
-  >
-    <!-- 背景遮罩 -->
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+  <Transition name="fade">
+    <div
+      v-if="show"
+      class="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden"
+    >
+      <!-- 背景遮罩 (适配深色/浅色模式) -->
+      <div class="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl transition-colors duration-300"></div>
 
-    <!-- 背景粒子容器 -->
-    <div ref="particleContainer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+      <!-- 动态背景光晕 -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-30">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s"></div>
+      </div>
 
-    <!-- 主要内容 -->
-    <div class="relative flex flex-col items-center px-4">
-      <!-- Logo 动画区域 -->
-      <div class="relative w-32 h-32 mb-8">
-        <!-- 装饰圆环 -->
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-          <circle 
-            ref="outerRing"
-            cx="50" cy="50" r="48" 
-            fill="none" stroke="#10B981" stroke-width="1" stroke-opacity="0.2"
-            stroke-dasharray="10 10"
-          />
-          <circle 
-            ref="innerRing"
-            cx="50" cy="50" r="40" 
-            fill="none" stroke="#10B981" stroke-width="0.5" stroke-opacity="0.4"
-          />
-        </svg>
-
-        <!-- 中心 Logo -->
-        <div
-          ref="centerLogo"
-          class="absolute inset-8 bg-gray-900 rounded-2xl flex items-center justify-center shadow-2xl border border-emerald-500/20 z-10"
-        >
-          <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            />
-          </svg>
+      <!-- 主要内容 -->
+      <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6 z-10">
+        
+        <!-- 核心动画区域 -->
+        <div class="relative w-32 h-32 mb-10 flex items-center justify-center">
+           <!-- 外环 1 -->
+           <div class="absolute inset-0 rounded-full border border-primary/30 border-t-primary border-r-transparent animate-spin-slow"></div>
+           <!-- 外环 2 -->
+           <div class="absolute inset-2 rounded-full border border-primary/30 border-b-primary border-l-transparent animate-reverse-spin"></div>
+           
+           <!-- 核心球体 -->
+           <div class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl flex items-center justify-center relative overflow-hidden group">
+              <svg class="w-8 h-8 text-primary animate-pulse group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <!-- 扫描光效 -->
+              <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent -translate-y-full animate-scan-fast"></div>
+           </div>
         </div>
 
-        <!-- 扫描线 -->
-        <div 
-          ref="scanner"
-          class="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent z-0 opacity-0"
-        ></div>
-      </div>
+        <!-- 状态文字 -->
+        <div class="text-center w-full space-y-4">
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            {{ title }}
+          </h3>
+          
+          <!-- 动态处理文本 -->
+          <div class="h-6 flex items-center justify-center overflow-hidden">
+             <div class="relative">
+               <transition name="slide-up" mode="out-in">
+                  <p :key="currentMessage" class="text-primary font-mono text-sm flex items-center gap-2">
+                    <span class="animate-pulse">></span>
+                    {{ currentMessage }}
+                  </p>
+               </transition>
+             </div>
+          </div>
+        </div>
 
-      <!-- 标题 -->
-      <div class="text-center mb-8 h-16">
-        <h2 class="text-2xl font-bold text-white mb-2 tracking-wider">
-          SOFTWARE<span class="text-emerald-500">LIST</span>
-        </h2>
-        <p
-          ref="statusText"
-          class="text-sm font-mono text-emerald-400/80"
-        >
-          INITIALIZING_SYSTEM...
+        <!-- 进度条 -->
+        <div class="w-full mt-8 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div ref="progressBar" class="h-full bg-primary w-0 shadow-[0_0_10px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.3)] relative">
+            <div class="absolute right-0 top-0 bottom-0 w-2 bg-white/30 blur-[2px]"></div>
+          </div>
+        </div>
+
+        <!-- 底部提示 -->
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500 font-light">
+          首次加载可能需要较长时间
         </p>
-      </div>
 
-      <!-- 进度条 -->
-      <div class="w-64 relative h-1 bg-gray-800 rounded-full overflow-hidden">
-        <div
-          ref="progressBar"
-          class="absolute inset-y-0 left-0 w-0 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-        ></div>
       </div>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -82,132 +77,46 @@ const props = defineProps<{
   show: boolean
 }>()
 
-const particleContainer = ref<HTMLElement | null>(null)
-const outerRing = ref<SVGElement | null>(null)
-const innerRing = ref<SVGElement | null>(null)
-const centerLogo = ref<HTMLElement | null>(null)
-const scanner = ref<HTMLElement | null>(null)
-const statusText = ref<HTMLElement | null>(null)
 const progressBar = ref<HTMLElement | null>(null)
+const currentMessage = ref("正在连接服务器...")
+const title = ref("AppArchive")
 
 let ctx: gsap.Context | null = null
+let messageInterval: any = null
 
-const initParticles = () => {
-  if (!particleContainer.value) return
-  
-  // 清除旧粒子
-  particleContainer.value.innerHTML = ''
-  
-  // 创建新粒子
-  for (let i = 0; i < 30; i++) {
-    const p = document.createElement('div')
-    p.className = 'absolute bg-emerald-500 rounded-full opacity-0'
-    const size = Math.random() * 3 + 1
-    p.style.width = `${size}px`
-    p.style.height = `${size}px`
-    p.style.left = `${Math.random() * 100}%`
-    p.style.top = `${Math.random() * 100}%`
-    particleContainer.value.appendChild(p)
-    
-    gsap.to(p, {
-      y: -100 - Math.random() * 100,
-      opacity: Math.random() * 0.5,
-      duration: 2 + Math.random() * 3,
-      repeat: -1,
-      ease: 'none',
-      delay: Math.random() * 2
-    })
-  }
-}
+const messages = [
+  "正在加载资源...",
+  "验证用户身份...",
+  "同步数据配置...",
+  "准备用户界面...",
+  "即将完成..."
+]
 
 const startAnimations = async () => {
   await nextTick()
   
-  // 使用 gsap.context 自动管理清理
+  // 重置状态
+  currentMessage.value = "正在连接服务器..."
+  
   ctx = gsap.context(() => {
-    const tl = gsap.timeline()
-    
-    // 0. 初始化状态
-    gsap.set([outerRing.value, innerRing.value], { 
-      transformOrigin: 'center center',
-      opacity: 0,
-      scale: 0.8 
-    })
-    gsap.set(centerLogo.value, { 
-      scale: 0, 
-      rotation: -45,
-      opacity: 0 
-    })
-    
-    // 1. 核心入场序列
-    tl.to(centerLogo.value, {
-      scale: 1,
-      rotation: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: 'back.out(1.7)'
-    })
-    .to([outerRing.value, innerRing.value], {
-      opacity: 1,
-      scale: 1,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power2.out'
-    }, '-=0.4')
-    
-    // 2. 持续循环动画
-    // 外环旋转
-    gsap.to(outerRing.value, {
-      rotation: 360,
-      duration: 20,
-      repeat: -1,
-      ease: 'none'
-    })
-    // 内环反向旋转
-    gsap.to(innerRing.value, {
-      rotation: -360,
-      duration: 15,
-      repeat: -1,
-      ease: 'none'
-    })
-    // 扫描线效果
-    gsap.to(scanner.value, {
-      top: '100%',
-      opacity: 0.5,
-      duration: 2,
-      repeat: -1,
-      ease: 'power1.inOut',
-      yoyo: true
-    })
-    
-    // 3. 文字打字机效果
-    const messages = ['LOADING_ASSETS...', 'CONNECTING_DB...', 'RENDERING_UI...', 'ALMOST_READY...']
-    const textTl = gsap.timeline({ repeat: -1 })
-    
-    messages.forEach(msg => {
-      textTl.to(statusText.value, {
-        duration: 1,
-        text: {
-          value: msg,
-          delimiter: "" 
-        },
-        ease: "none"
-      })
-      .to({}, { duration: 0.5 }) // 停顿
-    })
+    // 进度条动画
+    gsap.fromTo(progressBar.value, 
+      { width: '0%' },
+      {
+        width: '90%', // 预留10%给真实完成
+        duration: 2.5,
+        ease: 'power2.inOut',
+      }
+    )
 
-    // 4. 进度条加载
-    gsap.to(progressBar.value, {
-      width: '100%',
-      duration: 3.5,
-      ease: 'expo.inOut',
-      repeat: -1,
-      yoyo: true // 让它更有动感，满了之后会缩回去再加载
-    })
-
-    // 初始化背景粒子
-    initParticles()
-    
+    // 消息循环
+    let msgIndex = 0
+    messageInterval = setInterval(() => {
+      if (msgIndex < messages.length) {
+        currentMessage.value = messages[msgIndex]
+        msgIndex++
+      }
+    }, 800)
   })
 }
 
@@ -217,7 +126,20 @@ watch(
     if (v) {
       startAnimations()
     } else {
-      ctx?.revert() // 清理所有动画
+      // 完成动画
+      if (progressBar.value) {
+        gsap.to(progressBar.value, {
+          width: '100%',
+          duration: 0.3,
+          onComplete: () => {
+            ctx?.revert()
+            if (messageInterval) clearInterval(messageInterval)
+          }
+        })
+      } else {
+        ctx?.revert()
+        if (messageInterval) clearInterval(messageInterval)
+      }
     }
   },
   { immediate: true }
@@ -225,5 +147,56 @@ watch(
 
 onUnmounted(() => {
   ctx?.revert()
+  if (messageInterval) clearInterval(messageInterval)
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+.animate-reverse-spin {
+  animation: spin 6s linear infinite reverse;
+}
+.animate-scan-fast {
+  animation: scan 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

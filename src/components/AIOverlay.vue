@@ -1,210 +1,319 @@
 <template>
-  <div
-    v-if="active"
-    class="fixed inset-0 z-[60] flex items-center justify-center"
+  <Transition
+    :css="false"
+    @enter="onEnter"
+    @leave="onLeave"
   >
-    <!-- 背景遮罩 -->
-    <div class="absolute inset-0 bg-black/90 backdrop-blur-sm"></div>
+    <div
+      v-if="active"
+      class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden font-sans"
+      style="--primary-h: 167; --primary-s: 100%; --primary-l: 50%;"
+    >
+      <!-- 背景层：多重叠加增强质感 -->
+      <div ref="bgLayer" class="absolute inset-0 z-0">
+        <!-- 基础模糊层: 使用深色品牌色调替代纯黑/灰 -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-3xl"></div>
+        <!-- 暗角渐变: 使用透明度更低的深蓝/青色，避免死黑 -->
+        <div class="absolute inset-0 bg-radial-gradient"></div>
+        <!-- 动态网格背景 (视差效果) -->
+        <div class="absolute inset-0 opacity-[0.05] bg-[url('/grid.svg')] animate-pan-background"></div>
+        <!-- 氛围光晕 -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen animate-breathe"></div>
+      </div>
 
-    <!-- 动态网格背景 -->
-    <div 
-      ref="gridBg" 
-      class="absolute inset-0 opacity-20"
-      style="background-image: radial-gradient(#10B981 1px, transparent 1px); background-size: 30px 30px;"
-    ></div>
-
-    <!-- 主要内容 -->
-    <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6">
-      
-      <!-- 核心 AI 动画 -->
-      <div class="relative w-40 h-40 mb-10 flex items-center justify-center">
-        <!-- 外部数据流环 -->
-        <div ref="dataRing" class="absolute inset-0 rounded-full border border-emerald-500/30"></div>
+      <!-- 主要内容容器 -->
+      <div ref="contentContainer" class="relative z-10 flex flex-col items-center justify-center w-full max-w-xl p-8">
         
-        <!-- 旋转片段 -->
-        <svg class="absolute inset-0 w-full h-full animate-spin-slow" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="20 160" stroke-linecap="round" opacity="0.5" />
-          <circle cx="50" cy="50" r="35" fill="none" stroke="#34D399" stroke-width="1" stroke-dasharray="60 180" stroke-linecap="round" opacity="0.3" />
-        </svg>
+        <!-- HUD 核心组件 -->
+        <div class="relative w-96 h-96 mb-16 flex items-center justify-center perspective-1000">
+          
+          <!-- Layer 1: 外部刻度环 (逆时针慢速) -->
+          <div ref="ringOuter" class="absolute inset-0 rounded-full border border-primary/10 border-dashed animate-spin-slow-reverse will-change-transform"></div>
+          
+          <!-- Layer 2: 扫描雷达层 -->
+          <div ref="radarLayer" class="absolute inset-2 rounded-full overflow-hidden opacity-30">
+             <div class="absolute inset-0 bg-conic-gradient animate-spin-medium will-change-transform"></div>
+          </div>
 
-        <!-- 中心核心 -->
-        <div ref="core" class="relative z-10 w-20 h-20 bg-gray-900 rounded-xl flex items-center justify-center border border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-          <div ref="coreIcon" class="text-emerald-400">
-            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+          <!-- Layer 3: 动态进度环 SVG -->
+          <svg class="absolute inset-4 w-[22rem] h-[22rem] rotate-[-90deg]" viewBox="0 0 100 100">
+            <!-- 底部轨道 -->
+            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+            <!-- 进度条 (纯色发光) -->
+            <circle 
+              ref="progressRing"
+              cx="50" cy="50" r="46" 
+              fill="none" 
+              stroke="currentColor"
+              stroke-width="1.5" 
+              stroke-linecap="round"
+              stroke-dasharray="289"
+              stroke-dashoffset="289"
+              class="text-primary transition-all duration-300 ease-linear will-change-[stroke-dashoffset] drop-shadow-[0_0_8px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]"
+            />
+          </svg>
+
+          <!-- Layer 4: 粒子轨道 -->
+          <div class="absolute inset-0 animate-spin-slow">
+             <div class="absolute top-4 left-1/2 w-1 h-1 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),1)]"></div>
+             <div class="absolute bottom-4 left-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_white]"></div>
+          </div>
+
+          <!-- Layer 5: 核心能量块 -->
+          <div ref="coreIcon" class="relative w-28 h-28 rounded-3xl bg-primary/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl overflow-hidden group">
+            <!-- 内部光效 -->
+            <div class="absolute inset-0 bg-primary/10 blur-xl group-hover:bg-primary/20 transition-colors duration-500"></div>
+            <!-- 扫描线 -->
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/20 to-transparent translate-y-[-100%] animate-scan"></div>
+            
+            <!-- 图标主体 -->
+            <div class="relative z-10 text-primary drop-shadow-[0_0_15px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]">
+               <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+               </svg>
+            </div>
+            
+            <!-- 边框高亮 -->
+            <div class="absolute inset-0 rounded-3xl border border-white/5 shadow-inner"></div>
           </div>
         </div>
 
-        <!-- 浮动粒子 -->
-        <div ref="particles" class="absolute inset-0 pointer-events-none"></div>
-      </div>
+        <!-- 文本与状态区域 -->
+        <div ref="textContainer" class="w-full text-center space-y-8 relative z-20">
+          <div class="space-y-2">
+            <h3 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight drop-shadow-lg">
+              AI 智能分析中
+            </h3>
+            
+            <!-- 步骤切换动画 -->
+            <div class="h-8 flex items-center justify-center overflow-hidden relative">
+               <TransitionGroup name="slide-fade">
+                  <p 
+                    v-if="currentStep"
+                    :key="currentStep" 
+                    class="absolute text-primary font-mono text-sm tracking-[0.2em] uppercase flex items-center gap-2"
+                  >
+                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                    {{ currentStep }}
+                  </p>
+               </TransitionGroup>
+            </div>
+          </div>
 
-      <!-- 状态文字 -->
-      <div class="text-center w-full space-y-4">
-        <h3 
-          ref="titleText"
-          class="text-xl font-bold text-white tracking-widest font-mono"
-        >
-          AI_ANALYSIS_INIT
-        </h3>
-        
-        <!-- 代码流解码效果 -->
-        <div class="h-16 flex items-center justify-center">
-           <p 
-            ref="decodeText" 
-            class="text-sm text-emerald-400/80 font-mono h-full flex flex-col items-center justify-center gap-1"
-          >
-            <span>Wait...</span>
-          </p>
+          <!-- 精致进度条 -->
+          <div class="w-full px-4 max-w-md mx-auto">
+            <div class="flex justify-between text-[10px] text-gray-400 font-mono mb-2 tracking-widest opacity-80">
+              <span>PROCESSING DATA</span>
+              <span>{{ Math.round(visualProgress) }}%</span>
+            </div>
+            
+            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-sm ring-1 ring-white/5">
+              <div 
+                class="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/40 via-primary to-primary shadow-[0_0_15px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.8)] transition-all duration-100 ease-out will-change-[width]"
+                :style="{ width: `${visualProgress}%` }"
+              >
+                <!-- 进度条头部高光 -->
+                <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-white/80 blur-[2px]"></div>
+              </div>
+            </div>
+            
+            <p class="text-[10px] text-gray-500 mt-4 font-light tracking-wide">
+              系统将自动优化并生成预览，请稍候...
+            </p>
+          </div>
         </div>
-      </div>
 
-      <!-- 进度指示器 -->
-      <div class="w-full mt-6 bg-gray-800/50 h-1 rounded-full overflow-hidden">
-        <div ref="progressBar" class="h-full bg-emerald-500 w-0"></div>
       </div>
-
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
+import { ref, watch, onUnmounted, computed } from 'vue'
 import { gsap } from 'gsap'
-import { nextTick, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ active: boolean }>()
 
-const gridBg = ref<HTMLElement | null>(null)
-const dataRing = ref<HTMLElement | null>(null)
-const core = ref<HTMLElement | null>(null)
+// DOM Refs for GSAP
+const bgLayer = ref<HTMLElement | null>(null)
+const contentContainer = ref<HTMLElement | null>(null)
+const ringOuter = ref<HTMLElement | null>(null)
+const radarLayer = ref<HTMLElement | null>(null)
 const coreIcon = ref<HTMLElement | null>(null)
-const particles = ref<HTMLElement | null>(null)
-const titleText = ref<HTMLElement | null>(null)
-const decodeText = ref<HTMLElement | null>(null)
-const progressBar = ref<HTMLElement | null>(null)
+const textContainer = ref<HTMLElement | null>(null)
+const progressRing = ref<SVGElement | null>(null)
 
-let ctx: gsap.Context | null = null
+// State
+const currentStep = ref("初始化分析引擎...")
+const targetProgress = ref(0) // 逻辑进度
+const visualProgress = ref(0) // 视觉显示进度 (用于平滑过渡)
+let processTimer: any
+let progressTween: gsap.core.Tween | null = null
 
-const startAnimations = async () => {
-  await nextTick()
+const steps = [
+  "解析输入数据结构...",
+  "特征提取与向量化...",
+  "神经网络模型推理...",
+  "生成优化建议...",
+  "完成分析报告..."
+]
+
+// GSAP Animations
+const onEnter = (el: Element, done: () => void) => {
+  const tl = gsap.timeline({ onComplete: done })
   
-  ctx = gsap.context(() => {
-    // 0. 初始化
-    gsap.set(gridBg.value, { scale: 1.2, opacity: 0 })
-    gsap.set(core.value, { scale: 0, rotation: 180 })
-    gsap.set(dataRing.value, { scale: 0.8, opacity: 0 })
-    
-    // 1. 入场
-    const tl = gsap.timeline()
-    
-    tl.to(gridBg.value, { opacity: 0.15, duration: 1 })
-      .to(core.value, { 
-        scale: 1, 
-        rotation: 0, 
-        duration: 0.8, 
-        ease: 'elastic.out(1, 0.5)' 
-      }, '-=0.5')
-      .to(dataRing.value, {
-        scale: 1,
-        opacity: 1,
-        duration: 0.5
-      }, '-=0.4')
+  // 1. 背景层淡入 & 缩放 (增加沉浸感)
+  tl.fromTo(bgLayer.value, 
+    { opacity: 0, scale: 1.1 },
+    { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }
+  )
 
-    // 2. 核心呼吸与脉冲
-    gsap.to(coreIcon.value, {
-      scale: 1.2,
-      opacity: 0.8,
-      duration: 1.5,
-      yoyo: true,
-      repeat: -1,
-      ease: 'sine.inOut'
-    })
-    
-    gsap.to(dataRing.value, {
-      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
-      duration: 1,
-      yoyo: true,
-      repeat: -1
-    })
+  // 2. 核心 HUD 弹性弹出
+  tl.fromTo([ringOuter.value, radarLayer.value],
+    { scale: 0.8, opacity: 0, rotation: -45 },
+    { scale: 1, opacity: 1, rotation: 0, duration: 1, ease: "back.out(1.7)", stagger: 0.1 },
+    "-=0.6"
+  )
 
-    // 3. 文字解码特效 (模拟黑客帝国效果)
-    const messages = [
-      "SCANNING_SOFTWARE_ARCH...",
-      "EXTRACTING_FEATURES...",
-      "IDENTIFYING_PROS_CONS...",
-      "GENERATING_INSIGHTS..."
-    ]
-    
-    const textTl = gsap.timeline({ repeat: -1 })
-    messages.forEach(msg => {
-      // 使用 TextPlugin 的标准打字机效果 (免费)
-      textTl.to(decodeText.value, {
-        duration: 1,
-        text: {
-          value: msg,
-          delimiter: ""
-        },
-        ease: "none"
-      })
-      .to({}, { duration: 1.5 }) // 停留
-      .to(decodeText.value, {
-        duration: 0.5,
-        text: {
-          value: "", // 清空
-          delimiter: ""
-        },
-        ease: "none"
-      })
-    })
+  // 3. 中心图标 Pop 效果
+  tl.fromTo(coreIcon.value,
+    { scale: 0, opacity: 0 },
+    { scale: 1, opacity: 1, duration: 0.6, ease: "elastic.out(1, 0.6)" },
+    "-=0.8"
+  )
 
-    // 4. 标题Glitch效果
-    const glitchTl = gsap.timeline({ repeat: -1, repeatDelay: 3 })
-    glitchTl.to(titleText.value, { skewX: 20, duration: 0.1, color: '#34D399' })
-            .to(titleText.value, { skewX: -20, duration: 0.1, color: '#F87171' })
-            .to(titleText.value, { skewX: 0, duration: 0.1, color: '#fff' })
+  // 4. 文字内容上浮
+  tl.fromTo(textContainer.value,
+    { y: 30, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" },
+    "-=0.4"
+  )
+}
 
-    // 5. 进度条
-    gsap.to(progressBar.value, {
-      width: '100%',
-      duration: 8, // 假设分析大概8秒
-      ease: 'power1.inOut'
-    })
-    
-    // 背景网格移动
-    gsap.to(gridBg.value, {
-      backgroundPosition: '30px 30px',
-      duration: 2,
-      repeat: -1,
-      ease: 'none'
-    })
+const onLeave = (el: Element, done: () => void) => {
+  const tl = gsap.timeline({ onComplete: done })
+  
+  // 快速收起动画
+  tl.to(contentContainer.value, { scale: 0.95, opacity: 0, duration: 0.3, ease: "power2.in" })
+  tl.to(bgLayer.value, { opacity: 0, duration: 0.3 }, "-=0.2")
+}
 
+// Logic
+const startProcess = () => {
+  targetProgress.value = 0
+  visualProgress.value = 0
+  currentStep.value = steps[0]
+  
+  // 使用 GSAP Tween 这里的数值，确保丝滑
+  if (progressTween) progressTween.kill()
+  
+  // 模拟分段进度
+  const duration = 8 // seconds
+  progressTween = gsap.to(visualProgress, {
+    value: 95,
+    duration: duration,
+    ease: "power1.inOut", // 模拟一开始慢，中间快，最后慢
+    onUpdate: () => {
+      // 这里的逻辑保持不变，用于触发 Step 变更
+      const p = visualProgress.value
+      const stepIndex = Math.floor((p / 100) * steps.length)
+      if(steps[stepIndex] && currentStep.value !== steps[stepIndex]) {
+        currentStep.value = steps[stepIndex]
+        // Step 变更时的微交互：核心图标轻微震动
+        gsap.fromTo(coreIcon.value, { scale: 1.05 }, { scale: 1, duration: 0.2, ease: "power1.out" })
+      }
+      
+      // 更新环形进度条的 dashoffset
+      // 289 是圆周长 (2 * PI * 46)
+      if (progressRing.value) {
+        const offset = 289 - (p / 100) * 289
+        progressRing.value.style.strokeDashoffset = offset.toString()
+      }
+    }
   })
 }
 
-watch(
-  () => props.active,
-  (v) => {
-    if (v) {
-      startAnimations()
-    } else {
-      ctx?.revert()
-    }
-  },
-  { immediate: true }
-)
+watch(() => props.active, (val) => {
+  if(val) {
+    startProcess()
+  } else {
+    // 完成态
+    if (progressTween) progressTween.kill()
+    gsap.to(visualProgress, {
+      value: 100,
+      duration: 0.5,
+      onUpdate: () => {
+         if (progressRing.value) progressRing.value.style.strokeDashoffset = "0"
+      }
+    })
+  }
+})
 
 onUnmounted(() => {
-  ctx?.revert()
+  if (progressTween) progressTween.kill()
 })
 </script>
 
 <style scoped>
+/* 辅助动画类 (对于简单的循环动画，CSS 仍比 JS 更高效) */
+.animate-spin-slow-reverse {
+  animation: spin 15s linear infinite reverse;
+}
+.animate-spin-medium {
+  animation: spin 4s linear infinite;
+}
 .animate-spin-slow {
   animation: spin 8s linear infinite;
 }
+.animate-pan-background {
+  animation: pan 20s linear infinite alternate;
+}
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+.animate-scan {
+  animation: scan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @keyframes spin {
-  from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+@keyframes pan {
+  from { background-position: 0% 0%; }
+  to { background-position: 100% 100%; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.1); }
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+/* 视觉特效 */
+.bg-radial-gradient {
+  /* 使用深色品牌色调的渐变，而非纯黑 */
+  background: radial-gradient(circle at center, transparent 0%, rgba(var(--primary-h),var(--primary-s),var(--primary-l), 0.15) 120%);
+}
+.bg-conic-gradient {
+  background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(var(--primary-h),var(--primary-s),var(--primary-l), 0.1) 60deg, transparent 120deg);
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* 文本切换过渡 */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>
