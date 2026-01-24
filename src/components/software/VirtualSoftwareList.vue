@@ -8,7 +8,7 @@
     <div
       v-for="item in items"
       :key="item.id"
-      :class="[viewMode === 'grid' ? 'relative pt-10 group' : 'group']"
+      :class="[viewMode === 'grid' ? 'relative pt-10 group isolate' : 'group']"
     >
       
       <!-- =============================================== -->
@@ -16,7 +16,7 @@
       <!-- =============================================== -->
       <template v-if="viewMode === 'grid'">
         <!-- 图标容器 -->
-        <div class="absolute -top-2 left-6 z-10">
+        <div class="absolute -top-2 left-6 z-10 pointer-events-none">
           <div class="w-16 h-16 rounded-full overflow-hidden 
                       bg-white/80 dark:bg-gray-800/80
                       backdrop-blur-md backdrop-saturate-150
@@ -45,8 +45,8 @@
                  border border-white/30 dark:border-gray-700/50 
                  backdrop-blur transition-colors duration-100
                  hover:shadow-level2 cursor-pointer
-                 min-h-[280px] flex flex-col"
-          @click="$emit('click', item)"
+                 min-h-[280px] flex flex-col z-[1]"
+          @click="handleItemClick(item, 'grid')"
         >
           <div class="flex flex-col flex-grow">
              <!-- 顶部区域 -->
@@ -135,7 +135,7 @@
                  border border-white/30 dark:border-gray-700/50
                  backdrop-blur transition-all duration-200
                  hover:shadow-md cursor-pointer"
-          @click="$emit('click', item)"
+          @click="handleItemClick(item, 'list')"
           @mouseenter="handleMouseEnter"
           @mouseleave="handleMouseLeave"
         >
@@ -237,12 +237,16 @@ const props = defineProps<{
   viewMode: 'grid' | 'list'
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'edit', software: Software): void
   (e: 'delete', id: number): void
   (e: 'click', software: Software): void
   (e: 'compare', software: Software): void
 }>()
+
+const handleItemClick = (item: Software, view: 'grid' | 'list') => {
+  emit('click', item)
+}
 
 const openWebsite = (website: string) => {
   if (website) {

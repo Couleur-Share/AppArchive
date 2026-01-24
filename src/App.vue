@@ -171,6 +171,7 @@
     :software="selectedSoftware"
     :software-list="filteredSoftwares"
     @navigate="handleSoftwareNavigate"
+    @closed="handleDetailClosed"
   />
 
   <LoadingOverlay :show="isLoading" />
@@ -199,6 +200,8 @@
     :is-deleting="isDeleting"
     @confirm="confirmDelete"
   />
+
+  <IconRadiusHelper />
 </template>
 
 <script setup lang="ts">
@@ -226,6 +229,7 @@ const DeleteConfirmDialog = defineAsyncComponent(() => import('./components/comm
 const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsDialog.vue'))
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
 const ComparisonResult = defineAsyncComponent(() => import('./components/ComparisonResult.vue'))
+const IconRadiusHelper = defineAsyncComponent(() => import('./components/debug/IconRadiusHelper.vue'))
 
 import { usePagination } from './composables/usePagination'
 import { useTheme } from './composables/useTheme'
@@ -345,7 +349,7 @@ const filteredSoftwares = computed(() => {
     )
   }
 
-  result = result.sort((a, b) => {
+  const sorted = [...result].sort((a, b) => {
     const factor = sortOrder.value === 'asc' ? 1 : -1
     const aValue = a[sortBy.value]
     const bValue = b[sortBy.value]
@@ -357,9 +361,12 @@ const filteredSoftwares = computed(() => {
     return aValue > bValue ? factor : -factor
   })
 
-  // 更新总项目数
-  totalItems.value = result.length
-  return result
+  return sorted
+})
+
+// 监听 filteredSoftwares 变化来更新总数
+watch(filteredSoftwares, (newVal) => {
+  totalItems.value = newVal.length
 })
 
 const paginatedSoftwares = computed(() => {
@@ -372,13 +379,22 @@ const paginatedSoftwares = computed(() => {
   // 确保当前页码不超过最大页数
   const maxPage = Math.ceil(total / pageSize.value) - 1
   if (currentPage.value > maxPage) {
-    currentPage.value = maxPage
+    // handled by watcher
   }
 
-  const start = currentPage.value * pageSize.value
+  const validPage = currentPage.value > maxPage ? maxPage : currentPage.value
+  const start = validPage * pageSize.value
   const end = Math.min(start + pageSize.value, total)
   
   return filteredSoftwares.value.slice(start, end)
+})
+
+// 监听分页变化，确保页码有效
+watch([totalItems, pageSize], () => {
+  const maxPage = Math.ceil(totalItems.value / pageSize.value) - 1
+  if (currentPage.value > maxPage && maxPage >= 0) {
+    currentPage.value = maxPage
+  }
 })
 
 // 监听搜索词变化
@@ -673,6 +689,10 @@ const handleCategoryChange = (newCategory: string) => {
 }
 
 const selectedSoftware = ref<Software | null>(null)
+
+const handleDetailClosed = () => {
+  selectedSoftware.value = null
+}
 
 const showSoftwareDetail = (software: Software) => {
   selectedSoftware.value = {

@@ -98,7 +98,7 @@
                       <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">选择操作系统</p>
                       <div class="grid grid-cols-3 gap-3">
                         <button
-                          v-for="system in ['Windows', 'macOS', 'Linux', 'Android', 'iOS', 'HarmonyOS']"
+                          v-for="system in SYSTEMS"
                           :key="system"
                           @click="toggleSystem(system)"
                           class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors"
@@ -198,6 +198,7 @@
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ArrowDown, ArrowUp, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import { SYSTEMS } from '@/types/constants'
 import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{

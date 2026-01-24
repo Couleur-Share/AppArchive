@@ -62,6 +62,9 @@ export interface Software extends BaseEntity {
 	license: LicenseType;
 	systems: SystemType[];
 	website: string;
+	version?: string; // 最新版本号
+	rating?: number; // 评分 (0-5)
+	downloads?: number; // 下载量
 	pros: string[];
 	cons: string[];
 	// 私密保存的安装包/网盘链接列表

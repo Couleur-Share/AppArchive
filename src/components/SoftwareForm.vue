@@ -2,436 +2,377 @@
   <!-- AI 分析全屏动画 -->
   <AIOverlay :active="isAnalyzingUI" />
 
-  <div v-if="isOpen" class="fixed inset-0 z-50">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
     <!-- 背景遮罩 -->
     <div
-      class="absolute inset-0 bg-black/50"
-      v-gsap="{ duration: 0.18, to: { duration: 0.18, ease: 'power1.out' } }"
+      class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+      @click="$emit('update:isOpen', false)"
+      v-gsap="{ duration: 0.2, from: { opacity: 0 }, to: { opacity: 1 } }"
     ></div>
 
     <!-- 对话框内容 -->
-    <div class="relative z-10">
-      <div class="fixed inset-0 flex items-center justify-center p-4">
-        <div
-          class="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 shadow-level3 will-change-transform will-change-opacity"
-          v-gsap="{
-            y: 12,
-            duration: 0.1,
-            ease: 'power2.out',
-            to: { y: 0, duration: 0.1, ease: 'power2.out' },
-          }"
-        >
-          <!-- 标题区域 -->
-          <div
-            class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700"
-          >
-            <h2
-              class="text-xl font-semibold text-gray-900 dark:text-white"
-            >
-              {{ software ? '编辑软件' : '添加软件' }}
-            </h2>
+    <div
+      class="relative z-10 w-full max-w-4xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100 dark:border-gray-700"
+      v-gsap="{
+        from: { y: 20, opacity: 0, scale: 0.98 },
+        to: { y: 0, opacity: 1, scale: 1 },
+        duration: 0.3,
+        ease: 'power3.out'
+      }"
+    >
+      <!-- 顶部栏：标题 + 工具栏 -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-20">
+        <div class="flex items-center gap-3">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+            {{ software ? '编辑软件' : '添加软件' }}
+          </h2>
+          <!-- 撤销/重做 工具栏 -->
+          <div class="flex items-center gap-1 ml-4 px-2 py-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
             <button
-              @click="$emit('update:isOpen', false)"
-              class="p-2 rounded-lg transition-all duration-200 
-                     text-gray-600 dark:text-gray-400
-                     hover:bg-gray-100 dark:hover:bg-gray-700 
-                     hover:text-gray-900 dark:hover:text-white
-                     focus:outline-none focus:ring-2 focus:ring-gray-500/50"
-              aria-label="关闭"
-              title="关闭"
+              type="button"
+              @click="undo"
+              :disabled="!canUndo"
+              class="p-1.5 rounded-md hover:bg-white dark:hover:bg-gray-600 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+              title="撤销 (Ctrl+Z)"
             >
-              <X class="h-5 w-5" />
+              <Undo2 class="w-4 h-4" />
+            </button>
+            <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+            <button
+              type="button"
+              @click="redo"
+              :disabled="!canRedo"
+              class="p-1.5 rounded-md hover:bg-white dark:hover:bg-gray-600 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+              title="重做 (Ctrl+Y)"
+            >
+              <Redo2 class="w-4 h-4" />
             </button>
           </div>
-
-          <!-- 表单内容 -->
-          <form
-            @submit.prevent="handleSubmit"
-            id="softwareForm"
-            class="flex-1 overflow-y-auto p-6 space-y-4"
+        </div>
+        
+        <div class="flex items-center gap-2">
+           <div class="text-xs text-gray-400 hidden sm:block mr-2">
+             <span class="px-1.5 py-0.5 border border-gray-200 dark:border-gray-600 rounded text-[10px]">ESC</span> 关闭
+           </div>
+           <button
+            @click="$emit('update:isOpen', false)"
+            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
           >
-            <fieldset :disabled="isSubmitting" class="space-y-4">
-              <!-- 顶部错误摘要（当错误 ≥ 2 时显示，避免与就地提示重复） -->
-              <BlurFade :delay="0.12" :offset="6" direction="up" inView>
-                <div
-                  v-if="summaryEntries.length > 1"
-                  class="p-3 rounded-lg bg-red-500/5 text-red-600 dark:text-red-300 border border-red-400/30"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  <div class="flex items-center justify-between gap-2 mb-2">
-                    <div class="flex items-center gap-2">
-                      <AlertCircle class="w-4 h-4" />
-                      <span
-                        >请检查表单，有
-                        {{ summaryEntries.length }} 处需要修正。</span
-                      >
-                    </div>
-                    <button
-                      type="button"
-                      class="text-sm underline underline-offset-2 hover:opacity-80"
-                      @click="
-                        () =>
-                          scrollToField(Object.keys(fieldErrors.value)[0] || '')
-                      "
-                    >
-                      跳到第一个
-                    </button>
-                  </div>
-                  <div class="flex flex-wrap gap-2">
-                    <button
-                      v-for="([k, v], i) in summaryEntries"
-                      :key="k"
-                      type="button"
-                      class="px-2 py-1 rounded bg-red-400/10 border border-red-400/30 text-xs hover:bg-red-400/15"
-                      @click="scrollToField(k)"
-                      :title="v"
-                    >
-                      {{ i + 1 }}. {{ k }}
-                    </button>
-                  </div>
-                </div>
-              </BlurFade>
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-              <!-- 第一部分：基本信息 -->
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 space-y-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">基本信息</h3>
-                
-                <!-- 软件名称 -->
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >软件名称<span class="text-red-500 ml-1">*</span></label
-                  >
-                  <div class="relative">
-                    <input
-                      v-model="formData.name"
-                      required
-                      ref="nameInputRef"
-                      @input="debouncedValidateAll()"
-                      @blur="validateAll()"
-                      :aria-invalid="Boolean(nameError || fieldErrors['name'])"
-                      :aria-describedby="
-                        nameError || fieldErrors['name']
-                          ? 'name-error'
-                          : undefined
-                      "
-                      :class="[
-                        'w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100',
-                        formData.name ? 'pr-32' : ''
-                      ]"
-                      placeholder="输入软件名称"
-                    />
-                    <!-- AI 智能填充按钮（内联在输入框右侧） -->
-                    <div
-                      v-if="formData.name"
-                      class="absolute right-2 top-1/2 -translate-y-1/2"
-                    >
-                      <BaseButton
-                        type="button"
-                        @click.stop="startAIFromName"
-                        :disabled="isAnalyzing || isCoolingDown || !formData.name"
-                        variant="primary"
-                        size="sm"
-                        class="rounded-lg"
-                        :title="
-                          isCoolingDown
-                            ? '请稍后再试'
-                            : '让 AI 帮你快速完成表单填写'
-                        "
-                      >
-                        <Bot class="w-3.5 h-3.5" />
-                        <span class="hidden sm:inline">AI 填充</span>
-                        <Loader2 v-if="isAnalyzing" class="w-3.5 h-3.5 animate-spin" />
-                      </BaseButton>
-                    </div>
-                  </div>
-                  <div
-                    v-if="nameError"
-                    class="mt-1 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <AlertCircle class="w-3.5 h-3.5" />
-                    <span>{{ nameError }}</span>
-                  </div>
-                  <div
-                    v-else-if="fieldErrors['name']"
-                    id="name-error"
-                    class="mt-1 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <AlertCircle class="w-3.5 h-3.5" />
-                    <span>{{ fieldErrors['name'] }}</span>
-                  </div>
-                  <div
-                    v-if="aiErrorMessage"
-                    class="mt-1 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <AlertCircle class="w-3.5 h-3.5" />
-                    <span>{{ aiErrorMessage }}</span>
-                  </div>
-                </div>
+      <!-- 表单内容区域 -->
+      <form
+        @submit.prevent="handleSubmit"
+        id="softwareForm"
+        class="flex-1 overflow-y-auto scroll-smooth"
+      >
+        <div class="p-6 space-y-8 max-w-3xl mx-auto">
+          
+          <!-- 错误摘要 -->
+          <BlurFade :delay="0.1" v-if="Object.keys(errors).length > 1">
+            <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-start gap-3">
+               <AlertCircle class="w-5 h-5 mt-0.5 shrink-0" />
+               <div class="flex-1">
+                 <p class="font-medium text-sm mb-2">请修正以下 {{ Object.keys(errors).length }} 个问题：</p>
+                 <ul class="list-disc list-inside text-xs space-y-1 opacity-90">
+                   <li v-for="(msg, field) in errors" :key="field" class="cursor-pointer hover:underline" @click="scrollToField(field)">
+                     {{ msg }}
+                   </li>
+                 </ul>
+               </div>
+            </div>
+          </BlurFade>
 
-                <!-- 类别选择 -->
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >类别<span class="text-red-500 ml-1">*</span></label
-                  >
-                  <Listbox v-model="formData.category">
-                    <div class="relative">
-                      <ListboxButton
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 text-left flex items-center justify-between text-gray-900 dark:text-gray-100"
-                      >
-                        <span>{{ formData.category || '选择类别' }}</span>
-                        <ChevronDown class="h-4 w-4 text-gray-400" />
-                      </ListboxButton>
-                      <Transition
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="opacity-100"
-                        leave-to-class="opacity-0"
-                      >
-                        <ListboxOptions
-                          class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg max-h-60 overflow-auto focus:outline-none border border-gray-200 dark:border-gray-700"
-                        >
-                          <ListboxOption
-                            v-for="category in categories"
-                            :key="category"
-                            :value="category"
-                            v-slot="{ active, selected }"
-                          >
-                            <div
-                              :class="[
-                                'px-4 py-2.5 cursor-pointer flex items-center',
-                                active
-                                  ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-200'
-                                  : 'text-gray-900 dark:text-gray-100',
-                              ]"
-                            >
-                              <Check
-                                v-if="selected"
-                                class="h-4 w-4 mr-2 text-blue-500"
-                              />
-                              <span :class="[selected ? 'font-medium' : '']">{{
-                                category
-                              }}</span>
-                            </div>
-                          </ListboxOption>
-                        </ListboxOptions>
-                      </Transition>
-                    </div>
-                  </Listbox>
-                </div>
+          <!-- Section 1: 核心信息 -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <LayoutGrid class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">核心信息</h3>
+            </div>
 
-                <!-- 描述输入框 -->
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >描述<span class="text-red-500 ml-1">*</span></label
-                  >
-                  <div class="relative">
-                    <textarea
-                      v-model="formData.description"
-                      rows="4"
-                      maxlength="300"
-                      @input="onDescriptionInput"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 resize-none text-gray-900 dark:text-gray-100"
-                      placeholder="输入软件描述"
-                    ></textarea>
-                    <div
-                      class="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right"
-                    >
-                      {{ descCount }} / {{ descMax }}
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- 软件名称 -->
+              <div class="space-y-2 col-span-2 md:col-span-1">
+                <label class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span>软件名称 <span class="text-red-500">*</span></span>
+                  <span class="text-xs text-blue-500 cursor-pointer hover:underline" @click="startAIFromName" v-if="formData.name && !isAnalyzing">AI 自动填充?</span>
+                </label>
+                <div class="relative group">
+                  <input
+                    v-model="formData.name"
+                    @blur="validateField('name')"
+                    @input="handleInput('name', $event.target.value)"
+                    ref="nameInputRef"
+                    class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                    :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.name}"
+                    placeholder="输入软件名称，如 Chrome"
+                  />
+                  <Type class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  
+                  <!-- AI Loading Indicator -->
+                  <div v-if="isAnalyzing" class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 class="w-4 h-4 text-blue-500 animate-spin" />
                   </div>
                 </div>
+                <p v-if="errors.name" class="text-xs text-red-500 flex items-center gap-1 animate-in slide-in-from-top-1">
+                  <AlertCircle class="w-3 h-3" /> {{ errors.name }}
+                </p>
               </div>
 
-              <!-- 第二部分：品牌与授权 -->
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 space-y-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">品牌与授权</h3>
-                
-                <!-- 软件图标 -->
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >软件图标</label
-                  >
-                  <IconUploader
-                    v-model="formData.icon"
-                    :disabled="isSubmitting"
-                  />
-                </div>
+              <!-- 类别 -->
+              <div class="space-y-2 col-span-2 md:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  类别 <span class="text-red-500">*</span>
+                </label>
+                <Listbox v-model="formData.category">
+                  <div class="relative">
+                    <ListboxButton
+                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 text-left flex items-center justify-between text-gray-900 dark:text-white transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    >
+                      <span class="block truncate">{{ formData.category || '选择类别' }}</span>
+                      <ChevronDown class="h-4 w-4 text-gray-400" />
+                      <Tag class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </ListboxButton>
+                    <transition
+                      leave-active-class="transition duration-100 ease-in"
+                      leave-from-class="opacity-100"
+                      leave-to-class="opacity-0"
+                    >
+                      <ListboxOptions
+                        class="absolute z-50 mt-1 w-full overflow-auto rounded-xl bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none text-sm max-h-60"
+                      >
+                        <ListboxOption
+                          v-slot="{ active, selected }"
+                          v-for="category in categories"
+                          :key="category"
+                          :value="category"
+                          as="template"
+                        >
+                          <li
+                            :class="[
+                              active ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300' : 'text-gray-900 dark:text-gray-200',
+                              'relative cursor-pointer select-none py-2.5 pl-10 pr-4 transition-colors'
+                            ]"
+                          >
+                            <span :class="[selected ? 'font-medium' : 'font-normal', 'block truncate']">
+                              {{ category }}
+                            </span>
+                            <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
+                              <Check class="h-4 w-4" aria-hidden="true" />
+                            </span>
+                          </li>
+                        </ListboxOption>
+                      </ListboxOptions>
+                    </transition>
+                  </div>
+                </Listbox>
+              </div>
 
-                <!-- 授权类型选择（改为按钮组） -->
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >授权类型</label
-                  >
-                  <div class="grid grid-cols-2 gap-3">
-                    <button
+              <!-- 描述 -->
+              <div class="col-span-2 space-y-2">
+                <label class="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span>简介描述 <span class="text-red-500">*</span></span>
+                  <span class="text-xs text-gray-400">{{ (formData.description || '').length }}/300</span>
+                </label>
+                <div class="relative">
+                  <textarea
+                    v-model="formData.description"
+                    @input="onDescriptionInput"
+                    @blur="validateField('description')"
+                    rows="3"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 text-sm leading-relaxed"
+                    placeholder="简要描述该软件的主要功能和特点..."
+                  ></textarea>
+                </div>
+                <p v-if="errors.description" class="text-xs text-red-500">{{ errors.description }}</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: 视觉与授权 -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                <Sparkles class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">视觉与授权</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <!-- 图标上传 -->
+               <div class="space-y-2">
+                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">软件图标</label>
+                 <IconUploader v-model="formData.icon" :disabled="isSubmitting" />
+                 <p v-if="errors.icon" class="text-xs text-red-500">{{ errors.icon }}</p>
+               </div>
+
+               <!-- 授权类型 -->
+               <div class="space-y-3">
+                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">授权类型</label>
+                 <div class="grid grid-cols-2 gap-3">
+                    <div
                       v-for="license in LICENSES"
                       :key="license"
-                      type="button"
                       @click="formData.license = license"
+                      class="cursor-pointer relative flex items-center p-3 rounded-xl border transition-all duration-200 group overflow-hidden"
                       :class="[
-                        'px-4 py-2.5 rounded-lg border transition-all duration-200 text-sm font-medium',
-                        formData.license === license
-                          ? 'bg-blue-600 dark:bg-gray-700 border-blue-600 dark:border-gray-700 text-white'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300',
-                        {
-                          'text-gray-800 dark:text-gray-200': license === '免费' && formData.license !== license,
-                          'text-blue-600 dark:text-blue-300': license === '收费' && formData.license !== license,
-                          'text-green-600 dark:text-green-300': license === '开源' && formData.license !== license,
-                          'text-purple-600 dark:text-purple-300': license === '已购' && formData.license !== license,
-                        }
+                        formData.license === license 
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-500/50' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-gray-800'
                       ]"
                     >
-                      {{ license }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 第三部分：支持系统 -->
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 space-y-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">支持系统</h3>
-                <div class="grid grid-cols-3 gap-3">
-                  <button
-                    v-for="sys in SYSTEMS"
-                    :key="sys"
-                    type="button"
-                    @click="toggleSystem(sys as SystemType)"
-                    :class="[
-                      'flex flex-col items-center justify-center p-4 rounded-lg border transition-all duration-200',
-                      (formData.systems || []).includes(sys as SystemType)
-                        ? 'bg-blue-600 dark:bg-gray-700 border-blue-600 dark:border-gray-700 text-white'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    ]"
-                  >
-                    <SystemIcon
-                      :system="sys"
-                      class="w-6 h-6 mb-2"
-                    />
-                    <span class="text-sm">{{ sys }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 第四部分：官方链接 -->
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 space-y-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">官方链接</h3>
-                <div>
-                  <label
-                    class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
-                    >官方网址</label
-                  >
-                  <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-sm font-medium mb-0.5" :class="formData.license === license ? 'text-purple-700 dark:text-purple-300' : 'text-gray-900 dark:text-gray-300'">
+                          {{ license }}
+                        </div>
+                      </div>
+                      <div 
+                        class="w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
+                        :class="formData.license === license ? 'border-purple-500 bg-purple-500' : 'border-gray-300 dark:border-gray-600'"
+                      >
+                        <Check v-if="formData.license === license" class="w-2.5 h-2.5 text-white" />
+                      </div>
                     </div>
+                 </div>
+               </div>
+            </div>
+          </section>
+
+          <!-- Section 3: 系统支持 -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                <Monitor class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">支持系统 <span class="text-red-500">*</span></h3>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button
+                v-for="sys in SYSTEMS"
+                :key="sys"
+                type="button"
+                @click="toggleSystem(sys)"
+                class="relative flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 group"
+                :class="[
+                  (formData.systems || []).includes(sys)
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-500/50 shadow-sm'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-gray-800'
+                ]"
+              >
+                <SystemIcon :system="sys" class="w-8 h-8 mb-2 transition-transform group-hover:scale-110" />
+                <span class="text-xs font-medium" :class="(formData.systems || []).includes(sys) ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'">{{ sys }}</span>
+                
+                <div v-if="(formData.systems || []).includes(sys)" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
+              </button>
+            </div>
+            <p v-if="errors.systems" class="text-xs text-red-500">{{ errors.systems }}</p>
+          </section>
+
+          <!-- Section 4: 链接与资源 -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+              <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                <Link2 class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">链接与资源</h3>
+            </div>
+
+            <div class="space-y-4">
+               <div class="space-y-2">
+                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">官方网址</label>
+                 <div class="relative group">
                     <input
                       v-model="formData.website"
-                      type="url"
-                      :aria-invalid="Boolean(fieldErrors['website'])"
-                      :aria-describedby="
-                        fieldErrors['website'] ? 'website-error' : undefined
-                      "
-                      ref="websiteInputRef"
-                      @input="debouncedValidateAll()"
-                      @blur="validateAll()"
-                      class="w-full pl-12 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100"
-                      placeholder="https://example.com"
+                      @blur="validateField('website')"
+                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 dark:text-white"
+                      placeholder="https://..."
                     />
-                  </div>
-                  <div
-                    v-if="fieldErrors['website']"
-                    id="website-error"
-                    class="mt-1 text-xs text-red-500 flex items-center gap-1"
-                  >
-                    <AlertCircle class="w-3.5 h-3.5" />
-                    <span>{{ fieldErrors['website'] }}</span>
-                  </div>
-                </div>
-              </div>
+                    <Globe class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                 </div>
+                 <p v-if="errors.website" class="text-xs text-red-500">{{ errors.website }}</p>
+               </div>
+            </div>
+          </section>
 
-              <!-- 第五部分：评价 -->
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-5 space-y-4">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-4">评价</h3>
-                <ProsConsEditor
-                  :pros="formData.pros"
-                  :cons="formData.cons"
-                  :disabled="isSubmitting"
-                  @update:pros="(v) => (formData.pros = v)"
-                  @update:cons="(v) => (formData.cons = v)"
-                  @touched-pros="prosTouched = true"
-                  @touched-cons="consTouched = true"
-                />
-              </div>
+          <!-- Section 5: 评价 (Pros & Cons) -->
+          <section class="space-y-6">
+             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+               <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400">
+                 <ThumbsUp class="w-4 h-4" />
+               </div>
+               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">评价分析</h3>
+             </div>
+             
+             <ProsConsEditor
+                :pros="formData.pros"
+                :cons="formData.cons"
+                :disabled="isSubmitting"
+                @update:pros="(v) => (formData.pros = v)"
+                @update:cons="(v) => (formData.cons = v)"
+             />
+          </section>
 
-              <!-- 高级字段折叠开关 -->
-              <div class="pt-2">
-                <button
-                  type="button"
-                  @click="showAdvanced = !showAdvanced"
-                  class="w-full flex items-center justify-between px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-sm text-gray-700 dark:text-gray-300"
-                >
-                  <span>显示高级选项</span>
-                  <ChevronDown
-                    class="h-4 w-4 transition-transform"
-                    :class="showAdvanced ? 'rotate-180' : ''"
-                  />
-                </button>
-              </div>
-
-              <div v-show="showAdvanced" ref="advancedSectionRef">
+          <!-- 高级选项折叠 -->
+          <div class="pt-4">
+             <button
+               type="button"
+               @click="showAdvanced = !showAdvanced"
+               class="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+             >
+               <ChevronRight class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-90': showAdvanced }" />
+               <span>高级选项 (下载链接、私密信息)</span>
+             </button>
+             
+             <div v-show="showAdvanced" class="mt-4 animate-in slide-in-from-top-2 fade-in duration-200">
                 <AdvancedSection
+                  ref="advancedSectionRef"
                   :download-links="formData.download_links"
                   :secrets="formData.secrets"
-                  :field-errors="fieldErrors"
+                  :field-errors="errors"
                   :disabled="isSubmitting"
                   @update:download-links="onDownloadLinksUpdate"
                   @update:secrets="onSecretsUpdate"
                   @validate="validateAll()"
                 />
-              </div>
-            </fieldset>
-          </form>
-
-          <!-- 操作按钮 -->
-          <div
-            class="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700"
-          >
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              所有标记 <span class="text-red-500">*</span> 的字段为必填项
-            </div>
-            <div class="flex gap-3">
-              <BaseButton
-                type="button"
-                @click="$emit('update:isOpen', false)"
-                :disabled="isSubmitting"
-                variant="secondary"
-                :class="['disabled:opacity-50 disabled:cursor-not-allowed']"
-              >
-                取消
-              </BaseButton>
-              <BaseButton
-                type="submit"
-                @click="handleSubmit"
-                :disabled="isSubmitting || submitDisabled"
-                variant="primary"
-                :class="['disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none']"
-                :title="submitDisabled ? submitDisabledReason : ''"
-              >
-                <Loader2 v-if="isSubmitting" class="h-4 w-4 animate-spin" />
-                {{
-                  isSubmitting ? (software ? '保存中...' : '添加中...') : '确定'
-                }}
-              </BaseButton>
-            </div>
+             </div>
           </div>
+          
         </div>
+      </form>
+
+      <!-- 底部栏：操作按钮 -->
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur flex items-center justify-between z-20">
+         <div class="text-xs text-gray-500 hidden sm:block">
+            <span class="font-medium text-gray-700 dark:text-gray-300">Tip:</span> 使用 <kbd class="px-1 py-0.5 rounded border bg-white dark:bg-gray-700 font-mono text-[10px]">Ctrl</kbd> + <kbd class="px-1 py-0.5 rounded border bg-white dark:bg-gray-700 font-mono text-[10px]">Enter</kbd> 快速提交
+         </div>
+         <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <BaseButton
+              type="button"
+              @click="$emit('update:isOpen', false)"
+              :disabled="isSubmitting"
+              variant="secondary"
+              class="px-6"
+            >
+              取消
+            </BaseButton>
+            <BaseButton
+              type="button"
+              @click="handleSubmit"
+              :disabled="isSubmitting || !isValid"
+              variant="primary"
+              class="px-6 min-w-[100px]"
+              :title="!isValid ? '请先修正表单错误' : ''"
+            >
+              <Loader2 v-if="isSubmitting" class="h-4 w-4 animate-spin mr-2" />
+              {{ isSubmitting ? (software ? '保存中...' : '添加中...') : '确定' }}
+            </BaseButton>
+         </div>
       </div>
     </div>
   </div>
@@ -444,26 +385,35 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue'
-import { useDebounceFn } from '@vueuse/core'
+import { useDebounceFn, useMagicKeys, useManualRefHistory, useScrollLock, whenever } from '@vueuse/core'
 import {
   AlertCircle,
-  Bot,
   Check,
   ChevronDown,
+  ChevronRight,
+  Globe,
+  LayoutGrid,
+  Link2,
   Loader2,
+  Monitor,
+  Sparkles,
+  Tag,
+  ThumbsUp,
+  Type,
+  Undo2,
+  Redo2,
   X,
 } from 'lucide-vue-next'
 import {
   computed,
   nextTick,
-  onMounted,
   onUnmounted,
-  reactive,
   ref,
   watch,
+  toRefs
 } from 'vue'
-import { z } from 'zod'
 import { useAIAnalysis } from '@/composables/useAIAnalysis'
+import { useSoftwareValidation } from '@/composables/useSoftwareValidation'
 import { LICENSES, SYSTEMS } from '@/types/constants'
 import {
   inferFromWebsite,
@@ -484,7 +434,6 @@ import AdvancedSection from './AdvancedSection.vue'
 import AIOverlay from './AIOverlay.vue'
 import BlurFade from './animations/BlurFade.vue'
 import BaseButton from './common/BaseButton.vue'
-import IconButton from './common/IconButton.vue'
 import IconUploader from './IconUploader.vue'
 import ProsConsEditor from './ProsConsEditor.vue'
 import SystemIcon from './SystemIcon.vue'
@@ -503,9 +452,7 @@ const emit = defineEmits<{
   'import-success': [message: string]
 }>()
 
-// 统一按钮样式改为使用 BaseButton / IconButton 通用组件
-
-// 默认表单数据与 reactive 状态
+// 默认表单数据
 const defaultFormData: Partial<Software> = {
   name: '',
   category: '工具',
@@ -520,534 +467,233 @@ const defaultFormData: Partial<Software> = {
   secrets: [] as SecretItem[],
 }
 
-const formData = reactive<Partial<Software>>({
-  ...defaultFormData,
+// 使用 ref 而不是 reactive 以配合 useManualRefHistory
+const formData = ref<Partial<Software>>({ ...defaultFormData })
+
+// ====== 历史记录 (Undo/Redo) ======
+const { history, undo, redo, canUndo, canRedo, commit, clear } = useManualRefHistory(formData, {
+  capacity: 20,
+  clone: (v) => JSON.parse(JSON.stringify(v)), // Deep clone for history
 })
 
-// ====== 私密信息脏状态跟踪 ======
-const secretsDirty = ref(false)
-const onSecretsUpdate = (v: SecretItem[]) => {
-  formData.secrets = v
-  secretsDirty.value = true
-}
-
-// ====== 下载链接脏状态跟踪 ======
-const downloadLinksDirty = ref(false)
-const onDownloadLinksUpdate = (v: DownloadLink[]) => {
-  formData.download_links = v
-  downloadLinksDirty.value = true
-}
-
-// 监听 props 变化，更新表单数据（保持 reactive 引用不变）
+// 监听 props 变化初始化表单
 watch(
   () => props.software,
   (newSoftware) => {
     if (newSoftware) {
-      Object.assign(formData, {
+      formData.value = {
         ...defaultFormData,
         ...newSoftware,
         pros: newSoftware.pros || [],
         cons: newSoftware.cons || [],
         download_links: newSoftware.download_links || [],
         secrets: newSoftware.secrets || [],
-      })
+      }
     } else {
-      Object.assign(formData, { ...defaultFormData })
+      formData.value = { ...defaultFormData }
     }
+    // 清空历史记录，避免撤销到上一个软件的状态
+    clear()
+    commit() 
   },
   { immediate: true }
 )
 
+// 监听 formData 变化自动提交历史记录 (Debounced)
+const debouncedCommit = useDebounceFn(() => {
+   commit()
+}, 500)
+
+watch(formData, () => {
+  debouncedCommit()
+}, { deep: true })
+
+// ====== 校验逻辑 ======
+const { errors, validateField, validateAll, isValid } = useSoftwareValidation(
+  formData.value,
+  props.existingNames
+)
+
+// 当 formData 变化时，重新校验已报错的字段
+watch(formData, (newVal) => {
+   // 如果字段已经有错误，修改时尝试清除错误
+   Object.keys(errors.value).forEach(key => {
+      // 简单处理：只要改了就重新校验该字段? 
+      // 或者不做实时清除，等待 blur。
+      // 这里为了体验，当用户修改时，如果该字段有错误，可以尝试重新校验。
+      if (key === 'name') validateField('name')
+      // 其他字段暂不实时触发，以免过于频繁
+   })
+}, { deep: true })
+
+
+// ====== 辅助状态 ======
 const isSubmitting = ref(false)
-// 锁定背景滚动
-const originalBodyOverflow = ref('')
-const originalHtmlOverflow = ref('')
+const showAdvanced = ref(false)
+const advancedSectionRef = ref<HTMLElement | null>(null)
+const nameInputRef = ref<HTMLInputElement | null>(null)
 
-const lockScroll = () => {
-  if (typeof document === 'undefined') return
-  originalBodyOverflow.value = document.body.style.overflow
-  originalHtmlOverflow.value = document.documentElement.style.overflow
-  document.body.style.overflow = 'hidden'
-  document.documentElement.style.overflow = 'hidden'
+// 脏状态跟踪
+const secretsDirty = ref(false)
+const onSecretsUpdate = (v: SecretItem[]) => {
+  formData.value.secrets = v
+  secretsDirty.value = true
 }
 
-const unlockScroll = () => {
-  if (typeof document === 'undefined') return
-  document.body.style.overflow = originalBodyOverflow.value || ''
-  document.documentElement.style.overflow = originalHtmlOverflow.value || ''
+const downloadLinksDirty = ref(false)
+const onDownloadLinksUpdate = (v: DownloadLink[]) => {
+  formData.value.download_links = v
+  downloadLinksDirty.value = true
 }
 
-watch(
-  () => props.isOpen,
-  (open) => {
-    if (open) lockScroll()
-    else unlockScroll()
-  },
-  { immediate: true }
-)
+// 滚动锁定
+const isLocked = useScrollLock(document.body)
+watch(() => props.isOpen, (v) => {
+  isLocked.value = v
+}, { immediate: true })
 
 onUnmounted(() => {
-  unlockScroll()
-})
-const uploading = ref(false)
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const nameInputRef = ref<HTMLInputElement | null>(null)
-const websiteInputRef = ref<HTMLInputElement | null>(null)
-const advancedSectionRef = ref<HTMLElement | null>(null)
-const nameError = ref('')
-const fieldErrors = ref<Record<string, string>>({})
-
-// 统一的 zod Schema（顶层常量，避免重复创建）
-const downloadLinkSchema = z.object({
-  id: z.string(),
-  provider: z.string(),
-  url: z
-    .string()
-    .min(1, '下载链接不能为空')
-    .refine(
-      (v: string) =>
-        /^https?:\/\//i.test(v) ||
-        v.startsWith('magnet:?') ||
-        v.startsWith('ed2k://'),
-      'URL 必须是 http(s) / magnet / ed2k'
-    ),
-  code: z.string().optional(),
-  password: z.string().optional(),
-  versionLabel: z.string().optional(),
-  notes: z.string().optional(),
-  status: z.enum(['unknown', 'alive', 'dead']).optional(),
-  createdAt: z.string(),
-  expiresAt: z.string().optional(),
+  isLocked.value = false
 })
 
-const formSchema = z.object({
-  name: z.string().min(2, '名称至少 2 个字符'),
-  category: z.string().min(1, '类别必选'),
-  description: z.string().optional(),
-  icon: z
-    .string()
-    .optional()
-    .refine(
-      (v) => {
-        if (!v) return true;
-        // 只允许COS URL
-        const isCosUrl = v.startsWith('https://') && v.includes('cos.') && v.includes('myqcloud.com');
-        return isCosUrl;
-      },
-      '图标必须上传到腾讯云COS'
-    ),
-  license: z
-    .enum(LICENSES)
-    .optional()
-    .transform((v) => v ?? '免费'),
-  systems: z.array(z.enum(SYSTEMS)).min(1, '至少选择一个系统'),
-  website: z
-    .string()
-    .optional()
-    .refine(
-      (v: string | undefined) => !v || /^https?:\/\//i.test(v),
-      '请输入合法网址（http/https）'
-    ),
-  pros: z.array(z.string()).optional(),
-  cons: z.array(z.string()).optional(),
-  download_links: z.array(downloadLinkSchema).optional(),
-  secrets: z.any().optional(),
-})
-
-// 统一校验入口：产出 fieldErrors 与重复名错误
-const validateAll = () => {
-  fieldErrors.value = {}
-  nameError.value = ''
-
-  // 如果icon是File对象，临时转换为字符串用于校验（File对象在提交时会上传）
-  const dataForValidation = { ...formData }
-  if (dataForValidation.icon instanceof File) {
-    // File对象暂时跳过icon字段的校验，因为会在提交时上传
-    delete dataForValidation.icon
-  }
-
-  const parseResult = formSchema.safeParse(dataForValidation)
-  if (!parseResult.success) {
-    for (const issue of parseResult.error.issues) {
-      const path = issue.path.join('.')
-      if (!fieldErrors.value[path]) fieldErrors.value[path] = issue.message
+// ====== 快捷键 ======
+const { Ctrl_Enter, Escape, Ctrl_z, Ctrl_y } = useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    if (!props.isOpen) return
+    if (e.key === 'z' && e.ctrlKey && !e.shiftKey) {
+       e.preventDefault()
+       undo()
     }
-  }
-
-  // 额外校验：如果icon是File对象，验证文件类型和大小
-  if (formData.icon instanceof File) {
-    const file = formData.icon
-    const okType = /^(image\/(png|jpeg|webp|svg\+xml|x-icon))$/i.test(file.type)
-    if (!okType) {
-      fieldErrors.value.icon = '仅支持 PNG/JPEG/WebP/SVG/ICO 格式'
+    if ((e.key === 'y' && e.ctrlKey) || (e.key === 'z' && e.ctrlKey && e.shiftKey)) {
+       e.preventDefault()
+       redo()
     }
-    const maxSize = 1024 * 1024
-    if (file.size > maxSize) {
-      fieldErrors.value.icon = '图片过大，请控制在 1MB 以内'
-    }
-  }
-
-  // 额外校验：新增的私密信息必须填写值
-  const secrets = formData.secrets as any[] | undefined
-  if (Array.isArray(secrets)) {
-    secrets.forEach((sec, idx) => {
-      const hasId = Boolean(sec?.id)
-      const hasCipher = sec && typeof sec.value === 'undefined' // 旧项通常不带 value
-      const valueFilled =
-        typeof sec?.value === 'string' && sec.value.trim().length > 0
-      if (!hasCipher && !valueFilled) {
-        // 视为"新增或需要更新"的条目却未填值
-        fieldErrors.value[`secrets.${idx}.value`] = '请填写值'
-      }
-    })
-  }
-
-  // 重名检测（区分编辑模式）
-  const inputName = (formData.name || '').trim()
-  if (inputName && props.existingNames && props.existingNames.length > 0) {
-    const lower = inputName.toLowerCase()
-    const isEditingSame =
-      props.software && props.software.name === formData.name
-    const exists = props.existingNames.some(
-      (n) => (n || '').toLowerCase() === lower && !isEditingSame
-    )
-    if (exists) {
-      nameError.value = '已存在同名软件'
-      fieldErrors.value.name = nameError.value
-    }
-  }
-}
-
-const debouncedValidateAll = useDebounceFn(() => {
-  if (!props.isOpen) return
-  validateAll()
-}, 200)
-
-// 描述计数
-const descMax = 300
-const descCount = computed(() => (formData.description || '').length)
-
-// 高级区域折叠
-const showAdvanced = ref(false)
-
-// 草稿保存与恢复
-const DRAFT_KEY = 'software-form-draft'
-const isEditing = computed(() => Boolean(props.software))
-
-const loadDraft = () => {
-  if (isEditing.value) return
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY)
-    if (!raw) return
-    const draft = JSON.parse(raw)
-    Object.assign(formData, { ...defaultFormData, ...draft })
-  } catch {}
-}
-
-const clearDraft = () => {
-  try {
-    localStorage.removeItem(DRAFT_KEY)
-  } catch {}
-}
-
-const saveDraft = () => {
-  if (isEditing.value) return
-  try {
-    const payload = {
-      name: formData.name,
-      category: formData.category,
-      description: formData.description,
-      icon: formData.icon,
-      license: formData.license,
-      systems: formData.systems,
-      website: formData.website,
-      pros: formData.pros,
-      cons: formData.cons,
-      download_links: formData.download_links,
-    }
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(payload))
-  } catch {}
-}
-
-const debouncedSaveDraft = useDebounceFn(saveDraft, 500)
-
-watch(
-  formData,
-  () => {
-    if (props.isOpen) debouncedSaveDraft()
   },
-  { deep: true }
-)
-
-// 提交按钮禁用逻辑：以统一校验为准
-const submitDisabled = computed(() => {
-  if (isSubmitting.value) return true
-  // 当存在任一字段错误时禁用
-  return Object.keys(fieldErrors.value).length > 0
 })
 
-const submitDisabledReason = computed(() => {
-  if (isSubmitting.value) return '正在提交…'
-  if (nameError.value) return nameError.value
-  // 如果有错误，优先显示第一个错误
-  const first = Object.entries(fieldErrors.value)[0]
-  return first ? first[1] : ''
+whenever(Ctrl_Enter, () => {
+  if (props.isOpen && !isSubmitting.value) handleSubmit()
+})
+whenever(Escape, () => {
+  if (props.isOpen && !isSubmitting.value) emit('update:isOpen', false)
 })
 
-// 处理表单提交
+
+// ====== 业务逻辑 ======
+
+// 系统切换
+const toggleSystem = (sys: SystemType) => {
+  const current = Array.isArray(formData.value.systems) ? [...formData.value.systems] : []
+  const index = current.indexOf(sys)
+  if (index === -1) current.push(sys)
+  else current.splice(index, 1)
+  formData.value.systems = current
+  validateField('systems')
+}
+
+// 提交
 const handleSubmit = async () => {
   if (isSubmitting.value) return
-  // 若存在名称错误（如重复），阻止提交
-  if (nameError.value) {
-    logger.error(nameError.value)
-    return
+  
+  // 全量校验
+  const valid = validateAll()
+  if (!valid) {
+     // 滚动到第一个错误
+     const firstErrorField = Object.keys(errors.value)[0]
+     scrollToField(firstErrorField)
+     return
   }
 
   try {
     isSubmitting.value = true
+    const payload: Partial<Software> = { ...formData.value }
 
-    // 统一 Schema 校验（包含图标路径验证）
-    validateAll()
-    if (Object.keys(fieldErrors.value).length > 0) {
-      throw new AppError('表单校验失败', ErrorCode.VALIDATION)
-    }
-
-    // 仅在私密信息被改动时才携带 secrets 字段
-    const payload: Partial<Software> = { ...formData }
-    
-    // 如果图标是File对象，先上传到COS
-    if (formData.icon instanceof File) {
+    // 处理图标上传
+    if (formData.value.icon instanceof File) {
       try {
         const { uploadService } = await import('@/services/upload')
-        const { path } = await uploadService.uploadIcon(formData.icon)
+        const { path } = await uploadService.uploadIcon(formData.value.icon)
         payload.icon = path
-        // 更新formData中的icon为URL，以便后续使用
-        formData.icon = path
+        formData.value.icon = path // 更新本地
       } catch (error) {
         logger.error('图标上传失败:', error)
         throw new AppError('图标上传失败，请重试', ErrorCode.NETWORK)
       }
     }
-    
-    if (!secretsDirty.value) {
-      delete (payload as any).secrets
-    }
-    if (!downloadLinksDirty.value) {
-      delete (payload as any).download_links
-    }
+
+    if (!secretsDirty.value) delete (payload as any).secrets
+    if (!downloadLinksDirty.value) delete (payload as any).download_links
+
     emit('submit', payload)
-    // 清除草稿
-    clearDraft()
+    // Clear draft if any (logic moved to parent or unnecessary with history?)
+    // clearDraft() // Removed localstorage draft logic in favor of just emitting
   } catch (error) {
-    const appError = errorHandler.handle(error)
+    errorHandler.handle(error)
   } finally {
     isSubmitting.value = false
   }
 }
 
-const toggleSystem = (sys: SystemType) => {
-  const current = Array.isArray(formData.systems) ? [...formData.systems] : []
-  const index = current.indexOf(sys)
-  if (index === -1) current.push(sys)
-  else current.splice(index, 1)
-  formData.systems = current
+const scrollToField = (field: string) => {
+  if (field === 'name') nameInputRef.value?.focus()
+  // Add logic for other fields or scrolling to advanced section
+  if (field.startsWith('download_links') || field.startsWith('secrets')) {
+     showAdvanced.value = true
+     nextTick(() => {
+        advancedSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+     })
+  }
 }
 
-// 已由可复用组件 SystemIcon 统一处理系统图标映射
-
-// 已不再使用
-// const query = ref('')
-
-// 移除“从链接导入”相关所有状态与逻辑
-
-// 通用字段赋值（如需要可在模板中复用）
 const handleInput = (field: keyof Software, value: any) => {
-  ;(formData as any)[field] = value
+   // just helper if needed for non-v-model
 }
 
-// 优缺点编辑已交由 ProsConsEditor 子组件处理
-// 下载链接与私密信息已交由 AdvancedSection 子组件处理
-
-const removeCon = (index: number) => {
-  if (!Array.isArray(formData.cons)) return
-  formData.cons.splice(index, 1)
+const onDescriptionInput = () => {
+   // used for touch tracking in AI logic
+   descTouched.value = true
 }
 
-// 在 script setup 中修改 AI 分析相关代码
+// ====== AI Logic ======
 const { isAnalyzing, errorMessage, analyze } = useAIAnalysis()
-const aiErrorMessage = computed(() => errorMessage.value)
+const isAnalyzingUI = ref(false)
+watch(isAnalyzing, v => isAnalyzingUI.value = !!v)
 
-// 防重复点击冷却
-const aiCooldownMs = 8000
-const lastAnalyzeAt = ref<number | null>(null)
-const isCoolingDown = computed(() => {
-  if (!lastAnalyzeAt.value) return false
-  return Date.now() - lastAnalyzeAt.value < aiCooldownMs
-})
-
-// 用户编辑追踪（避免覆盖用户输入）
+// User edit tracking for AI
 const descTouched = ref(false)
 const prosTouched = ref(false)
 const consTouched = ref(false)
 
-const onDescriptionInput = () => {
-  descTouched.value = true
-}
-const onProsInput = (_i: number) => {
-  prosTouched.value = true
-}
-const onConsInput = (_i: number) => {
-  consTouched.value = true
-}
-
-// 文本数组规范化与合并改为引用 utils/text
-// 分离 UI 显示状态
-const isAnalyzingUI = ref(false)
-watch(isAnalyzing, async (v) => {
-  isAnalyzingUI.value = !!v
-})
-
-// 名称输入下方的 AI 分析入口
 const startAIFromName = async () => {
-  if (isCoolingDown.value) return
-  if (!formData.name) {
-    logger.error('AI 分析失败: 请先填写软件名称')
-    return
-  }
-  lastAnalyzeAt.value = Date.now()
-  setTimeout(() => {
-    lastAnalyzeAt.value = null
-  }, aiCooldownMs)
+  if (!formData.value.name) return
+  
   const payload = {
-    ...(formData as any),
+    ...(formData.value as any),
     id: props.software?.id || 0,
-    created_at: props.software?.created_at || new Date().toISOString(),
   } as Software
 
   const result = await analyze(payload)
   if (!result) return
 
-  // 每次重新分析都刷新描述，无条件覆盖为 AI 结果
-  if (result.description) {
-    formData.description = result.description
-  }
-  if (!prosTouched.value) formData.pros = normalizeList(result.pros)
-  else
-    formData.pros = mergeUnique((formData.pros as string[]) || [], result.pros)
-  if (!consTouched.value) formData.cons = normalizeList(result.cons)
-  else
-    formData.cons = mergeUnique((formData.cons as string[]) || [], result.cons)
+  // Merge Logic
+  commit() // Save state before AI modification for Undo capability
 
-  try {
-    const aiSystems = Array.isArray(result.systems) ? result.systems : []
-    const normalizedFromAI = aiSystems
-      .map((s) => normalizeSystem(s))
-      .filter((s): s is SystemType => Boolean(s))
-    if (normalizedFromAI.length > 0) {
-      const current = Array.isArray(formData.systems)
-        ? ([...formData.systems] as SystemType[])
-        : []
-      const merged = Array.from(
-        new Set<SystemType>([...current, ...normalizedFromAI])
-      )
-      formData.systems = merged
-    }
-    const textForInference = [
-      formData.name || '',
-      formData.description || '',
-      result.description || '',
-      formData.website || '',
-    ].join(' ')
-    const inferred = new Set<SystemType>([
-      ...inferSupportedSystemsFromText(textForInference),
-      ...inferFromWebsite(formData.website),
-    ])
-    if (inferred.size > 0) {
-      const current = Array.isArray(formData.systems)
-        ? ([...formData.systems] as SystemType[])
-        : []
-      const merged = Array.from(new Set<SystemType>([...current, ...inferred]))
-      formData.systems = merged
-    }
-  } catch (e) {
-    logger.error('推断系统失败:', e)
-  }
+  if (result.description) formData.value.description = result.description
+  
+  if (!prosTouched.value) formData.value.pros = normalizeList(result.pros)
+  else formData.value.pros = mergeUnique((formData.value.pros as string[]) || [], result.pros)
+  
+  if (!consTouched.value) formData.value.cons = normalizeList(result.cons)
+  else formData.value.cons = mergeUnique((formData.value.cons as string[]) || [], result.cons)
+
+  // System inference
+  const aiSystems = (result.systems || []).map(s => normalizeSystem(s)).filter(Boolean) as SystemType[]
+  const currentSystems = (formData.value.systems || []) as SystemType[]
+  formData.value.systems = [...new Set([...currentSystems, ...aiSystems])]
+  
+  validateAll()
 }
 
-// 错误条目列表（用于摘要锚点）
-const errorEntries = computed(() => Object.entries(fieldErrors.value))
-// 顶部摘要条目（当错误数≥2时展示）
-const summaryEntries = computed(() => Object.entries(fieldErrors.value))
-
-// 通用滚动到字段
-const scrollToField = async (key: string) => {
-  if (key === 'name') {
-    nameInputRef.value?.focus()
-    return
-  }
-  if (key === 'website') {
-    websiteInputRef.value?.focus()
-    return
-  }
-  if (key.startsWith('download_links') || key.startsWith('secrets')) {
-    showAdvanced.value = true
-    await nextTick()
-    advancedSectionRef.value?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    })
-    return
-  }
-  const formEl = document.getElementById('softwareForm')
-  formEl?.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-// 基础校验（名称最小长度）
-const validateNameBasic = () => {
-  const name = (formData.name || '').trim()
-  if (name.length < 2) {
-    fieldErrors.value.name = '名称至少 2 个字符'
-  } else {
-    delete fieldErrors.value.name
-  }
-}
-
-// 基础校验（网址）
-const validateWebsite = () => {
-  const website = (formData.website || '').trim()
-  if (!website) {
-    delete fieldErrors.value.website
-    return
-  }
-  if (!/^https?:\/\//i.test(website)) {
-    fieldErrors.value.website = '请输入合法网址（http/https）'
-  } else {
-    delete fieldErrors.value.website
-  }
-}
-
-// 校验下载链接 URL
-const validateDownloadLink = (idx: number) => {
-  const key = `download_links.${idx}.url`
-  const url =
-    (formData.download_links?.[idx]?.url) || ''
-  const v = url.trim()
-  if (!v) {
-    fieldErrors.value[key] = '下载链接不能为空'
-    return
-  }
-  const ok =
-    /^https?:\/\//i.test(v) ||
-    v.startsWith('magnet:?') ||
-    v.startsWith('ed2k://')
-  if (!ok) {
-    fieldErrors.value[key] = 'URL 必须是 http(s) / magnet / ed2k'
-  } else {
-    delete fieldErrors.value[key]
-  }
-}
 </script>
 
-<style scoped>
-/* 与 AIOverlay 相关的样式已迁移至组件内部 */
-</style>

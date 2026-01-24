@@ -3,6 +3,7 @@
 
 export const SYSTEMS = [
 	"Windows",
+	"macOS",
 	"Linux",
 	"Android",
 	"iOS",
