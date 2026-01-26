@@ -378,9 +378,13 @@ const categoryIcons: Record<string, string> = {
   '编程': '💻',
 }
 
-// 分类数量徽章 (暂时移除或需要后端支持)
+// 内存缓存配置
+const runtimeCache = new Map<string, { data: SoftwareListItem[], total: number, timestamp: number }>()
+const CACHE_VALID_TIME = 2 * 60 * 1000 // 2分钟缓存有效期
+
+// 分类数量徽章 - 显示当前选中分类的数量
 const categoryCounts = computed<Record<string, number>>(() => {
-  return { all: totalItems.value } // 仅提供总数，其他分类暂无法统计
+  return { [activeCategory.value]: totalItems.value }
 })
 
 // 使用组合式函数
@@ -783,11 +787,52 @@ onMounted(async () => {
 })
 
 // 添加获取数据的方法
-async function fetchSoftwares (options: { showLoading?: boolean } = {}) {
-  const { showLoading = true } = options
+async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: boolean } = {}) {
+  const { showLoading = true, forceRefresh = false } = options
+
+  // 生成缓存 key
+  const params = {
+    page: currentPage.value + 1,
+    limit: pageSize.value,
+    search: searchTerm.value,
+    category: activeCategory.value,
+    systems: filterSystems.value,
+    sortField: sortBy.value,
+    sortOrder: sortOrder.value
+  }
+  const cacheKey = JSON.stringify(params)
+  let usedCache = false
+
+  // 检查缓存
+  if (!forceRefresh) {
+    const cached = runtimeCache.get(cacheKey)
+    if (cached) {
+      // 命中缓存，立即显示
+      paginatedSoftwares.value = cached.data
+      totalItems.value = cached.total
+      
+      // 检查是否过期
+      const isExpired = Date.now() - cached.timestamp > CACHE_VALID_TIME
+      
+      if (!isExpired) {
+        // 缓存有效，直接返回，不需要加载
+        isLoading.value = false
+        isRefreshing.value = false
+        isCacheStale.value = false
+        scheduleIconLoad()
+        logger.debug('命中内存缓存，跳过请求')
+        return
+      }
+      
+      // 缓存过期，标记为使用缓存但需要更新
+      usedCache = true
+      isCacheStale.value = true
+      logger.debug('缓存已过期，正在后台更新...')
+    }
+  }
 
   try {
-    if (showLoading) {
+    if (showLoading && !usedCache) {
       isLoading.value = true
       isIconsDeferred.value = true
     } else {
@@ -797,15 +842,7 @@ async function fetchSoftwares (options: { showLoading?: boolean } = {}) {
     
     const loadData = async () => {
       logger.debug('正在从服务器获取数据...')
-      const result = await softwareService.getSoftwareList({
-        page: currentPage.value + 1,
-        limit: pageSize.value,
-        search: searchTerm.value,
-        category: activeCategory.value,
-        systems: filterSystems.value,
-        sortField: sortBy.value,
-        sortOrder: sortOrder.value
-      })
+      const result = await softwareService.getSoftwareList(params)
       
       logger.debug('获取到的数据:', result.data)
       paginatedSoftwares.value = result.data
@@ -813,6 +850,13 @@ async function fetchSoftwares (options: { showLoading?: boolean } = {}) {
       isCacheStale.value = false
       // 先渲染卡片，再加载图标
       scheduleIconLoad()
+      
+      // 更新内存缓存
+      runtimeCache.set(cacheKey, {
+        data: result.data,
+        total: result.pagination.total,
+        timestamp: Date.now()
+      })
       
       // 缓存第一页数据 (仅当没有筛选条件时)
       if (currentPage.value === 0 && !searchTerm.value && activeCategory.value === 'all' && filterSystems.value.length === 0) {
@@ -833,7 +877,9 @@ async function fetchSoftwares (options: { showLoading?: boolean } = {}) {
     
   } catch (error) {
     logger.error('获取数据失败:', error)
-    showToast('获取数据失败', 'error')
+    if (!usedCache) {
+      showToast('获取数据失败', 'error')
+    }
     if (showLoading) {
       isLoading.value = false
     } else {
@@ -847,7 +893,7 @@ const handleRefresh = async () => {
   if (currentPage.value !== 0) {
     currentPage.value = 0 // 重置页码
   }
-  await fetchSoftwares() // 重新获取数据
+  await fetchSoftwares({ forceRefresh: true }) // 强制重新获取数据
   showToast('刷新成功', 'success')
 }
 
