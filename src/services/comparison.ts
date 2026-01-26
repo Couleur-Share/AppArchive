@@ -1,8 +1,9 @@
 import { isSignedIn } from "../lib/clerk";
-import type { Software } from "../types";
+import type { SoftwareListItem } from "../types";
 import logger from "../utils/logger";
 import { getApiBase } from "./apiBase";
 import { getAuthHeaders } from "./auth";
+import { softwareService } from "./software";
 
 const API_BASE_URL = getApiBase();
 
@@ -45,7 +46,7 @@ interface ComparisonTarget {
 	target_id: number;
 	group_id: number;
 	created_at: string;
-	target: Software;
+	target: SoftwareListItem;
 	group: ComparisonGroup;
 }
 
@@ -158,7 +159,7 @@ export const comparisonService = {
 	},
 
 	// 获取比较组中的软件列表
-	async getGroupSoftwares(groupId: number): Promise<Software[]> {
+	async getGroupSoftwares(groupId: number): Promise<SoftwareListItem[]> {
 		const response = await apiRequest(`/comparison/groups/${groupId}/software`);
 		return response.data;
 	},
@@ -199,7 +200,7 @@ export const comparisonService = {
 	// 获取软件比较信息
 	async getComparisons(
 		softwareId: number,
-	): Promise<(Software & { groupInfo: ComparisonGroup })[]> {
+	): Promise<(SoftwareListItem & { groupInfo: ComparisonGroup })[]> {
 		try {
 			// 获取包含该软件的所有比较组
 			const response = await apiRequest(
@@ -227,29 +228,29 @@ export const comparisonService = {
 	},
 
 	// 获取可比较的软件
-	async getComparableSoftware(softwareId: number): Promise<Software[]> {
+	async getComparableSoftware(softwareId: number): Promise<SoftwareListItem[]> {
 		if (!softwareId) {
 			logger.warn("未提供有效的软件ID");
 			return [];
 		}
 
 		try {
-			// 获取当前软件信息
-			const allSoftware = await apiRequest("/software");
-			const currentSoftware = allSoftware.data.find(
-				(s: Software) => s.id === softwareId,
-			);
+			// 获取当前软件详情，确定分类
+			const currentSoftware = await softwareService.getSoftwareById(softwareId);
 
 			if (!currentSoftware) {
 				logger.warn("未找到指定的软件");
 				return [];
 			}
 
-			// 返回同类别的其他软件
-			return allSoftware.data.filter(
-				(s: Software) =>
-					s.category === currentSoftware.category && s.id !== softwareId,
-			) as Software[];
+			// 返回同类别的其他软件（分页接口）
+			const result = await softwareService.getSoftwareList({
+				page: 1,
+				limit: 200,
+				category: currentSoftware.category,
+			});
+
+			return (result.data || []).filter((s) => s.id !== softwareId);
 		} catch (error) {
 			logger.error("获取可比较软件时发生错误:", error);
 			return [];

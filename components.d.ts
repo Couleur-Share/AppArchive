@@ -43,6 +43,7 @@ declare module 'vue' {
     SoftwareCard: typeof import('./src/components/SoftwareCard.vue')['default']
     SoftwareCompare: typeof import('./src/components/SoftwareCompare.vue')['default']
     SoftwareDetail: typeof import('./src/components/SoftwareDetail.vue')['default']
+    SoftwareDetailLoading: typeof import('./src/components/SoftwareDetailLoading.vue')['default']
     SoftwareForm: typeof import('./src/components/SoftwareForm.vue')['default']
     SoftwareGrid: typeof import('./src/components/software/SoftwareGrid.vue')['default']
     SystemIcon: typeof import('./src/components/SystemIcon.vue')['default']

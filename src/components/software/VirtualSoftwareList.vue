@@ -27,7 +27,7 @@
                       group-hover:scale-110 group-hover:bg-white/95 dark:group-hover:bg-gray-800/95
                       transition-all duration-500 ease-out transform-gpu">
             <img
-              :src="getIconUrl(item.icon)"
+              :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
               class="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
               loading="lazy"
@@ -56,7 +56,7 @@
                    {{ item.name }}
                  </h3>
                  <span class="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                   {{ item.category }}
+                   {{ item.category || '未分类' }}
                  </span>
                </div>
                <Menu as="div" class="relative">
@@ -91,9 +91,9 @@
              <!-- 描述文本 -->
              <div class="relative flex-grow mt-4">
                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4">
-                 {{ item.description }}
+                 {{ getDescription(item.description) }}
                </p>
-               <div v-if="item.description.length > 120" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-md shadow-sm whitespace-nowrap pointer-events-none">
+               <div v-if="(item.description || '').length > 120" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-md shadow-sm whitespace-nowrap pointer-events-none">
                  点击查看完整内容
                </div>
              </div>
@@ -101,17 +101,11 @@
              <!-- 底部区域 -->
              <div class="flex items-center mt-4 pt-4 border-t border-gray-200/30 dark:border-gray-700/30">
                <div class="flex items-center gap-2 flex-1 min-w-0">
-                 <span class="px-2 py-1 rounded-lg text-xs shrink-0"
-                       :class="{
-                         'bg-cyan-100/70 dark:bg-cyan-900/70 text-cyan-700 dark:text-cyan-200': item.license === '免费',
-                         'bg-blue-100/50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300': item.license === '收费',
-                         'bg-green-100/50 dark:bg-green-900/50 text-green-700 dark:text-green-300': item.license === '开源',
-                         'bg-purple-100/50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300': item.license === '已购'
-                       }">
-                   {{ item.license }}
+                 <span class="px-2 py-1 rounded-lg text-xs shrink-0" :class="getLicenseClass(item.license)">
+                   {{ getLicenseLabel(item.license) }}
                  </span>
                  <div class="flex items-center gap-1">
-                   <template v-for="system in item.systems" :key="system">
+                   <template v-for="system in item.systems || []" :key="system">
                      <div class="flex items-center justify-center w-6 h-6 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 shrink-0" :title="system">
                        <SystemIcon :system="system" class="w-4 h-4" />
                      </div>
@@ -142,9 +136,9 @@
           <!-- 1. 左侧：小图标 -->
           <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-white/50 dark:bg-gray-800 ring-1 ring-black/5">
             <img
-              :src="getIconUrl(item.icon)"
+              :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-opacity duration-200"
               loading="lazy"
               referrerpolicy="origin"
             />
@@ -157,11 +151,11 @@
                 {{ item.name }}
               </h3>
               <span class="text-xs px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600/30">
-                {{ item.category }}
+                {{ item.category || '未分类' }}
               </span>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 w-full pr-4">
-              {{ item.description }}
+              {{ getDescription(item.description) }}
             </p>
           </div>
 
@@ -169,20 +163,14 @@
           <div class="flex items-center shrink-0 pl-4">
             <!-- 系统图标 (仅在大屏幕显示，固定宽度以保证对齐) -->
             <div class="hidden sm:flex items-center justify-end gap-1 w-20 mr-4 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
-               <template v-for="system in item.systems" :key="system">
+               <template v-for="system in item.systems || []" :key="system">
                  <SystemIcon :system="system" class="w-4 h-4 text-gray-500" />
                </template>
             </div>
 
             <!-- License 标签 (固定宽度以保证对齐) -->
-            <span class="w-12 flex justify-center items-center text-xs h-6 rounded border box-border"
-                  :class="{
-                    'border-cyan-200 text-cyan-700 dark:text-cyan-300 dark:border-cyan-800': item.license === '免费',
-                    'border-blue-200 text-blue-700 dark:text-blue-300 dark:border-blue-800': item.license === '收费',
-                    'border-green-200 text-green-700 dark:text-green-300 dark:border-green-800': item.license === '开源',
-                    'border-purple-200 text-purple-700 dark:text-purple-300 dark:border-purple-800': item.license === '已购'
-                  }">
-              {{ item.license }}
+            <span class="w-12 flex justify-center items-center text-xs h-6 rounded border box-border" :class="getLicenseBorderClass(item.license)">
+              {{ getLicenseLabel(item.license) }}
             </span>
             
             <!-- 操作按钮组 (GSAP 动画控制) - 移动端隐藏 -->
@@ -227,25 +215,64 @@ import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
 import { isSignedIn } from '../../lib/clerk'
 import { getIconUrl } from '../../services/localIconCache'
-import type { Software } from '../../types'
+import type { SoftwareListItem } from '../../types'
 import SystemIcon from '../SystemIcon.vue'
 
 const props = defineProps<{
-  items: Software[]
+  items: SoftwareListItem[]
   canEdit: boolean
   hasComparisons: Record<number, boolean>
   viewMode: 'grid' | 'list'
+  deferIcons?: boolean
 }>()
+
+// 使用可见的骨架占位图标（灰色圆形），避免透明导致视觉空白
+const placeholderIcon =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNiIgZmlsbD0iIzRCNTU2MyIvPjwvc3ZnPg=='
 
 const emit = defineEmits<{
-  (e: 'edit', software: Software): void
+  (e: 'edit', software: SoftwareListItem): void
   (e: 'delete', id: number): void
-  (e: 'click', software: Software): void
-  (e: 'compare', software: Software): void
+  (e: 'click', software: SoftwareListItem): void
+  (e: 'compare', software: SoftwareListItem): void
 }>()
 
-const handleItemClick = (item: Software, view: 'grid' | 'list') => {
+const handleItemClick = (item: SoftwareListItem, _view: 'grid' | 'list') => {
   emit('click', item)
+}
+
+const getDescription = (description?: string) => description || '暂无描述'
+
+const getLicenseLabel = (license?: string) => license || '未知'
+
+const getLicenseClass = (license?: string) => {
+  switch (license) {
+    case '免费':
+      return 'bg-cyan-100/70 dark:bg-cyan-900/70 text-cyan-700 dark:text-cyan-200'
+    case '收费':
+      return 'bg-blue-100/50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+    case '开源':
+      return 'bg-green-100/50 dark:bg-green-900/50 text-green-700 dark:text-green-300'
+    case '已购':
+      return 'bg-purple-100/50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
+    default:
+      return 'bg-gray-100/70 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300'
+  }
+}
+
+const getLicenseBorderClass = (license?: string) => {
+  switch (license) {
+    case '免费':
+      return 'border-cyan-200 text-cyan-700 dark:text-cyan-300 dark:border-cyan-800'
+    case '收费':
+      return 'border-blue-200 text-blue-700 dark:text-blue-300 dark:border-blue-800'
+    case '开源':
+      return 'border-green-200 text-green-700 dark:text-green-300 dark:border-green-800'
+    case '已购':
+      return 'border-purple-200 text-purple-700 dark:text-purple-300 dark:border-purple-800'
+    default:
+      return 'border-gray-200 text-gray-500 dark:text-gray-400 dark:border-gray-700'
+  }
 }
 
 const openWebsite = (website: string) => {

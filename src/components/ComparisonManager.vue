@@ -187,7 +187,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useComparisonManager } from '../composables/useComparisonManager'
 import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
-import type { Software } from '../types'
+import type { Software, SoftwareListItem } from '../types'
 import logger from '../utils/logger'
 import ComparisonAIOverlay from './ComparisonAIOverlay.vue'
 import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
@@ -230,7 +230,7 @@ const mdToSafeHtml = (content: string): string => {
 
 const props = defineProps<{
   isOpen: boolean
-  software: Software
+  software: Software | SoftwareListItem
 }>()
 
 const emit = defineEmits<{

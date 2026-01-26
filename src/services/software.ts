@@ -1,4 +1,4 @@
-import type { Software } from "../types";
+import type { Software, SoftwareListItem } from "../types";
 import { AppError, ErrorCode } from "../types/error";
 import { errorHandler } from "../utils/error-handler";
 import logger from "../utils/logger";
@@ -34,14 +34,58 @@ const apiRequest = async (
 };
 
 export const softwareService = {
-	// 获取所有软件
+	// 获取软件列表 (支持分页、筛选、排序)
+	async getSoftwareList(params: {
+		page?: number;
+		limit?: number;
+		search?: string;
+		category?: string;
+		systems?: string[];
+		sortField?: string;
+		sortOrder?: "asc" | "desc";
+	} = {}) {
+		try {
+			logger.debug("开始从 API 获取数据...", params);
+			
+			const queryParams = new URLSearchParams();
+			if (params.page) queryParams.append("page", params.page.toString());
+			if (params.limit) queryParams.append("limit", params.limit.toString());
+			if (params.search) queryParams.append("search", params.search);
+			if (params.category && params.category !== 'all') queryParams.append("category", params.category);
+			if (params.systems && params.systems.length > 0) queryParams.append("systems", params.systems.join(","));
+			if (params.sortField) queryParams.append("sortField", params.sortField);
+			if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+
+			const result = await apiRequest(`/software?${queryParams.toString()}`);
+
+			logger.debug("成功获取数据，当前页数量:", result.data?.length ?? 0);
+			return {
+				data: result.data as SoftwareListItem[],
+				pagination: result.pagination
+			};
+		} catch (error) {
+			logger.error("获取数据失败:", error);
+			throw errorHandler.handle(error);
+		}
+	},
+
+	// 获取单个软件详情
+	async getSoftwareById(id: number) {
+		try {
+			const result = await apiRequest(`/software/${id}`);
+			return result.data as Software;
+		} catch (error) {
+			logger.error(`获取软件详情失败 (ID: ${id}):`, error);
+			throw errorHandler.handle(error);
+		}
+	},
+
+	// 获取所有软件 (已弃用，仅用于向后兼容，只返回第一页)
 	async getAllSoftware() {
 		try {
-			logger.debug("开始从 API 获取数据...");
-			const result = await apiRequest("/software");
-
-			logger.debug("成功获取数据，总数:", result.data?.length ?? 0);
-			return result.data as Software[];
+			logger.warn("getAllSoftware 已弃用，请使用 getSoftwareList");
+			const result = await this.getSoftwareList({ page: 1, limit: 1000 }); // 尝试获取较多数据以兼容
+			return result.data;
 		} catch (error) {
 			logger.error("获取数据失败:", error);
 			throw errorHandler.handle(error);
@@ -152,34 +196,15 @@ export const softwareService = {
 		}
 	},
 
-	// 搜索软件
+	// 搜索软件 (已合并到 getSoftwareList)
 	async searchSoftware(query: string) {
 		try {
-			const result = await apiRequest(
-				`/software/search/${encodeURIComponent(query)}`,
-			);
-			return result.data as Software[];
+			return (await this.getSoftwareList({ search: query })).data;
 		} catch (error) {
 			throw errorHandler.handle(error);
 		}
 	},
 
-	// 添加分页获取方法
-	async getAllSoftwareWithPagination(page: number, pageSize: number) {
-		try {
-			// 先获取所有数据，然后在前端进行分页
-			// 后续可以优化为后端分页
-			const allData = await this.getAllSoftware();
-			const startIndex = page * pageSize;
-			const endIndex = startIndex + pageSize;
-			const data = allData.slice(startIndex, endIndex);
+	// 移除 getAllSoftwareWithPagination
 
-			return {
-				data,
-				total: allData.length,
-			};
-		} catch (error) {
-			throw errorHandler.handle(error);
-		}
-	},
 };

@@ -73,6 +73,24 @@ export interface Software extends BaseEntity {
 	secrets?: SecretItem[];
 }
 
+// 列表接口的轻量字段（详情字段为可选）
+export interface SoftwareListItem extends BaseEntity {
+	name: string;
+	category?: SoftwareCategory;
+	description?: string;
+	icon?: string;
+	license?: LicenseType;
+	systems?: SystemType[];
+	website?: string;
+	version?: string;
+	rating?: number;
+	downloads?: number;
+	pros?: string[];
+	cons?: string[];
+	download_links?: DownloadLink[];
+	secrets?: SecretItem[];
+}
+
 // 软件比较组
 export interface ComparisonGroup extends BaseEntity {
 	name: string;

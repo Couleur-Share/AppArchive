@@ -57,11 +57,25 @@
           </div>
         </div>
 
+        <div
+          v-if="isRefreshing && !isLoading && isSoftwareGridReady"
+          class="mb-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
+        >
+          {{ isCacheStale ? '已显示缓存数据，正在后台更新...' : '正在后台更新数据...' }}
+        </div>
+        <SkeletonLoader
+          v-if="shouldShowSkeleton"
+          :count="skeletonCount"
+          :variant="viewMode"
+          class="transition-all duration-300"
+        />
         <SoftwareGrid
+          v-else-if="paginatedSoftwares.length > 0"
           :items="paginatedSoftwares"
           :can-edit="canEditSoftware"
           :has-comparisons="softwareComparisons"
           :view-mode="viewMode"
+          :defer-icons="isIconsDeferred"
           @edit="editSoftware"
           @delete="deleteSoftware"
           @click="showSoftwareDetail"
@@ -76,7 +90,7 @@
         <nav class="inline-flex items-center gap-1 sm:gap-2 bg-white/60 dark:bg-gray-800/80 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/30" v-gsap="'fade'">
           <!-- 上一页按钮 -->
           <button
-            @click="handlePageChange(currentPage - 1)"
+            @click="onPageChange(currentPage - 1)"
             :disabled="currentPage === 0"
             class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="currentPage === 0 ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'"
@@ -101,7 +115,7 @@
             <template v-for="page in Math.ceil(totalItems / pageSize)" :key="page">
               <button
                 v-if="shouldShowPageButton(page)"
-                @click="handlePageChange(page - 1)"
+                @click="onPageChange(page - 1)"
                 class="min-w-[2.5rem] h-10 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center"
                 :class="[
                   currentPage === page - 1
@@ -127,7 +141,7 @@
 
           <!-- 下一页按钮 -->
           <button
-            @click="handlePageChange(currentPage + 1)"
+            @click="onPageChange(currentPage + 1)"
             :disabled="currentPage >= Math.ceil(totalItems / pageSize) - 1"
             class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="
@@ -169,7 +183,7 @@
     v-if="selectedSoftware"
     v-model:is-open="showDetailDialog"
     :software="selectedSoftware"
-    :software-list="filteredSoftwares"
+    :software-list="paginatedSoftwares"
     @navigate="handleSoftwareNavigate"
     @closed="handleDetailClosed"
   />
@@ -204,23 +218,86 @@
 
 <script setup lang="ts">
 import { LayoutGrid, List, Plus } from 'lucide-vue-next'
-import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BlurFade from './components/animations/BlurFade.vue'
+import SkeletonLoader from './components/SkeletonLoader.vue'
 import { isSignedIn, signOut, user } from './lib/clerk'
 import { comparisonService } from './services/comparison'
 import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
-import { type LicenseType, type Software, type SystemType } from './types'
+import { type LicenseType, type Software, type SoftwareListItem, type SystemType } from './types'
 import logger from './utils/logger'
 import { devPerformanceTips, performanceChecker } from './utils/performance'
 
+import AppHeader from './components/layout/AppHeader.vue'
+import CategoryFilter from './components/common/CategoryFilter.vue'
+
 // 异步导入组件
-const AppHeader = defineAsyncComponent(() => import('./components/layout/AppHeader.vue'))
 const AppFooter = defineAsyncComponent(() => import('./components/layout/AppFooter.vue'))
-const CategoryFilter = defineAsyncComponent(() => import('./components/common/CategoryFilter.vue'))
-const SoftwareGrid = defineAsyncComponent(() => import('./components/software/SoftwareGrid.vue'))
+// 主列表组件预加载状态：避免骨架结束后短暂白屏
+const softwareGridModulePromise = ref<Promise<typeof import('./components/software/SoftwareGrid.vue')> | null>(null)
+const softwareGridModuleLoaded = ref(false)
+
+const SOFTWARE_CACHE_KEY = 'software-cache-v1'
+const SOFTWARE_CACHE_TTL = 10 * 60 * 1000
+
+const loadSoftwareGridModule = () => {
+  if (softwareGridModulePromise.value) {
+    return softwareGridModulePromise.value
+  }
+
+  softwareGridModulePromise.value = import('./components/software/SoftwareGrid.vue').then((module) => {
+    softwareGridModuleLoaded.value = true
+    return module
+  })
+
+  return softwareGridModulePromise.value
+}
+
+const requestSoftwareGridModule = () => loadSoftwareGridModule()
+
+const SoftwareGrid = defineAsyncComponent({
+  loader: async () => {
+    const module = await requestSoftwareGridModule()
+    return module
+  },
+  delay: 0,
+})
+
+// 立即开始预加载 SoftwareGrid 模块，不等待 onMounted
+void requestSoftwareGridModule()
+
 const SoftwareForm = defineAsyncComponent(() => import('./components/SoftwareForm.vue'))
-const SoftwareDetail = defineAsyncComponent(() => import('./components/SoftwareDetail.vue'))
+import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
+
+const softwareDetailModuleState = {
+  promise: null as Promise<typeof import('./components/SoftwareDetail.vue')> | null,
+  loaded: false,
+}
+
+const loadSoftwareDetailModule = () => {
+  if (softwareDetailModuleState.promise) {
+    return softwareDetailModuleState.promise
+  }
+
+  softwareDetailModuleState.promise = import('./components/SoftwareDetail.vue').then((module) => {
+    softwareDetailModuleState.loaded = true
+    return module
+  })
+
+  return softwareDetailModuleState.promise
+}
+
+const requestSoftwareDetailModule = () => loadSoftwareDetailModule()
+
+const SoftwareDetail = defineAsyncComponent({
+  loader: async () => {
+    const module = await requestSoftwareDetailModule()
+    return module
+  },
+  loadingComponent: SoftwareDetailLoading,
+  delay: 0,
+})
 const LoadingOverlay = defineAsyncComponent(() => import('./components/layout/LoadingOverlay.vue'))
 const Toast = defineAsyncComponent(() => import('./components/common/Toast.vue'))
 const DeleteConfirmDialog = defineAsyncComponent(() => import('./components/common/DeleteConfirmDialog.vue'))
@@ -246,8 +323,10 @@ const categories = [
   '编程',
 ]
 
+
 // 状态管理
-const softwares = ref<Software[]>([])
+// const softwares = ref<Software[]>([]) // 移除全量数据
+const paginatedSoftwares = ref<SoftwareListItem[]>([]) // 直接存储当前页数据
 const searchTerm = ref('')
 const activeCategory = ref('all')
 const showAddDialog = ref(false)
@@ -260,7 +339,7 @@ const sortBy = ref<keyof Software>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const showFeedback = ref(false)
 const showDeleteDialog = ref(false)
-const softwareToDelete = ref<Software | null>(null)
+const softwareToDelete = ref<SoftwareListItem | null>(null)
 const isDeleting = ref(false)
 const showCompareDialog = ref(false)
 const softwareToCompare = ref<Software | null>(null)
@@ -269,6 +348,20 @@ const isLoading = ref(false)
 const query = ref('')
 const isSubmitting = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
+const isRefreshing = ref(false)
+const isCacheStale = ref(false)
+const gridColumns = ref(4)
+const isIconsDeferred = ref(true)
+
+const shouldShowSkeleton = computed(() => {
+  // 1. 如果组件还没加载完，必须显示骨架（避免空白）
+  if (!isSoftwareGridReady.value) return true
+  
+  // 2. 如果正在加载且当前没有显示数据，显示骨架
+  if (isLoading.value && paginatedSoftwares.value.length === 0) return true
+  
+  return false
+})
 
 // Tabs 图标映射（可按需自定义）
 const categoryIcons: Record<string, string> = {
@@ -285,36 +378,9 @@ const categoryIcons: Record<string, string> = {
   '编程': '💻',
 }
 
-// 分类数量徽章（基于当前筛选条件统计，包括系统筛选和搜索筛选）
-// 注意：这里不考虑分类筛选（activeCategory），因为Tabs本身就是为了切换分类的
+// 分类数量徽章 (暂时移除或需要后端支持)
 const categoryCounts = computed<Record<string, number>>(() => {
-  // 先应用系统筛选和搜索筛选，但不应用分类筛选
-  let filtered = softwares.value
-
-  // 应用系统筛选
-  if (filterSystems.value.length > 0) {
-    filtered = filtered.filter((s) => 
-      s.systems.some(sys => filterSystems.value.includes(sys))
-    )
-  }
-
-  // 应用搜索筛选
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    filtered = filtered.filter(
-      (s) =>
-        s.name.toLowerCase().includes(search) ||
-        s.category.toLowerCase().includes(search) ||
-        (s.description?.toLowerCase().includes(search))
-    )
-  }
-
-  // 基于筛选后的数据计算各分类的数量
-  const counts: Record<string, number> = { all: filtered.length }
-  for (const c of categories) {
-    counts[c] = filtered.filter(s => s.category === c).length
-  }
-  return counts
+  return { all: totalItems.value } // 仅提供总数，其他分类暂无法统计
 })
 
 // 使用组合式函数
@@ -322,95 +388,157 @@ const { isDark } = useTheme()
 const { showToast, toasts } = useToast()
 const { currentPage, totalItems, pageSize, handlePageChange, setPageSize } = usePagination(20)
 
-// 计算属性
-const filteredSoftwares = computed(() => {
-  let result = softwares.value
+// 移除 filteredSoftwares，改为直接使用 paginatedSoftwares
+// 移除 getGridColumnsByWidth, updateGridColumns (如果不需要动态计算骨架屏数量)
+// 保留 gridColumns 用于骨架屏
 
-  if (activeCategory.value !== 'all') {
-    result = result.filter((s) => s.category === activeCategory.value)
-  }
+const getGridColumnsByWidth = (width: number) => {
+  if (width < 640) return 1
+  if (width < 1024) return 2
+  if (width < 1280) return 3
+  return 4
+}
 
-  if (filterSystems.value.length > 0) {
-    result = result.filter((s) => 
-      s.systems.some(sys => filterSystems.value.includes(sys))
-    )
-  }
+const updateGridColumns = () => {
+  gridColumns.value = getGridColumnsByWidth(window.innerWidth)
+}
 
-  if (searchTerm.value) {
-    const search = searchTerm.value.toLowerCase()
-    result = result.filter(
-      (s) =>
-        s.name.toLowerCase().includes(search) ||
-        s.category.toLowerCase().includes(search) ||
-        (s.description?.toLowerCase().includes(search))
-    )
-  }
+// 根据屏幕宽度自动计算骨架数量（固定 3 行）
+const skeletonCount = computed(() =>
+  viewMode.value === 'grid' ? gridColumns.value * 3 : 6
+)
+// 列表组件是否已加载完成
+const isSoftwareGridReady = computed(() => softwareGridModuleLoaded.value)
 
-  const sorted = [...result].sort((a, b) => {
-    const factor = sortOrder.value === 'asc' ? 1 : -1
-    const aValue = a[sortBy.value]
-    const bValue = b[sortBy.value]
-
-    if (aValue === undefined || bValue === undefined) {
-      return 0
-    }
-
-    return aValue > bValue ? factor : -factor
+const scheduleIconLoad = () => {
+  if (!isIconsDeferred.value) return
+  // 使用 requestAnimationFrame 确保在下一帧开始加载图标
+  // 由于现在有可见的占位符图标，无需额外延迟
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      isIconsDeferred.value = false
+    })
   })
+}
 
-  return sorted
-})
+const loadCachedSoftwares = (options: { allowStale?: boolean } = {}) => {
+  const { allowStale = false } = options
+  const cached = localStorage.getItem(SOFTWARE_CACHE_KEY)
+  if (!cached) return false
 
-// 监听 filteredSoftwares 变化来更新总数
+  try {
+    const parsed = JSON.parse(cached)
+    const cachedAt = Number(parsed?.cachedAt)
+    const cachedData = parsed?.data
+    const cachedTotal = Number(parsed?.total)
+
+    if (!cachedAt || !Array.isArray(cachedData)) return false
+    const isExpired = Date.now() - cachedAt > SOFTWARE_CACHE_TTL
+    if (isExpired && !allowStale) return false
+
+    totalItems.value = Number.isFinite(cachedTotal) && cachedTotal > 0 ? cachedTotal : cachedData.length
+    paginatedSoftwares.value = cachedData // 缓存数据作为第一页显示
+    // 标记缓存是否过期，用于提示用户正在后台更新
+    isCacheStale.value = isExpired
+    // 先显示卡片，再加载图标
+    scheduleIconLoad()
+    return true
+  } catch (error) {
+    logger.debug('读取缓存失败:', error)
+    return false
+  }
+}
+
+// 监听 filteredSoftwares 变化来更新总数 (移除)
+/*
 watch(filteredSoftwares, (newVal) => {
   totalItems.value = newVal.length
 })
+*/
 
-const paginatedSoftwares = computed(() => {
-  const total = filteredSoftwares.value.length
-  
-  if (total === 0) {
-    return []
-  }
+// 移除 paginatedBase，直接使用 paginatedSoftwares (已定义为 ref)
+/*
+const paginatedBase = computed(() => { ... })
+const paginatedSoftwares = computed(() => { ... })
+*/
 
-  // 确保当前页码不超过最大页数
-  const maxPage = Math.ceil(total / pageSize.value) - 1
-  if (currentPage.value > maxPage) {
-    // handled by watcher
-  }
-
-  const validPage = currentPage.value > maxPage ? maxPage : currentPage.value
-  const start = validPage * pageSize.value
-  const end = Math.min(start + pageSize.value, total)
-  
-  return filteredSoftwares.value.slice(start, end)
+// 监听分页变化，触发数据获取 (移除，改为在 handlePageChange 中手动触发)
+/*
+watch([currentPage, pageSize], () => {
+  fetchSoftwares({ showLoading: true })
 })
+*/
 
-// 监听分页变化，确保页码有效
-watch([totalItems, pageSize], () => {
-  const maxPage = Math.ceil(totalItems.value / pageSize.value) - 1
-  if (currentPage.value > maxPage && maxPage >= 0) {
-    currentPage.value = maxPage
-  }
+// 包装翻页方法
+const onPageChange = (page: number) => {
+  handlePageChange(page)
+  fetchSoftwares({ showLoading: true })
+}
+
+// 监听当前页数据，加载对比信息
+watch(paginatedSoftwares, async (newSoftwares) => {
+  if (newSoftwares.length === 0) return
+
+  const unboundIds = newSoftwares
+    .filter(s => softwareComparisons.value[s.id] === undefined)
+    .map(s => s.id)
+
+  if (unboundIds.length === 0) return
+
+  // 并行加载当前页未加载的对比信息
+  const promises = unboundIds.map(async (id) => {
+    try {
+      const comparisons = await comparisonService.getComparisons(id)
+      softwareComparisons.value[id] = comparisons.length > 0
+    } catch (error) {
+      logger.error(`获取软件 ${id} 的比较信息失败:`, error)
+      softwareComparisons.value[id] = false
+    }
+  })
+
+  await Promise.all(promises)
+}, { immediate: true })
+
+const getDeviceCoreCount = () => {
+  return navigator.hardwareConcurrency ?? 4
+}
+
+// 移除渐进式渲染相关函数
+/*
+const getBatchSize = () => { ... }
+const getBatchDelay = () => { ... }
+const startProgressiveRender = () => { ... }
+*/
+
+onBeforeUnmount(() => {
+  // if (progressiveTimer !== null) { ... }
+  window.removeEventListener('resize', updateGridColumns)
 })
 
 // 监听搜索词变化
 watch(searchTerm, () => {
   currentPage.value = 0
-  totalItems.value = filteredSoftwares.value.length
+  fetchSoftwares({ showLoading: true })
 })
 
 // 监听系统过滤变化
 watch(filterSystems, () => {
   currentPage.value = 0
-  totalItems.value = filteredSoftwares.value.length
+  fetchSoftwares({ showLoading: true })
 })
 
 // 监听排序变化
 watch([sortBy, sortOrder], () => {
   currentPage.value = 0
-  totalItems.value = filteredSoftwares.value.length
+  fetchSoftwares({ showLoading: true })
 })
+
+// 移除 watch([paginatedBase, viewMode])
+/*
+watch([paginatedBase, viewMode], () => {
+  startProgressiveRender()
+}, { immediate: true })
+*/
 
 const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
@@ -420,13 +548,22 @@ const toggleViewMode = () => {
   viewMode.value = viewMode.value === 'grid' ? 'list' : 'grid'
 }
 
-const editSoftware = (software: Software) => {
+const editSoftware = async (software: SoftwareListItem) => {
   if (!canEditSoftware.value) {
     showToast('请先登录后再进行操作', 'error')
     return
   }
-  editingSoftware.value = { ...software }
-  showEditDialog.value = true
+  try {
+    isLoading.value = true
+    const details = await softwareService.getSoftwareById(software.id)
+    editingSoftware.value = { ...details }
+    showEditDialog.value = true
+  } catch (error) {
+    logger.error('获取软件详情失败:', error)
+    showToast(error instanceof Error ? error.message : '获取详情失败', 'error')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const deleteSoftware = (id: number) => {
@@ -434,7 +571,7 @@ const deleteSoftware = (id: number) => {
     showToast('请先登录后再进行操作', 'error')
     return
   }
-  const software = softwares.value.find((s) => s.id === id)
+  const software = paginatedSoftwares.value.find((s) => s.id === id)
   if (software) {
     softwareToDelete.value = software
     showDeleteDialog.value = true
@@ -504,9 +641,9 @@ const handleFormSubmit = async (software: Partial<Software>) => {
 
 // 添加删除处理函数
 const handleDelete = (id: number) => {
-  const software = softwares.value.find((s) => s.id === id)
+  const software = paginatedSoftwares.value.find((s) => s.id === id)
   if (software) {
-    softwares.value = softwares.value.filter((s) => s.id !== id)
+    paginatedSoftwares.value = paginatedSoftwares.value.filter((s) => s.id !== id)
     showToast(`已删除 "${software.name}"`, 'success')
   }
 }
@@ -527,7 +664,7 @@ watch(
   () => {
     // 切换分类时重置到第 1 页
     currentPage.value = 0
-    totalItems.value = filteredSoftwares.value.length
+    fetchSoftwares({ showLoading: true }) // 触发重新获取
     nextTick(() => {
       const activeIndex = ['all', ...categories].indexOf(activeCategory.value)
       const activeTab = tabRefs.value[activeIndex]
@@ -548,7 +685,7 @@ const confirmDelete = async () => {
     isDeleting.value = true
     try {
       await softwareService.deleteSoftware(softwareToDelete.value.id)
-      softwares.value = softwares.value.filter(
+      paginatedSoftwares.value = paginatedSoftwares.value.filter(
         (s) => s.id !== softwareToDelete.value?.id
       )
       await fetchSoftwares()
@@ -571,7 +708,7 @@ const preloadDialogComponents = () => {
     requestIdleCallback(() => {
       // 预加载软件详情和添加软件弹窗组件
       Promise.all([
-        import('./components/SoftwareDetail.vue'),
+        requestSoftwareDetailModule(),
         import('./components/SoftwareForm.vue')
       ]).catch(err => {
         logger.debug('预加载组件失败:', err)
@@ -581,7 +718,7 @@ const preloadDialogComponents = () => {
     // 如果不支持 requestIdleCallback，延迟执行
     setTimeout(() => {
       Promise.all([
-        import('./components/SoftwareDetail.vue'),
+        requestSoftwareDetailModule(),
         import('./components/SoftwareForm.vue')
       ]).catch(err => {
         logger.debug('预加载组件失败:', err)
@@ -590,15 +727,50 @@ const preloadDialogComponents = () => {
   }
 }
 
-// 在组件挂载时获取数据
+// 在组件挂载时初始化设置并获取数据
 onMounted(async () => {
-  // 初始化图片缓存
-  await initImageCache()
-  // 获取软件列表
-  await fetchSoftwares()
-  
-  // 预加载弹窗组件（在数据加载完成后）
+  // 尽早触发弹窗预加载，减少首次点击等待
   preloadDialogComponents()
+  void requestSoftwareDetailModule()
+  // SoftwareGrid 模块已在 script setup 顶层预加载，无需重复调用
+  updateGridColumns()
+  window.addEventListener('resize', updateGridColumns, { passive: true })
+
+  // 读取设置
+  const savedSettings = localStorage.getItem('app-settings')
+  let hasViewModePreference = false
+  
+  if (savedSettings) {
+    try {
+      const settings = JSON.parse(savedSettings)
+      if (settings.systems) filterSystems.value = settings.systems
+      if (settings.sort) {
+        sortBy.value = settings.sort.field
+        sortOrder.value = settings.sort.order
+      }
+      if (settings.viewMode) {
+        viewMode.value = settings.viewMode
+        hasViewModePreference = true
+      }
+    } catch (e) {
+      logger.error('读取设置失败', e)
+    }
+  }
+  
+  // 移动端默认使用列表模式（仅当没有保存的偏好时）
+  if (!hasViewModePreference) {
+    const isMobile = window.matchMedia('(max-width: 640px)').matches
+    if (isMobile) {
+      viewMode.value = 'list'
+    }
+  }
+
+  // 优先尝试读取缓存，缩短冷启动骨架屏时间
+  const hasCachedSoftwares = loadCachedSoftwares({ allowStale: true })
+  // 初始化图片缓存放到后台，不阻塞首屏数据
+  void initImageCache()
+  // 有缓存时后台更新数据，无缓存则正常加载
+  await fetchSoftwares({ showLoading: !hasCachedSoftwares })
   
   // 通过环境变量控制是否启用性能检查，默认关闭
   if (import.meta.env.VITE_ENABLE_PERF_CHECK === 'true') {
@@ -611,54 +783,70 @@ onMounted(async () => {
 })
 
 // 添加获取数据的方法
-const fetchSoftwares = async () => {
+async function fetchSoftwares (options: { showLoading?: boolean } = {}) {
+  const { showLoading = true } = options
+
   try {
-    isLoading.value = true
+    if (showLoading) {
+      isLoading.value = true
+      isIconsDeferred.value = true
+    } else {
+      isRefreshing.value = true
+    }
     logger.debug('开始加载软件列表...')
     
-    // 分批加载数据
     const loadData = async () => {
       logger.debug('正在从服务器获取数据...')
-      const data = await softwareService.getAllSoftware()
-      logger.debug('获取到的数据:', data)
-      softwares.value = data
-      totalItems.value = data.length
-      logger.debug('数据加载完成，总数:', data.length)
-    }
-
-    // 延迟加载比较信息
-    const loadComparisons = async () => {
-      logger.debug('开始加载比较信息...')
-      const comparisonsPromises = softwares.value.map(async software => {
-        try {
-          const comparisons = await comparisonService.getComparisons(software.id)
-          softwareComparisons.value[software.id] = comparisons.length > 0
-        } catch (error) {
-          logger.error(`获取软件 ${software.id} 的比较信息失败:`, error)
-          softwareComparisons.value[software.id] = false
-        }
+      const result = await softwareService.getSoftwareList({
+        page: currentPage.value + 1,
+        limit: pageSize.value,
+        search: searchTerm.value,
+        category: activeCategory.value,
+        systems: filterSystems.value,
+        sortField: sortBy.value,
+        sortOrder: sortOrder.value
       })
-
-      await Promise.all(comparisonsPromises)
-      logger.debug('比较信息加载完成')
+      
+      logger.debug('获取到的数据:', result.data)
+      paginatedSoftwares.value = result.data
+      totalItems.value = result.pagination.total
+      isCacheStale.value = false
+      // 先渲染卡片，再加载图标
+      scheduleIconLoad()
+      
+      // 缓存第一页数据 (仅当没有筛选条件时)
+      if (currentPage.value === 0 && !searchTerm.value && activeCategory.value === 'all' && filterSystems.value.length === 0) {
+        localStorage.setItem(
+          SOFTWARE_CACHE_KEY,
+          JSON.stringify({ cachedAt: Date.now(), data: result.data, total: result.pagination.total })
+        )
+      }
+      logger.debug('数据加载完成，本页:', result.data.length, '总数:', result.pagination.total)
     }
 
     await loadData()
-    isLoading.value = false
-    
-    // 延迟加载比较信息
-    setTimeout(loadComparisons, 100)
+    if (showLoading) {
+      isLoading.value = false
+    } else {
+      isRefreshing.value = false
+    }
     
   } catch (error) {
     logger.error('获取数据失败:', error)
     showToast('获取数据失败', 'error')
-    isLoading.value = false
+    if (showLoading) {
+      isLoading.value = false
+    } else {
+      isRefreshing.value = false
+    }
   }
 }
 
 // 添加刷新方法
 const handleRefresh = async () => {
-  currentPage.value = 0 // 重置页码到第一页npm run dev:full
+  if (currentPage.value !== 0) {
+    currentPage.value = 0 // 重置页码
+  }
   await fetchSoftwares() // 重新获取数据
   showToast('刷新成功', 'success')
 }
@@ -681,32 +869,22 @@ const handleCategoryChange = (newCategory: string) => {
   activeCategory.value = newCategory
   // 重置分页到第一页
   currentPage.value = 0
-  // 重新计算总项目数
-  totalItems.value = filteredSoftwares.value.length
 }
 
-const selectedSoftware = ref<Software | null>(null)
+const selectedSoftware = ref<SoftwareListItem | null>(null)
 
 const handleDetailClosed = () => {
   selectedSoftware.value = null
 }
 
-const showSoftwareDetail = (software: Software) => {
-  selectedSoftware.value = {
-    ...software,
-    license: software.license as LicenseType,
-    systems: software.systems as SystemType[]
-  }
+const showSoftwareDetail = (software: SoftwareListItem) => {
+  selectedSoftware.value = { ...software }
   showDetailDialog.value = true
 }
 
 // 处理详情弹窗中的软件导航切换
-const handleSoftwareNavigate = (software: Software) => {
-  selectedSoftware.value = {
-    ...software,
-    license: software.license as LicenseType,
-    systems: software.systems as SystemType[]
-  }
+const handleSoftwareNavigate = (software: SoftwareListItem) => {
+  selectedSoftware.value = { ...software }
 }
 
 // 添加更新设置的方法
@@ -746,59 +924,11 @@ const updateSettings = (settings: {
   showSettings.value = false
 }
 
-// 在组件挂载时加载保存的设置
-onMounted(async () => {
-  // 读取设置
-  const savedSettings = localStorage.getItem('app-settings')
-  let hasViewModePreference = false
-  
-  if (savedSettings) {
-    try {
-      const settings = JSON.parse(savedSettings)
-      if (settings.systems) filterSystems.value = settings.systems
-      if (settings.sort) {
-        sortBy.value = settings.sort.field
-        sortOrder.value = settings.sort.order
-      }
-      if (settings.viewMode) {
-        viewMode.value = settings.viewMode
-        hasViewModePreference = true
-      }
-    } catch (e) {
-      logger.error('读取设置失败', e)
-    }
-  }
-  
-  // 移动端默认使用列表模式（仅当没有保存的偏好时）
-  if (!hasViewModePreference) {
-    const isMobile = window.matchMedia('(max-width: 640px)').matches
-    if (isMobile) {
-      viewMode.value = 'list'
-    }
-  }
-  
-  // 初始化图片缓存
-  await initImageCache()
-  // 获取软件列表
-  await fetchSoftwares()
-  
-  // 预加载弹窗组件（在数据加载完成后）
-  preloadDialogComponents()
-  
-  // 通过环境变量控制是否启用性能检查，默认关闭
-  if (import.meta.env.VITE_ENABLE_PERF_CHECK === 'true') {
-    setTimeout(() => {
-      logger.debug('🚀 启动性能检查...')
-      devPerformanceTips.checkForCommonIssues()
-      performanceChecker.runFullCheck()
-    }, 3000)
-  }
-})
 
 // 添加搜索处理方法
 const handleSearch = (term: string) => {
   searchTerm.value = term
-  currentPage.value = 0
+  // watcher 会处理数据获取
 }
 
 // 添加分页显示逻辑

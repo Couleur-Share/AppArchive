@@ -58,7 +58,7 @@
                     <template v-if="mode === 'detail' && detail?.software">
                       <div class="flex items-center gap-4 mb-6">
                         <div class="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/20">
-                          <img :src="getIconUrl(detail.software.icon)" crossorigin="anonymous" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
+                          <img :src="getIconUrl(detail.software.icon || '')" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
                         </div>
                         <div>
                           <div class="text-2xl font-bold">{{ detail.software.name }}</div>
@@ -97,7 +97,7 @@
                       <div class="flex flex-wrap items-center gap-4 mb-6">
                         <div v-for="sw in comparison.softwares" :key="sw.id" class="flex items-center gap-2 px-3 py-2 rounded-xl" :class="theme === 'classic' ? 'bg-gray-100 text-gray-900' : 'bg-white/10 text-white'">
                           <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
-                            <img :src="getIconUrl(sw.icon)" crossorigin="anonymous" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
+                            <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                           </div>
                           <div class="text-base font-medium">{{ sw.name }}</div>
                         </div>
@@ -108,7 +108,7 @@
                           <div v-for="sw in comparison.softwares" :key="'kp-'+sw.id" class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
                             <div class="flex items-center gap-2 mb-2">
                               <div class="w-6 h-6 rounded-lg overflow-hidden ring-2" :class="theme === 'classic' ? 'ring-gray-200' : 'ring-white/30'">
-                                <img :src="getIconUrl(sw.icon)" crossorigin="anonymous" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
+                                <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                               </div>
                               <div class="text-sm font-semibold">{{ sw.name }}</div>
                             </div>
@@ -158,7 +158,7 @@
                       <!-- 简化：与预览相同结构 -->
                       <div class="flex items-center gap-4 mb-6">
                         <div class="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/20">
-                          <img :src="getIconUrl(detail.software.icon)" crossorigin="anonymous" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
+                          <img :src="getIconUrl(detail.software.icon || '')" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
                         </div>
                         <div>
                           <div class="text-2xl font-bold">{{ detail.software.name }}</div>
@@ -195,7 +195,7 @@
                       <div class="flex flex-wrap items-center gap-4 mb-6">
                         <div v-for="sw in comparison.softwares" :key="'exp-b-'+sw.id" class="flex items-center gap-2 px-3 py-2 rounded-xl" :class="theme === 'classic' ? 'bg-gray-100 text-gray-900' : 'bg-white/10 text-white'">
                           <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
-                            <img :src="getIconUrl(sw.icon)" crossorigin="anonymous" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
+                            <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                           </div>
                           <div class="text-base font-medium">{{ sw.name }}</div>
                         </div>
@@ -206,7 +206,7 @@
                           <div v-for="sw in comparison.softwares" :key="'exp-kp-'+sw.id" class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
                             <div class="flex items-center gap-2 mb-2">
                               <div class="w-6 h-6 rounded-lg overflow-hidden ring-2" :class="theme === 'classic' ? 'ring-gray-200' : 'ring-white/30'">
-                                <img :src="getIconUrl(sw.icon)" crossorigin="anonymous" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
+                                <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                               </div>
                               <div class="text-sm font-semibold">{{ sw.name }}</div>
                             </div>
@@ -264,14 +264,14 @@ import { X } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
-import type { Software } from '../types'
+import type { Software, SoftwareListItem } from '../types'
 import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{
   isOpen: boolean
   mode: 'detail' | 'comparison'
-  detail?: { software: Software }
-  comparison?: { softwares: Software[]; recommendationLines?: string[]; summaryHtml: string }
+  detail?: { software: Software | SoftwareListItem }
+  comparison?: { softwares: (Software | SoftwareListItem)[]; recommendationLines?: string[]; summaryHtml: string }
   defaultTheme?: 'classic' | 'dark' | 'gradient'
   defaultShowWebsite?: boolean
   defaultShowSystems?: boolean
@@ -301,7 +301,7 @@ const { showToast } = useToast()
 const metaLine = computed(() => {
   if (props.mode !== 'detail' || !props.detail?.software) return ''
   const s = props.detail.software
-  const base = `${s.category} · ${s.license}`
+  const base = `${s.category || '未分类'} · ${s.license || '未知'}`
   const sys = Array.isArray(s.systems) ? s.systems.join(' / ') : ''
   return showSystems.value && sys ? `${base} · ${sys}` : base
 })

@@ -1,4 +1,4 @@
-import type { Software } from "./index";
+import type { SoftwareListItem } from "./index";
 
 export interface ComparisonGroup {
 	id: number;
@@ -13,6 +13,6 @@ export interface ComparisonTarget {
 	target_id: number;
 	group_id: number;
 	created_at: string;
-	target: Software;
+	target: SoftwareListItem;
 	group: ComparisonGroup;
 }

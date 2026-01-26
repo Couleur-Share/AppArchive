@@ -4,6 +4,7 @@
     :can-edit="canEdit"
     :has-comparisons="hasComparisons"
     :view-mode="viewMode"
+    :defer-icons="deferIcons"
     @edit="$emit('edit', $event)"
     @delete="$emit('delete', $event)"
     @click="$emit('click', $event)"
@@ -12,20 +13,21 @@
 </template>
 
 <script setup lang="ts">
-import { type Software } from '../../types'
+import { type SoftwareListItem } from '../../types'
 import VirtualSoftwareList from './VirtualSoftwareList.vue'
 
 defineProps<{
-  items: Software[]
+  items: SoftwareListItem[]
   canEdit: boolean
   hasComparisons: Record<number, boolean>
   viewMode: 'grid' | 'list'
+  deferIcons?: boolean
 }>()
 
 defineEmits<{
-  (e: 'edit', software: Software): void
+  (e: 'edit', software: SoftwareListItem): void
   (e: 'delete', id: number): void
-  (e: 'click', software: Software): void
-  (e: 'compare', software: Software): void
+  (e: 'click', software: SoftwareListItem): void
+  (e: 'compare', software: SoftwareListItem): void
 }>()
 </script> 

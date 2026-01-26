@@ -28,6 +28,9 @@ export const getIconUrl = (iconPath: string | null | undefined): string => {
 			iconPath.includes("cos.") ||
 			iconPath.includes("myqcloud.com")
 		) {
+			// 2024-01-26 最终回滚：不做任何处理，直接返回原始 URL
+			// 原因：之前尝试的强制转换 PNG 或修改 Content-Type 在某些环境下反而导致 403 或 404
+			// 如果 ICO 图片在 Chrome 下不显示，建议重新上传标准的 PNG/JPG 图片。
 			return iconPath;
 		}
 		// 其他HTTP URL返回占位图

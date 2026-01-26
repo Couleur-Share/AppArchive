@@ -3,7 +3,8 @@ import { type Ref, ref, toValue, watch } from "vue";
 import { aiService } from "../services/ai";
 import { cacheService } from "../services/cache";
 import { comparisonService } from "../services/comparison";
-import type { LicenseType, Software } from "../types";
+import { softwareService } from "../services/software";
+import type { LicenseType, Software, SoftwareListItem } from "../types";
 import type { ComparisonGroup, ComparisonTarget } from "../types/comparison";
 import logger from "../utils/logger";
 import { useToast } from "./useToast";
@@ -11,9 +12,9 @@ import { useToast } from "./useToast";
 // 类型移动到 src/types/comparison.ts
 
 export function useComparisonManager(
-	baseSoftware: Ref<Software | null | undefined>,
+	baseSoftware: Ref<Software | SoftwareListItem | null | undefined>,
 ) {
-	const comparableSoftware = ref<Software[]>([]);
+	const comparableSoftware = ref<SoftwareListItem[]>([]);
 	const selectedComparisons = ref<ComparisonTarget[]>([]);
 	const isLoading = ref(false);
 	const loadingText = ref("加载数据...");
@@ -196,7 +197,11 @@ export function useComparisonManager(
 			const existing = selectedComparisons.value.find(
 				(c) => c.target_id === software.id,
 			);
-			const base = toValue(baseSoftware) as Software;
+			const base = toValue(baseSoftware) as Software | SoftwareListItem | null | undefined;
+			if (!base?.id) {
+				showToast("软件信息无效，请重试", "error");
+				return;
+			}
 			if (existing) {
 				const groupId = existing.group?.id;
 				if (groupId) {
@@ -301,6 +306,15 @@ export function useComparisonManager(
 		}
 	};
 
+	const fetchSoftwareDetails = async (id: number) => {
+		try {
+			return await softwareService.getSoftwareById(id);
+		} catch (error) {
+			logger.error(`获取软件详情失败 (ID: ${id})`, error);
+			return null;
+		}
+	};
+
 	const startAIAnalysis = async () => {
 		const base = toValue(baseSoftware);
 		if (!base || selectedComparisons.value.length === 0) {
@@ -309,10 +323,24 @@ export function useComparisonManager(
 		}
 		try {
 			isAnalyzing.value = true;
-			const softwaresToCompare = [
-				base,
-				...selectedComparisons.value.map((c) => c.target),
-			];
+			const baseDetail = await fetchSoftwareDetails(base.id);
+			if (!baseDetail) {
+				showToast("获取基础软件详情失败，请重试", "error");
+				return;
+			}
+
+			const targetDetails = await Promise.all(
+				selectedComparisons.value.map((c) => fetchSoftwareDetails(c.target.id)),
+			);
+			const resolvedTargets = targetDetails.filter(
+				(s): s is Software => s !== null,
+			);
+			if (resolvedTargets.length === 0) {
+				showToast("获取对比软件详情失败，请重试", "error");
+				return;
+			}
+
+			const softwaresToCompare = [baseDetail, ...resolvedTargets];
 			const softwareIds = softwaresToCompare.map((s) => s.id);
 			const cached = await cacheService.getComparisonCache(softwareIds);
 			if (cached) {

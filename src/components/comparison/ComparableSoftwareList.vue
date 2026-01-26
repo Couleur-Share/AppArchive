@@ -84,17 +84,17 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { getIconUrl } from '../../services/localIconCache'
-import type { Software } from '../../types'
+import type { SoftwareListItem } from '../../types'
 import { Check, Plus, Minus, SearchX } from 'lucide-vue-next'
 
 const props = defineProps<{
-  items: Software[]
+  items: SoftwareListItem[]
   isSelected: (id: number) => boolean
   disabled?: boolean
   rowHeight?: number
 }>()
 
-defineEmits<(e: 'toggle', sw: Software) => void>()
+defineEmits<(e: 'toggle', sw: SoftwareListItem) => void>()
 
 const listRef = ref<HTMLElement | null>(null)
 const scrollTop = ref(0)

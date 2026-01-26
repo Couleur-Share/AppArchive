@@ -25,12 +25,12 @@
         <div class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
           <TransitionChild
             as="template"
-            enter="ease-out duration-300"
-            enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            enter-to="opacity-100 translate-y-0 sm:scale-100"
+            enter="ease-[cubic-bezier(0.19,1,0.22,1)] duration-500"
+            enter-from="opacity-0 translate-y-8 scale-95"
+            enter-to="opacity-100 translate-y-0 scale-100"
             leave="ease-in duration-200"
-            leave-from="opacity-100 translate-y-0 sm:scale-100"
-            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            leave-from="opacity-100 translate-y-0 scale-100"
+            leave-to="opacity-0 translate-y-8 scale-95"
           >
             <DialogPanel 
               ref="dialogPanelRef"
@@ -60,7 +60,7 @@
                     <div class="flex-shrink-0 mx-auto sm:mx-0">
                       <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shadow-lg ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800 relative">
                         <img
-                          :src="getIconUrl(software.icon)"
+                          :src="getIconUrl(software.icon || '')"
                           :alt="software.name"
                           class="w-full h-full object-cover"
                           loading="lazy"
@@ -113,7 +113,7 @@
                          <!-- 类别 -->
                          <div class="flex items-center gap-1.5">
                             <FolderOpen class="w-4 h-4 text-gray-400" />
-                            <span>{{ software.category }}</span>
+                            <span>{{ software.category || '未分类' }}</span>
                          </div>
                       </div>
 
@@ -122,7 +122,7 @@
                          <div class="flex flex-wrap items-center justify-center gap-2">
                             <!-- 授权标签 -->
                             <span class="px-3 py-1 rounded-md text-xs font-semibold ring-1 ring-inset bg-gray-50 text-gray-700 ring-gray-600/20 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700">
-                              {{ software.license }}
+                              {{ licenseLabel }}
                             </span>
                             
                             <!-- 系统标签 -->
@@ -173,11 +173,11 @@
                 <!-- 导航标签页 -->
                 <div class="mt-6 px-5 sm:px-8 border-b border-gray-200 dark:border-gray-800">
                    <div class="flex items-center gap-6 overflow-x-auto no-scrollbar">
-                      <button
+                  <button
                         v-for="tab in tabs"
                         :key="tab.id"
                         @click="activeTab = tab.id"
-                        class="pb-3 text-sm font-medium transition-all duration-200 relative whitespace-nowrap outline-none select-none"
+                        class="pb-3 text-sm font-medium transition-colors duration-200 relative whitespace-nowrap outline-none select-none px-1"
                         :class="[
                             activeTab === tab.id
                             ? 'text-gray-900 dark:text-white'
@@ -185,11 +185,19 @@
                         ]"
                         >
                         {{ tab.label }}
-                        <span
-                            v-if="activeTab === tab.id"
-                            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 dark:bg-white rounded-t-full"
-                            layoutId="activeTabIndicator"
-                        ></span>
+                        <Transition
+                          enter-active-class="transition duration-300 ease-[cubic-bezier(0.19,1,0.22,1)]"
+                          enter-from-class="opacity-0 scale-x-0"
+                          enter-to-class="opacity-100 scale-x-100"
+                          leave-active-class="transition duration-200 ease-in"
+                          leave-from-class="opacity-100 scale-x-100"
+                          leave-to-class="opacity-0 scale-x-0"
+                        >
+                          <span
+                              v-if="activeTab === tab.id"
+                              class="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 dark:bg-white rounded-t-full origin-center"
+                          ></span>
+                        </Transition>
                       </button>
                    </div>
                 </div>
@@ -198,14 +206,15 @@
               <!-- 内容滚动区域 -->
               <div class="flex-1 overflow-y-auto p-5 sm:p-8 bg-gray-50/50 dark:bg-transparent scroll-smooth" :key="software.id">
                 
-                <!-- 概览页 -->
+                <!-- 内容页切换动画 -->
                 <Transition
-                    enter-active-class="transition duration-300 ease-out"
-                    enter-from-class="opacity-0 translate-y-4"
-                    enter-to-class="opacity-100 translate-y-0"
-                    leave-active-class="transition duration-200 ease-in absolute w-full"
-                    leave-from-class="opacity-100 translate-y-0"
-                    leave-to-class="opacity-0 translate-y-4"
+                    mode="out-in"
+                    enter-active-class="transition duration-300 ease-[cubic-bezier(0.19,1,0.22,1)]"
+                    enter-from-class="opacity-0 translate-y-2 scale-[0.99]"
+                    enter-to-class="opacity-100 translate-y-0 scale-100"
+                    leave-active-class="transition duration-150 ease-in"
+                    leave-from-class="opacity-100 translate-y-0 scale-100"
+                    leave-to-class="opacity-0 translate-y-2 scale-[0.99]"
                 >
                 <div v-if="activeTab === 'overview'" class="space-y-8 max-w-4xl mx-auto">
                   <!-- 产品描述 -->
@@ -266,11 +275,11 @@
                                 优点
                             </h3>
                             <ul class="space-y-3">
-                                <li v-for="(pro, idx) in software.pros" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
+                                <li v-for="(pro, idx) in (software.pros || [])" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
                                     <CheckCircle2 class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                                     <span>{{ pro }}</span>
                                 </li>
-                                <li v-if="!software.pros?.length" class="text-gray-400 italic">暂无记录</li>
+                                <li v-if="!(software.pros || []).length" class="text-gray-400 italic">暂无记录</li>
                             </ul>
                         </div>
                         
@@ -280,11 +289,11 @@
                                 缺点
                             </h3>
                             <ul class="space-y-3">
-                                <li v-for="(con, idx) in software.cons" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
+                                <li v-for="(con, idx) in (software.cons || [])" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
                                     <XCircle class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                                     <span>{{ con }}</span>
                                 </li>
-                                <li v-if="!software.cons?.length" class="text-gray-400 italic">暂无记录</li>
+                                <li v-if="!(software.cons || []).length" class="text-gray-400 italic">暂无记录</li>
                             </ul>
                         </div>
                     </div>
@@ -338,18 +347,18 @@
                                   class="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm"
                                 >
                                    <div class="flex items-center gap-3 mb-4">
-                                        <img :src="getIconUrl(sw.icon)" class="w-10 h-10 rounded-lg bg-gray-100" />
+                                  <img :src="getIconUrl(sw.icon || '')" class="w-10 h-10 rounded-lg bg-gray-100" />
                                         <div class="truncate font-bold text-gray-900 dark:text-white">{{ sw.name }}</div>
                                    </div>
                                    <div class="space-y-3 text-sm">
                                         <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-700">
                                             <span class="text-gray-500">授权</span>
-                                            <span class="font-medium">{{ sw.license }}</span>
+                                            <span class="font-medium">{{ sw.license || '未知' }}</span>
                                         </div>
                                         <div class="space-y-1">
                                             <div class="text-gray-500 text-xs">支持系统</div>
                                             <div class="flex flex-wrap gap-1">
-                                                <span v-for="s in sw.systems" :key="s" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">{{ s }}</span>
+                                                <span v-for="s in (sw.systems || [])" :key="s" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">{{ s }}</span>
                                             </div>
                                         </div>
                                    </div>
@@ -482,41 +491,6 @@
 
   <Toast :show="showToast" message="操作成功" />
   
-  <!-- 隐藏的分享卡片容器 (保持原有功能) -->
-  <div ref="shareCardRef" class="fixed -left-[9999px] top-0 w-[720px] p-8 bg-white text-gray-900">
-     <!-- ... content kept for html-to-image ... -->
-      <div class="flex items-center gap-4 mb-6">
-      <div class="w-16 h-16 rounded-xl overflow-hidden ring-1 ring-gray-200">
-        <img :src="getIconUrl(software.icon)" crossorigin="anonymous" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
-      </div>
-      <div>
-        <div class="text-2xl font-bold">{{ software.name }}</div>
-        <div class="text-sm text-gray-500 mt-1">{{ software.category }} · {{ software.license }} · {{ (software.systems||[]).join(' / ') }}</div>
-        <div v-if="software.website" class="text-sm text-blue-600 mt-1">{{ software.website }}</div>
-      </div>
-    </div>
-    <div v-if="software.description" class="mb-6">
-      <div class="text-sm text-gray-700 whitespace-pre-wrap">{{ software.description }}</div>
-    </div>
-    <div class="grid grid-cols-2 gap-6">
-      <div>
-        <div class="font-semibold text-green-600 mb-2">优点</div>
-        <ul class="list-disc list-inside text-sm text-gray-800 space-y-1">
-          <li v-for="(pro, i) in (software.pros || [])" :key="'pro-'+i">{{ pro }}</li>
-          <li v-if="!(software.pros||[]).length" class="text-gray-400">暂无</li>
-        </ul>
-      </div>
-      <div>
-        <div class="font-semibold text-red-600 mb-2">缺点</div>
-        <ul class="list-disc list-inside text-sm text-gray-800 space-y-1">
-          <li v-for="(con, i) in (software.cons || [])" :key="'con-'+i">{{ con }}</li>
-          <li v-if="!(software.cons||[]).length" class="text-gray-400">暂无</li>
-        </ul>
-      </div>
-    </div>
-    <div class="mt-8 text-xs text-gray-400">由 AppArchive 生成 · {{ new Date().toLocaleDateString() }}</div>
-  </div>
-
   <ShareCardPreview
     v-model:is-open="showSharePreview"
     mode="detail"
@@ -540,44 +514,80 @@ import {
     FileSearch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
     FolderOpen, Monitor, ChevronDown, Tag
 } from 'lucide-vue-next'
+import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 import { getIconUrl } from '../services/localIconCache'
 import { buildApiUrl } from '../services/apiBase'
-import type { DownloadLink, SecretItem, Software } from '../types'
+import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../types'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
+import { isSignedIn } from '../lib/clerk'
 import SystemIcon from './SystemIcon.vue'
 import Toast from './Toast.vue'
 import Tooltip from './common/Tooltip.vue' // New Component
 
-// @ts-expect-error: html-to-image 类型声明在当前环境缺失
-let toPng: typeof import('html-to-image').toPng | null = null
-const loadToPng = async () => {
-  if (!toPng) {
-    const module = await import('html-to-image')
-    toPng = module.toPng
-  }
-  return toPng
-}
-
-import MarkdownIt from 'markdown-it'
-import { isSignedIn } from '../lib/clerk'
+import { softwareService } from '../services/software'
 import { comparisonService } from '../services/comparison'
-import ComparisonManager from './ComparisonManager.vue'
-import BaseButton from './common/BaseButton.vue'
-import IconButton from './common/IconButton.vue'
-import ShareCardPreview from './ShareCardPreview.vue'
+
+// ... existing imports
 
 const props = defineProps<{
   isOpen: boolean
-  software: Software
-  softwareList?: Software[]
+  software: Software | SoftwareListItem
+  softwareList?: SoftwareListItem[]
 }>()
+
+const software = ref<Software | SoftwareListItem>(props.software)
+const isLoadingDetails = ref(false)
+
+// 监听 props.software 变化，重新获取详情
+watch(() => props.software, async (newSoftware) => {
+  if (!newSoftware) return
+  
+  // 先更新基本信息，避免闪烁
+  software.value = { ...newSoftware }
+  
+  // 如果需要，获取完整详情
+  // 检查是否缺少 download_links, secrets 等字段
+  // 列表接口返回的对象通常没有 download_links (undefined)，而详情接口会返回 [] 或 [...]
+  // 但为了保险，我们总是尝试获取一次详情，除非已经有了详细数据
+  
+  // 这里可以做一个简单的判断，例如检查 pros/cons 是否存在，或者 download_links 是否存在
+  // 但最稳妥的是每次打开/切换都获取最新详情
+  
+  if (props.isOpen) {
+    await fetchFullDetails(newSoftware.id)
+  }
+}, { immediate: true, deep: true })
+
+// 监听 isOpen 变化，打开时获取详情
+watch(() => props.isOpen, async (isOpen) => {
+  if (isOpen && props.software) {
+    await fetchFullDetails(props.software.id)
+  }
+})
+
+async function fetchFullDetails(id: number) {
+  try {
+    isLoadingDetails.value = true
+    const details = await softwareService.getSoftwareById(id)
+    software.value = details
+  } catch (error) {
+    logger.error(`获取软件详情失败 (ID: ${id}):`, error)
+  } finally {
+    isLoadingDetails.value = false
+  }
+}
+
+// ... existing code ...
+// 在后续代码中，使用 software.value 而不是 props.software
+// 需要替换所有 props.software 为 software (除了 watch 里面)
+
 
 const emit = defineEmits<{
   'update:isOpen': [value: boolean]
-  'navigate': [software: Software]
+  'navigate': [software: SoftwareListItem]
   'closed': []
 }>()
 
@@ -600,7 +610,9 @@ const tabs = computed(() => {
 // Description Expand
 const isDescriptionExpanded = ref(false)
 const descriptionThreshold = 200
-const showExpandButton = computed(() => (props.software.description?.length || 0) > descriptionThreshold)
+const showExpandButton = computed(() => (software.value.description?.length || 0) > descriptionThreshold)
+
+const licenseLabel = computed(() => software.value.license || '未知')
 
 // Number formatter
 const formatNumber = (num: number) => {
@@ -682,7 +694,7 @@ const handleTouchEnd = (e: TouchEvent) => {
 
 // ... Core Features logic ...
 const coreFeatures = computed(() => {
-  const pros = props.software.pros || []
+  const pros = software.value.pros || []
   return pros.slice(0, 4).map((pro, _index) => {
     const parts = pro.split('：')
     if (parts.length >= 2) return { title: parts[0], subtitle: parts.slice(1).join('：') }
@@ -711,8 +723,8 @@ const getMarkdownRenderer = () => {
 const loadComparisons = async () => {
   try {
     isLoadingComparison.value = true
-    if (!props.software?.id) return
-    const comparisons = await comparisonService.getComparisons(props.software.id)
+    if (!software.value?.id) return
+    const comparisons = await comparisonService.getComparisons(software.value.id)
     comparedSoftwares.value = comparisons
     if (comparisons.length > 0 && comparisons[0].groupInfo?.id) {
       const analysis = await comparisonService.getComparisonAnalysis(comparisons[0].groupInfo.id)
@@ -737,7 +749,7 @@ watch(() => props.isOpen, (isOpen) => {
   if (isOpen) activeTab.value = 'overview'
   else { comparedSoftwares.value = []; comparisonSummary.value = '' }
 }, { immediate: true })
-watch(() => props.software.id, () => {
+watch(() => software.value.id, () => {
   activeTab.value = 'overview'
   comparedSoftwares.value = []
   comparisonSummary.value = ''
@@ -750,8 +762,8 @@ watch(() => isSignedIn.value, (signedIn) => {
 })
 const refreshComparisonsSilently = async () => {
     try {
-        if (!props.software?.id) return
-        const comparisons = await comparisonService.getComparisons(props.software.id)
+        if (!software.value?.id) return
+        const comparisons = await comparisonService.getComparisons(software.value.id)
         comparedSoftwares.value = comparisons
         if (comparisons.length > 0 && comparisons[0].groupInfo?.id) {
             const analysis = await comparisonService.getComparisonAnalysis(comparisons[0].groupInfo.id)
@@ -789,15 +801,15 @@ const handleComparisonManagerClose = async (isOpen: boolean) => {
 }
 
 // ... Actions ...
-const openWebsite = () => { if (props.software.website) window.open(props.software.website, '_blank') }
+const openWebsite = () => { if (software.value.website) window.open(software.value.website, '_blank') }
 const showToast = ref(false)
-const hasDownloadLinks = computed(() => Array.isArray(props.software.download_links) && props.software.download_links.length > 0)
+const hasDownloadLinks = computed(() => Array.isArray(software.value.download_links) && software.value.download_links.length > 0)
 const getProviderLabel = (provider: DownloadLink['provider']) => {
     const map: Record<string, string> = { baidu: '百度网盘', quark: '夸克网盘', lanzou: '蓝奏云', aliyun: '阿里云盘', '115': '115网盘', magnet: '磁力链接', ed2k: 'ED2K', official: '官方直链' }
     return map[provider] || '其他'
 }
 const buildShareText = (link: DownloadLink) => {
-  const parts: string[] = [props.software.name, `链接：${link.url}`]
+  const parts: string[] = [software.value.name, `链接：${link.url}`]
   if (link.code) parts.push(`提取码：${link.code}`)
   if (link.password) parts.push(`解压密码：${link.password}`)
   return parts.join('\n')
@@ -805,9 +817,9 @@ const buildShareText = (link: DownloadLink) => {
 const copyLinkShare = async (link: DownloadLink) => {
   try { await copyToClipboard(buildShareText(link)); showToast.value = true; setTimeout(() => { showToast.value = false }, 2000) } catch (err) { logger.error('复制失败:', err) }
 }
-const hasSecrets = computed(() => isSignedIn.value && Array.isArray(props.software.secrets) && props.software.secrets.length > 0)
+const hasSecrets = computed(() => isSignedIn.value && Array.isArray(software.value.secrets) && software.value.secrets.length > 0)
 const fetchSecretValue = async (secretId: string) => {
-  const res = await fetch(buildApiUrl(`/software/${props.software.id}/secret/${secretId}`))
+  const res = await fetch(buildApiUrl(`/software/${software.value.id}/secret/${secretId}`))
   if (!res.ok) throw new Error('获取密钥失败')
   const data = await res.json()
   return data.value as string
@@ -821,7 +833,6 @@ const copySecret = async (sec: SecretItem) => {
 }
 
 // ... Share ...
-const shareCardRef = ref<HTMLElement | null>(null)
 const showSharePreview = ref(false)
 const generateShareImage = async () => { showSharePreview.value = true }
 const initialFocusRef = ref<HTMLElement | null>(null)

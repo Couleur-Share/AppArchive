@@ -625,21 +625,118 @@ app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
 // 注意：AI配置已统一使用 prompts.js 文件中的提示词，不再支持用户自定义配置
 // 用户的其他配置（如 temperature、maxTokens 等）可通过前端 localStorage 保存
 
-// 获取所有软件
-app.get("/api/software", async (_req, res) => {
-        try {
-                const result = await pool.query(
-                        "SELECT * FROM softwares ORDER BY created_at DESC",
-                );
-                // 屏蔽 secrets 明文，前端只拿到元信息
-                const data = result.rows.map((row) => ({
-                        ...row,
-                        secrets: maskSecretsForClient(row.secrets || []),
-                }));
-                res.json({ success: true, data });
-        } catch (error) {
-                handleDatabaseError(error, res);
-        }
+// 获取所有软件 (支持分页、筛选、排序)
+app.get("/api/software", async (req, res) => {
+	try {
+		const {
+			page = 1,
+			limit = 20,
+			search,
+			category,
+			systems,
+			sortField = "created_at",
+			sortOrder = "desc",
+		} = req.query;
+
+		const offset = (Number(page) - 1) * Number(limit);
+		const params = [];
+		let paramIndex = 1;
+		let whereConditions = [];
+
+		// 搜索条件
+		if (search) {
+			whereConditions.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
+			params.push(`%${search}%`);
+			paramIndex++;
+		}
+
+		// 分类筛选
+		if (category && category !== "all") {
+			whereConditions.push(`category = $${paramIndex}`);
+			params.push(category);
+			paramIndex++;
+		}
+
+		// 系统筛选 (逗号分隔)
+		if (systems) {
+			const systemList = systems.split(",");
+			// 假设 systems 是 text[] 类型，使用 overlap 操作符 &&
+			// 或者如果是 JSONB，可能需要不同的写法
+			// 这里假设是 text[]，Postgres 数组包含判断：systems && $param
+			whereConditions.push(`systems && $${paramIndex}`);
+			params.push(systemList);
+			paramIndex++;
+		}
+
+		const whereClause =
+			whereConditions.length > 0
+				? "WHERE " + whereConditions.join(" AND ")
+				: "";
+
+		// 排序字段白名单
+		const validSortFields = ["name", "created_at", "updated_at", "downloads", "rating"];
+		const finalSortField = validSortFields.includes(sortField) ? sortField : "created_at";
+		const finalSortOrder = sortOrder.toLowerCase() === "asc" ? "ASC" : "DESC";
+
+		// 核心字段 (Field Optimization)
+		// 排除 secrets, download_links, pros, cons (如果内容很长)
+		// 保留列表展示需要的字段
+		const selectFields = "id, name, icon, description, category, license, systems, website, created_at";
+
+		// 获取总数
+		const countQuery = `SELECT COUNT(*) FROM softwares ${whereClause}`;
+		const countResult = await pool.query(countQuery, params);
+		const total = Number(countResult.rows[0].count);
+
+		// 获取数据
+		const dataQuery = `
+			SELECT ${selectFields} 
+			FROM softwares 
+			${whereClause} 
+			ORDER BY ${finalSortField} ${finalSortOrder} 
+			LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+		`;
+		
+		params.push(limit, offset);
+		
+		const result = await pool.query(dataQuery, params);
+
+		res.json({
+			success: true,
+			data: result.rows,
+			pagination: {
+				total,
+				page: Number(page),
+				limit: Number(limit),
+				totalPages: Math.ceil(total / Number(limit))
+			}
+		});
+	} catch (error) {
+		handleDatabaseError(error, res);
+	}
+});
+
+// 获取单个软件详情
+app.get("/api/software/:id", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const result = await pool.query("SELECT * FROM softwares WHERE id = $1", [id]);
+		
+		if (result.rows.length === 0) {
+			return res.status(404).json({ error: "软件不存在" });
+		}
+
+		const row = result.rows[0];
+		// 屏蔽 secrets 明文
+		const data = {
+			...row,
+			secrets: maskSecretsForClient(row.secrets || []),
+		};
+		
+		res.json({ success: true, data });
+	} catch (error) {
+		handleDatabaseError(error, res);
+	}
 });
 
 // 添加软件
