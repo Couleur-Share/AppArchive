@@ -479,29 +479,12 @@ const onPageChange = (page: number) => {
   fetchSoftwares({ showLoading: true })
 }
 
-// 监听当前页数据，加载对比信息
+// 监听当前页数据，加载对比信息 (已移除无用的 N+1 请求)
+/*
 watch(paginatedSoftwares, async (newSoftwares) => {
-  if (newSoftwares.length === 0) return
-
-  const unboundIds = newSoftwares
-    .filter(s => softwareComparisons.value[s.id] === undefined)
-    .map(s => s.id)
-
-  if (unboundIds.length === 0) return
-
-  // 并行加载当前页未加载的对比信息
-  const promises = unboundIds.map(async (id) => {
-    try {
-      const comparisons = await comparisonService.getComparisons(id)
-      softwareComparisons.value[id] = comparisons.length > 0
-    } catch (error) {
-      logger.error(`获取软件 ${id} 的比较信息失败:`, error)
-      softwareComparisons.value[id] = false
-    }
-  })
-
-  await Promise.all(promises)
+  // ... 移除无用的并行请求逻辑 ...
 }, { immediate: true })
+*/
 
 const getDeviceCoreCount = () => {
   return navigator.hardwareConcurrency ?? 4
