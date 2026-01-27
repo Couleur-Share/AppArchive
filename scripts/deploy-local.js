@@ -19,9 +19,12 @@ const rootDir = join(__dirname, "..");
 function runCommand(bin, args, description, cwd = rootDir) {
 	console.log(`\n👉 [${description}]`);
 	console.log(`   $ ${bin} ${args.join(" ")}`);
-	const result = spawnSync(bin, args, { stdio: "inherit", cwd, shell: false });
+	const result = spawnSync(bin, args, { stdio: "inherit", cwd, shell: true });
 	if (result.status !== 0) {
 		console.error(`❌ [${description}] 失败`);
+		if (result.error) {
+			console.error(result.error);
+		}
 		return false;
 	}
 	return true;
@@ -63,18 +66,10 @@ async function main() {
 	const scpBaseArgs = ["-P", CONFIG.port, ...sshOptionsArgs];
 	const remoteDest = `${sshHost}:${CONFIG.remotePath}`;
 
-	// 3. 上传 dist 目录
-	if (!runCommand("scp", [...scpBaseArgs, "-r", "dist", `${remoteDest}/`], "上传 dist 目录 (前端静态资源)")) {
-		process.exit(1);
-	}
-
-	// 4. 上传 server 目录
-	if (!runCommand("scp", [...scpBaseArgs, "-r", "server", `${remoteDest}/`], "上传 server 目录 (后端代码)")) {
-		process.exit(1);
-	}
-
-	// 5. 上传 package.json
-	if (!runCommand("scp", [...scpBaseArgs, "package.json", `${remoteDest}/`], "上传 package.json")) {
+	// 3. 一次性上传所有文件 (dist, server, package.json)
+	// 使用 -r 递归上传目录，同时指定多个源文件，只需要建立一次连接，输入一次密码
+	const sources = ["dist", "server", "package.json"];
+	if (!runCommand("scp", [...scpBaseArgs, "-r", ...sources, `${remoteDest}/`], "上传项目文件 (dist, server, package.json)")) {
 		process.exit(1);
 	}
 
