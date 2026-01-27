@@ -57,12 +57,6 @@
           </div>
         </div>
 
-        <div
-          v-if="isRefreshing && !isLoading && isSoftwareGridReady"
-          class="mb-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400"
-        >
-          {{ isCacheStale ? '已显示缓存数据，正在后台更新...' : '正在后台更新数据...' }}
-        </div>
         <SkeletonLoader
           v-if="shouldShowSkeleton"
           :count="skeletonCount"
@@ -348,8 +342,6 @@ const isLoading = ref(false)
 const query = ref('')
 const isSubmitting = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
-const isRefreshing = ref(false)
-const isCacheStale = ref(false)
 const gridColumns = ref(4)
 const isIconsDeferred = ref(true)
 
@@ -442,8 +434,6 @@ const loadCachedSoftwares = (options: { allowStale?: boolean } = {}) => {
 
     totalItems.value = Number.isFinite(cachedTotal) && cachedTotal > 0 ? cachedTotal : cachedData.length
     paginatedSoftwares.value = cachedData // 缓存数据作为第一页显示
-    // 标记缓存是否过期，用于提示用户正在后台更新
-    isCacheStale.value = isExpired
     // 先显示卡片，再加载图标
     scheduleIconLoad()
     return true
@@ -800,8 +790,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
       if (!isExpired) {
         // 缓存有效，直接返回，不需要加载
         isLoading.value = false
-        isRefreshing.value = false
-        isCacheStale.value = false
         scheduleIconLoad()
         logger.debug('命中内存缓存，跳过请求')
         return
@@ -809,7 +797,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
       
       // 缓存过期，标记为使用缓存但需要更新
       usedCache = true
-      isCacheStale.value = true
       logger.debug('缓存已过期，正在后台更新...')
     }
   }
@@ -818,8 +805,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
     if (showLoading && !usedCache) {
       isLoading.value = true
       isIconsDeferred.value = true
-    } else {
-      isRefreshing.value = true
     }
     logger.debug('开始加载软件列表...')
     
@@ -830,7 +815,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
       logger.debug('获取到的数据:', result.data)
       paginatedSoftwares.value = result.data
       totalItems.value = result.pagination.total
-      isCacheStale.value = false
       // 先渲染卡片，再加载图标
       scheduleIconLoad()
       
@@ -854,8 +838,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
     await loadData()
     if (showLoading) {
       isLoading.value = false
-    } else {
-      isRefreshing.value = false
     }
     
   } catch (error) {
@@ -865,8 +847,6 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
     }
     if (showLoading) {
       isLoading.value = false
-    } else {
-      isRefreshing.value = false
     }
   }
 }

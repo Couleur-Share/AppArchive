@@ -2,33 +2,37 @@
   <!-- AI 对比分析全屏动画 -->
   <ComparisonAIOverlay :active="isAnalyzing" />
 
-  <TransitionRoot appear :show="isOpen" as="div">
-    <Dialog as="div" class="relative z-50" @close="$emit('update:isOpen', false)">
-      <TransitionChild
-        as="template"
-        enter="duration-300 ease-out"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="duration-200 ease-in"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" />
-      </TransitionChild>
+  <Teleport to="body">
+    <Transition
+      enter-active-class="duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="duration-200 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div v-if="isOpen" class="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true">
+        <!-- 遮罩层 -->
+        <div 
+          class="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+          aria-hidden="true" 
+          @click="closeDialog"
+        ></div>
 
-      <div class="fixed inset-0 overflow-y-auto">
+        <!-- 弹窗容器 -->
         <div class="flex min-h-full items-center justify-center p-4">
-          <TransitionChild
-            as="template"
-            enter="duration-300 ease-out"
-            enter-from="opacity-0 scale-95"
-            enter-to="opacity-100 scale-100"
-            leave="duration-200 ease-in"
-            leave-from="opacity-100 scale-100"
-            leave-to="opacity-0 scale-95"
+          <Transition
+            enter-active-class="duration-300 ease-out"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="duration-200 ease-in"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+            appear
           >
-            <DialogPanel 
-              class="w-full max-w-6xl h-[85vh] transform overflow-hidden rounded-lg bg-white dark:bg-[#171f2e] shadow-2xl transition-all flex flex-col ring-1 ring-gray-900/5"
+            <div 
+              class="relative w-full max-w-6xl h-[85vh] transform overflow-hidden rounded-lg bg-white dark:bg-[#171f2e] shadow-2xl transition-all flex flex-col ring-1 ring-gray-900/5 z-10"
+              @click.stop
             >
               <!-- 顶部标题栏 -->
               <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#171f2e] z-10">
@@ -37,10 +41,10 @@
                     <LayoutDashboard class="w-6 h-6" />
                   </div>
                   <div>
-                    <DialogTitle as="h3" class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-                      管理软件对比
-                    </DialogTitle>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                    管理软件对比
+                  </h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       选择软件进行全方位对比分析，支持智能总结
                     </p>
                   </div>
@@ -168,16 +172,16 @@
                     </div>
                 </div>
               </div>
-            </DialogPanel>
-          </TransitionChild>
+            </div>
+          </Transition>
         </div>
       </div>
-    </Dialog>
-  </TransitionRoot>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { Transition } from 'vue'
 import DOMPurify from 'dompurify'
 import { 
     LayoutDashboard, X, Sparkles, Search, Loader2, ArrowLeft, Download
@@ -283,6 +287,10 @@ const clearAllComparisons = async () => {
 }
 
 const { showToast } = useToast()
+
+const closeDialog = () => {
+  emit('update:isOpen', false)
+}
 
 onMounted(async () => {
   if (props.isOpen && props.software?.id) {
