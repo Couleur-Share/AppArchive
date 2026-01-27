@@ -9,30 +9,19 @@
       ]"
       :style="scrollStyle"
     >
-      <!-- 增强的指示器背景光晕 -->
+      <!-- 优化的背景滑块 -->
       <div
-        class="pointer-events-none absolute inset-y-1 left-0 right-0 overflow-hidden rounded-xl"
-      >
-        <!-- 主光晕层 -->
-        <div
-          ref="indicatorRef"
-          class="absolute top-0 bottom-0 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 blur-[2px]"
-          style="width: 32px; transform: translateX(0px);"
-        ></div>
-        <!-- 内层光晕增强 -->
-        <div
-          ref="glowRef"
-          class="absolute top-1 bottom-1 rounded-lg bg-emerald-500/5 dark:bg-emerald-400/5 blur-[1px]"
-          style="width: 28px; transform: translateX(0px);"
-        ></div>
-      </div>
+        ref="indicatorRef"
+        class="absolute top-1.5 bottom-1.5 rounded-lg bg-emerald-500 shadow-sm"
+        style="width: 0; transform: translateX(0); opacity: 0;"
+      ></div>
 
       <!-- Tabs -->
       <RadioGroup
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
         aria-label="分类筛选"
-        class="flex items-center gap-1 sm:gap-2"
+        class="flex items-center gap-1 sm:gap-2 relative z-10"
       >
         <RadioGroupOption
           v-for="(cat, idx) in ['all', ...categories]"
@@ -43,14 +32,12 @@
         >
           <div
             ref="tabRefs"
-            class="relative px-4 py-2 rounded-lg font-bold whitespace-nowrap cursor-pointer text-center select-none focus:outline-none transition-all duration-200"
+            class="relative px-4 py-2 rounded-lg font-bold whitespace-nowrap cursor-pointer text-center select-none focus:outline-none transition-colors duration-300"
             :class="[
               checked
-                ? 'text-white bg-emerald-500 shadow-sm z-10'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700',
+                ? 'text-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-700/50',
             ]"
-            @mouseenter="!checked && handleTabHover($event, true)"
-            @mouseleave="!checked && handleTabHover($event, false)"
           >
             <BlurFade
               v-if="showAnimationLocal"
@@ -177,7 +164,6 @@ const activeTabLeft = ref(0)
 
 // GSAP动画相关
 const indicatorRef = ref<HTMLElement | null>(null)
-const glowRef = ref<HTMLElement | null>(null)
 let currentAnimations: (gsap.core.Tween | gsap.core.Timeline)[] = []
 let isAnimating = ref(false)
 
@@ -240,16 +226,11 @@ const scrollBy = (dir: number) => {
 // 使用GSAP动画更新指示器位置
 const updateIndicatorWithAnimation = (activeTab: HTMLElement, isInitial = false) => {
   const indicator = indicatorRef.value
-  const glow = glowRef.value
   
-  if (!indicator || !glow) return
+  if (!indicator) return
   
   const newWidth = activeTab.offsetWidth
   const newLeft = activeTab.offsetLeft
-  const paddingWidth = Math.max(newWidth + indicatorPaddingLocal.value * 2, 36)
-  const glowWidth = Math.max(newWidth + indicatorPaddingLocal.value, 32)
-  const paddingLeft = newLeft - indicatorPaddingLocal.value
-  const glowLeft = newLeft - indicatorPaddingLocal.value / 2
   
   // 清理之前的动画
   clearAnimations()
@@ -257,41 +238,22 @@ const updateIndicatorWithAnimation = (activeTab: HTMLElement, isInitial = false)
   if (isInitial) {
     // 初始化时直接设置位置，不使用动画
     gsap.set(indicator, {
-      width: paddingWidth,
-      x: paddingLeft
-    })
-    gsap.set(glow, {
-      width: glowWidth,
-      x: glowLeft
+      width: newWidth,
+      x: newLeft,
+      opacity: 1
     })
   } else {
-    // 计算移动距离
-    const currentX = gsap.getProperty(indicator, 'x') as number
-    const distance = Math.abs(paddingLeft - currentX)
-    
-    // 统一使用简单流畅的动画，不分阶段
-    const duration = distance > 150 ? 0.45 : 0.55
-    const ease = distance > 150 ? 'power2.inOut' : 'back.out(1.6)'
-    
+    // 统一使用简单流畅的动画
     // 创建简单的同步动画
     const timeline = gsap.timeline()
     
-    // 指示器和光晕同时动画，保持同步
     timeline.to(indicator, {
-      width: paddingWidth,
-      x: paddingLeft,
-      duration: duration,
-      ease: ease
-    }, 0)
-    
-    timeline.to(glow, {
-      width: glowWidth,
-      x: glowLeft,
-      duration: duration,
-      ease: ease
-    }, 0)
-    
-    // 移除指示器的 scale 脉冲，避免对父级布局/背景造成干扰
+      width: newWidth,
+      x: newLeft,
+      opacity: 1,
+      duration: 0.4,
+      ease: 'power3.out'
+    })
     
     currentAnimations.push(timeline)
   }
@@ -299,68 +261,6 @@ const updateIndicatorWithAnimation = (activeTab: HTMLElement, isInitial = false)
   // 更新状态
   activeTabWidth.value = newWidth
   activeTabLeft.value = newLeft
-}
-
-// 为选中的tab添加额外的动画效果
-const animateTabSelection = (tabElement: HTMLElement) => {
-  // 清理之前的tab动画
-  gsap.killTweensOf(tabElement)
-  
-  // 使用统一的简单动画
-  const tabTimeline = gsap.timeline()
-  
-  // 简单的缩放动画
-  tabTimeline.to(tabElement, {
-    scale: 1.05,
-    duration: 0.3,
-    ease: 'back.out(1.7)'
-  })
-  
-  currentAnimations.push(tabTimeline)
-}
-
-// 处理tab悬停动画
-const handleTabHover = (event: Event, isEntering: boolean) => {
-  const tabElement = event.target as HTMLElement
-  
-  // 检查是否是当前选中的tab，如果是则不应用悬停效果
-  const currentIndex = ['all', ...props.categories].indexOf(props.modelValue)
-  const hoverIndex = tabRefs.value.indexOf(tabElement)
-  
-  if (hoverIndex === currentIndex) {
-    // 确保选中态不被悬停 inline 样式覆盖
-    gsap.killTweensOf(tabElement)
-    gsap.set(tabElement, { clearProps: 'backgroundColor,boxShadow', scale: 1 })
-    return
-  }
-  
-  // 清理之前的悬停动画
-  gsap.killTweensOf(tabElement)
-  
-  if (isEntering) {
-    // 检测深色模式
-    const isDark = document.documentElement.classList.contains('dark')
-    const hoverBg = isDark ? 'rgba(55, 65, 81, 0.5)' : 'rgba(255, 255, 255, 0.4)'
-    const hoverShadow = isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.08)'
-    
-    // 悬停进入动画 - 使用更轻微的效果
-    gsap.to(tabElement, {
-      scale: 1.02,
-      backgroundColor: hoverBg,
-      boxShadow: hoverShadow,
-      duration: 0.2,
-      ease: 'power2.out'
-    })
-  } else {
-    // 悬停离开动画 - 确保完全清除背景色
-    gsap.to(tabElement, {
-      scale: 1,
-      backgroundColor: 'transparent',
-      boxShadow: 'none',
-      duration: 0.2,
-      ease: 'power2.out'
-    })
-  }
 }
 
 watch(
@@ -378,34 +278,14 @@ watch(
         clearAnimations()
       }
       
-      // 清理所有 tab 的内联样式，避免覆盖类样式（如 bg-primary）
-      tabRefs.value.forEach((tab, index) => {
-        if (!tab) return
-        gsap.killTweensOf(tab)
-        if (index === activeIndex) {
-          // 清除悬停遗留的 inline 背景/阴影，确保选中态类样式生效
-          gsap.set(tab, { clearProps: 'backgroundColor,boxShadow' })
-          gsap.set(tab, { scale: 1 })
-        } else {
-          gsap.set(tab, {
-            scale: 1,
-            backgroundColor: 'transparent',
-            boxShadow: 'none'
-          })
-        }
-      })
-      
       if (activeTab) {
         isAnimating.value = true
         
         // 使用GSAP动画更新指示器
         updateIndicatorWithAnimation(activeTab, false)
         
-        // 为选中的tab添加动画效果
-        animateTabSelection(activeTab)
-        
         // 动画完成后重置状态
-        gsap.delayedCall(0.7, () => {
+        gsap.delayedCall(0.4, () => {
           isAnimating.value = false
         })
       }
@@ -520,14 +400,8 @@ onBeforeUnmount(() => {
 }
 
 /* GSAP动画优化 */
-[ref="tabRefs"] {
-  will-change: transform, background-color, box-shadow;
-}
-
-[ref="indicatorRef"],
-[ref="glowRef"] {
+[ref="indicatorRef"] {
   will-change: transform, width;
 }
 
-/* 移除CSS悬停效果，完全使用GSAP控制 */
 </style>
