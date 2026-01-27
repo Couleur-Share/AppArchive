@@ -58,10 +58,10 @@
 }
 
 .dark:root {
-	/* 主题主色（暗色模式），略微提高亮度以增强对比 */
-	--theme-primary-500: #60a5fa; /* blue-400 近似 */
-	--theme-primary-600: #3b82f6; /* blue-500 */
-	--theme-primary-400: #93c5fd; /* blue-300 */
+	/* 主题主色（暗色模式），回归 Nuxt 绿 */
+	--theme-primary-500: #00dc82;
+	--theme-primary-600: #00bb6e;
+	--theme-primary-400: #34e49a;
 
 	--scrollbar-track: rgba(
 		255,

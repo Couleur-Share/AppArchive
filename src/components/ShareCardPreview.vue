@@ -289,7 +289,7 @@ const showWebsite = ref(!!props.defaultShowWebsite)
 const showSystems = ref(!!props.defaultShowSystems)
 
 const themeClass = computed(() => {
-  if (theme.value === 'dark') return 'bg-[#0f172a] text-white'
+  if (theme.value === 'dark') return 'bg-[#020420] text-white'
   if (theme.value === 'gradient') return 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white'
   return 'bg-white text-gray-900'
 })

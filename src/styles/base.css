@@ -31,11 +31,11 @@
 	--gradient-light-accent2: rgba(167, 139, 250, 0.08);
 	--gradient-light-accent3: rgba(134, 239, 172, 0.06);
 
-	--gradient-dark-start: #0f172a;
-	--gradient-dark-end: #1e293b;
-	--gradient-dark-accent1: rgba(59, 130, 246, 0.15);
-	--gradient-dark-accent2: rgba(139, 92, 246, 0.1);
-	--gradient-dark-accent3: rgba(16, 185, 129, 0.05);
+	--gradient-dark-start: #020420; /* Nuxt Dark Background */
+	--gradient-dark-end: #0f172a;
+	--gradient-dark-accent1: rgba(0, 220, 130, 0.15); /* Nuxt Green */
+	--gradient-dark-accent2: rgba(56, 189, 248, 0.1); /* Sky Blue */
+	--gradient-dark-accent3: rgba(0, 220, 130, 0.05); /* Nuxt Green */
 }
 
 :root.dark {
