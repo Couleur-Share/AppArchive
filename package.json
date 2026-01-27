@@ -8,7 +8,9 @@
 		"build": "vite build",
 		"server": "node server/index.js",
 		"start": "node server/index.js",
-		"deploy": "node scripts/prepare.js",
+		"deploy": "npm install --omit=dev && echo '✅ 依赖安装完成，请运行 npm start 启动服务'",
+		"deploy:local": "node scripts/deploy-local.js",
+		"full-rebuild": "node scripts/full-rebuild.js",
 		"lint": "biome check .",
 		"format": "biome format . --write"
 	},
