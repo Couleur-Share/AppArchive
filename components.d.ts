@@ -35,6 +35,7 @@ declare module 'vue' {
     IUilWindows: typeof import('~icons/uil/windows')['default']
     LoadingOverlay: typeof import('./src/components/layout/LoadingOverlay.vue')['default']
     ProsConsEditor: typeof import('./src/components/ProsConsEditor.vue')['default']
+    RelatedArticlesEditor: typeof import('./src/components/RelatedArticlesEditor.vue')['default']
     SearchBar: typeof import('./src/components/common/SearchBar.vue')['default']
     SelectedComparisonList: typeof import('./src/components/comparison/SelectedComparisonList.vue')['default']
     SettingsDialog: typeof import('./src/components/SettingsDialog.vue')['default']

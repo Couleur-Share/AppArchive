@@ -53,6 +53,20 @@ export type SoftwareCategory =
 	| "工具"
 	| "编程";
 
+// 关联文章类型
+export type RelatedArticleType = "document" | "tips" | "faq" | "changelog" | "other";
+
+// 关联文章记录
+export interface RelatedArticle {
+	id: string;
+	title: string;
+	url: string;
+	type: RelatedArticleType;
+	description?: string;
+	sortOrder: number;
+	createdAt: string;
+}
+
 // 软件接口
 export interface Software extends BaseEntity {
 	name: string;
@@ -71,6 +85,8 @@ export interface Software extends BaseEntity {
 	download_links?: DownloadLink[];
 	// 私密信息（后端仅返回元信息，不含明文）
 	secrets?: SecretItem[];
+	// 关联文章列表
+	related_articles?: RelatedArticle[];
 }
 
 // 列表接口的轻量字段（详情字段为可选）
@@ -89,6 +105,7 @@ export interface SoftwareListItem extends BaseEntity {
 	cons?: string[];
 	download_links?: DownloadLink[];
 	secrets?: SecretItem[];
+	related_articles?: RelatedArticle[];
 }
 
 // 软件比较组

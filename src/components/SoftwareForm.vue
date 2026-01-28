@@ -297,6 +297,15 @@
                  </div>
                  <p v-if="errors.website" class="text-xs text-red-500">{{ errors.website }}</p>
                </div>
+
+               <!-- 关联文章 -->
+               <div class="pt-4">
+                 <RelatedArticlesEditor
+                   v-model="formData.related_articles"
+                   :disabled="isSubmitting"
+                   @update:modelValue="onRelatedArticlesUpdate"
+                 />
+               </div>
             </div>
           </section>
 
@@ -423,6 +432,7 @@ import {
 import { mergeUnique, normalizeList } from '@/utils/text'
 import {
   type DownloadLink,
+  type RelatedArticle,
   type SecretItem,
   type Software,
   type SystemType,
@@ -431,6 +441,7 @@ import { AppError, ErrorCode } from '../types/error'
 import { errorHandler } from '../utils/error-handler'
 import logger from '../utils/logger'
 import AdvancedSection from './AdvancedSection.vue'
+import RelatedArticlesEditor from './RelatedArticlesEditor.vue'
 import AIOverlay from './AIOverlay.vue'
 import BlurFade from './animations/BlurFade.vue'
 import BaseButton from './common/BaseButton.vue'
@@ -465,6 +476,7 @@ const defaultFormData: Partial<Software> = {
   cons: [] as string[],
   download_links: [] as DownloadLink[],
   secrets: [] as SecretItem[],
+  related_articles: [] as RelatedArticle[],
 }
 
 // 使用 ref 而不是 reactive 以配合 useManualRefHistory
@@ -488,6 +500,7 @@ watch(
         cons: newSoftware.cons || [],
         download_links: newSoftware.download_links || [],
         secrets: newSoftware.secrets || [],
+        related_articles: newSoftware.related_articles || [],
       }
     } else {
       formData.value = { ...defaultFormData }
@@ -544,6 +557,12 @@ const downloadLinksDirty = ref(false)
 const onDownloadLinksUpdate = (v: DownloadLink[]) => {
   formData.value.download_links = v
   downloadLinksDirty.value = true
+}
+
+const relatedArticlesDirty = ref(false)
+const onRelatedArticlesUpdate = (v: RelatedArticle[]) => {
+  formData.value.related_articles = v
+  relatedArticlesDirty.value = true
 }
 
 // 滚动锁定
@@ -624,6 +643,7 @@ const handleSubmit = async () => {
 
     if (!secretsDirty.value) delete (payload as any).secrets
     if (!downloadLinksDirty.value) delete (payload as any).download_links
+    if (!relatedArticlesDirty.value) delete (payload as any).related_articles
 
     emit('submit', payload)
     // Clear draft if any (logic moved to parent or unnecessary with history?)

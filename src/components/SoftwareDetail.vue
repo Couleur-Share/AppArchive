@@ -299,6 +299,46 @@
                     </div>
                 </div>
 
+                <!-- 相关资源页 -->
+                <div v-else-if="activeTab === 'articles'" class="space-y-8 max-w-4xl mx-auto">
+                    <div v-if="groupedArticles.length > 0" class="space-y-8">
+                        <div v-for="group in groupedArticles" :key="group.label" class="space-y-4">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 px-1">
+                                <component :is="group.icon" class="w-5 h-5 text-gray-400" />
+                                {{ group.label }}
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <a
+                                    v-for="article in group.items"
+                                    :key="article.id"
+                                    :href="article.url"
+                                    target="_blank"
+                                    class="group p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
+                                >
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="space-y-1.5">
+                                            <div class="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                                                {{ article.title }}
+                                            </div>
+                                            <div v-if="article.description" class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                                                {{ article.description }}
+                                            </div>
+                                        </div>
+                                        <ExternalLink class="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0 transition-colors" />
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 mb-6 rounded-full bg-gray-50 dark:bg-gray-900/20 flex items-center justify-center">
+                            <Link class="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">暂无相关资源</h3>
+                        <p class="text-gray-500 max-w-md">该软件暂未配置相关的帮助文档或资源链接。</p>
+                    </div>
+                </div>
+
                 <!-- 对比分析页 -->
                 <div v-else-if="activeTab === 'comparison'" class="max-w-6xl mx-auto">
                    <!-- 保留原有对比逻辑，优化样式 -->
@@ -512,7 +552,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { 
     CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, 
     FileSearch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
-    FolderOpen, Monitor, ChevronDown, Tag
+    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
@@ -592,13 +632,14 @@ const emit = defineEmits<{
 }>()
 
 // Tabs
-type TabId = 'overview' | 'comparison' | 'details' | 'private'
+type TabId = 'overview' | 'comparison' | 'details' | 'articles' | 'private'
 const activeTab = ref<TabId>('overview')
 
 const tabs = computed(() => {
   const baseTabs = [
     { id: 'overview' as TabId, label: '概览' },
     { id: 'details' as TabId, label: '详细信息' },
+    { id: 'articles' as TabId, label: '相关资源' },
     { id: 'comparison' as TabId, label: '对比分析' }
   ]
   if (isSignedIn.value) {
@@ -804,6 +845,30 @@ const handleComparisonManagerClose = async (isOpen: boolean) => {
 const openWebsite = () => { if (software.value.website) window.open(software.value.website, '_blank') }
 const showToast = ref(false)
 const hasDownloadLinks = computed(() => Array.isArray(software.value.download_links) && software.value.download_links.length > 0)
+
+// 关联文章分组
+const groupedArticles = computed(() => {
+  const articles = [...(software.value.related_articles || [])].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  const groups: Record<string, { label: string; icon: any; items: typeof articles }> = {
+    document: { label: '使用文档', icon: FileText, items: [] },
+    tips: { label: '使用技巧', icon: Lightbulb, items: [] },
+    faq: { label: '常见问题', icon: HelpCircle, items: [] },
+    changelog: { label: '更新日志', icon: History, items: [] },
+    other: { label: '其他资源', icon: Link, items: [] }
+  }
+  
+  articles.forEach(article => {
+    const type = article.type || 'other'
+    if (groups[type]) {
+      groups[type].items.push(article)
+    } else {
+      groups['other'].items.push(article)
+    }
+  })
+  
+  return Object.values(groups).filter(g => g.items.length > 0)
+})
+
 const getProviderLabel = (provider: DownloadLink['provider']) => {
     const map: Record<string, string> = { baidu: '百度网盘', quark: '夸克网盘', lanzou: '蓝奏云', aliyun: '阿里云盘', '115': '115网盘', magnet: '磁力链接', ed2k: 'ED2K', official: '官方直链' }
     return map[provider] || '其他'

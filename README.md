@@ -162,6 +162,16 @@ interface Software {
   website: string
   pros: string[]
   cons: string[]
+  related_articles: RelatedArticle[]
+}
+
+interface RelatedArticle {
+  id: string
+  title: string
+  url: string
+  type: 'document' | 'tips' | 'faq' | 'changelog' | 'other'
+  description?: string
+  sortOrder: number
 }
 ```
 

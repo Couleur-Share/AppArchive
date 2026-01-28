@@ -95,10 +95,10 @@ async function verifySchema() {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'softwares' 
-        AND column_name IN ('download_links', 'secrets')
+        AND column_name IN ('download_links', 'secrets', 'related_articles')
     `);
                 const existing = new Set(rows.map((r) => r.column_name));
-                const missing = ["download_links", "secrets"].filter(
+                const missing = ["download_links", "secrets", "related_articles"].filter(
                         (c) => !existing.has(c),
                 );
                 if (missing.length) {
@@ -754,6 +754,7 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
                         cons,
                         download_links,
                         secrets,
+                        related_articles,
                 } = req.body;
 
                 if (!name || !category) {
@@ -781,8 +782,8 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
                 const finalIcon = icon ? await renameCosIconToSoftwareName(name, icon) : "";
 
                 const query = `
-      INSERT INTO softwares (name, category, description, icon, license, systems, website, pros, cons, download_links, secrets)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb)
+      INSERT INTO softwares (name, category, description, icon, license, systems, website, pros, cons, download_links, secrets, related_articles)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::jsonb)
       RETURNING *
     `;
                 const values = [
@@ -797,6 +798,7 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
                         Array.isArray(cons) ? cons : [],
                         JSON.stringify(Array.isArray(download_links) ? download_links : []),
                         JSON.stringify(normalizeSecretsForInsert(secrets)),
+                        JSON.stringify(Array.isArray(related_articles) ? related_articles : []),
                 ];
 
                 const result = await pool.query(query, values);
@@ -1007,6 +1009,9 @@ app.put(
                                         } else if (field === "secrets") {
                                                 values.push(JSON.stringify(value));
                                                 return `${field} = $${index + 2}::jsonb`;
+                                        } else if (field === "related_articles") {
+                                                values.push(JSON.stringify(Array.isArray(value) ? value : []));
+                                                return `${field} = $${index + 2}::jsonb`;
                                         }
                                         values.push(value);
                                         return `${field} = $${index + 2}`;
@@ -1138,6 +1143,23 @@ app.delete(
                 }
         },
 );
+
+// 获取软件的关联文章
+app.get("/api/software/:id/articles", async (req, res) => {
+        try {
+                const { id } = req.params;
+                const result = await pool.query(
+                        "SELECT related_articles FROM softwares WHERE id = $1",
+                        [id],
+                );
+                if (result.rows.length === 0) {
+                        return res.status(404).json({ error: "软件不存在" });
+                }
+                res.json({ success: true, data: result.rows[0].related_articles || [] });
+        } catch (error) {
+                handleDatabaseError(error, res);
+        }
+});
 
 // 按分类获取软件
 app.get("/api/software/category/:category", async (req, res) => {

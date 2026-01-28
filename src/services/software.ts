@@ -105,6 +105,9 @@ export const softwareService = {
 				secrets: Array.isArray((data as any).secrets)
 					? (data as any).secrets
 					: undefined,
+				related_articles: Array.isArray(data.related_articles)
+					? data.related_articles
+					: undefined,
 			};
 
 			if (!softwareData.name || !softwareData.category) {
@@ -143,6 +146,9 @@ export const softwareService = {
 					: undefined,
 				secrets: Array.isArray((data as any).secrets)
 					? (data as any).secrets
+					: undefined,
+				related_articles: Array.isArray(data.related_articles)
+					? data.related_articles
 					: undefined,
 			};
 
