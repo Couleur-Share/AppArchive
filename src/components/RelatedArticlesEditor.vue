@@ -96,12 +96,17 @@ const emit = defineEmits<{
 }>()
 
 const localArticles = ref<RelatedArticle[]>(Array.isArray(props.modelValue) ? [...props.modelValue] : [])
+const syncing = ref(false)
 
-watch(() => props.modelValue, (v) => {
+watch(() => props.modelValue, async (v) => {
+  syncing.value = true
   localArticles.value = Array.isArray(v) ? [...v] : []
+  await nextTick()
+  syncing.value = false
 }, { deep: true })
 
 watch(localArticles, (v) => {
+  if (syncing.value) return
   emit('update:modelValue', [...v])
 }, { deep: true })
 

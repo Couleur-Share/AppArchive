@@ -347,7 +347,7 @@
                   :disabled="isSubmitting"
                   @update:download-links="onDownloadLinksUpdate"
                   @update:secrets="onSecretsUpdate"
-                  @validate="validateAll()"
+                  @validate="handleAdvancedValidate"
                 />
              </div>
           </div>
@@ -527,17 +527,20 @@ const { errors, validateField, validateAll, isValid } = useSoftwareValidation(
   props.existingNames
 )
 
-// 当 formData 变化时，重新校验已报错的字段
-watch(formData, (newVal) => {
-   // 如果字段已经有错误，修改时尝试清除错误
-   Object.keys(errors.value).forEach(key => {
-      // 简单处理：只要改了就重新校验该字段? 
-      // 或者不做实时清除，等待 blur。
-      // 这里为了体验，当用户修改时，如果该字段有错误，可以尝试重新校验。
-      if (key === 'name') validateField('name')
-      // 其他字段暂不实时触发，以免过于频繁
-   })
-}, { deep: true })
+// 当 formData 变化时，针对性地重新校验已报错的字段
+watch(() => formData.value.name, () => {
+  if (errors.value.name) validateField('name')
+})
+
+// 对全量校验进行防抖处理，避免频繁触发（如在 RelatedArticlesEditor 快速输入时）
+const debouncedValidateAll = useDebounceFn(() => {
+  validateAll()
+}, 300)
+
+// 处理高级选项部分的校验请求
+const handleAdvancedValidate = () => {
+  debouncedValidateAll()
+}
 
 
 // ====== 辅助状态 ======
