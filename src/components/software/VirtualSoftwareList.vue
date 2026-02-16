@@ -50,14 +50,23 @@
         >
           <div class="flex flex-col flex-grow">
              <!-- 顶部区域 -->
-             <div class="flex items-start justify-between pt-2">
-               <div>
+             <div class="flex items-start justify-between pt-2 gap-3">
+               <div class="min-w-0">
                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">
                    {{ item.name }}
                  </h3>
-                 <span class="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                   {{ item.category || '未分类' }}
-                 </span>
+                 <div class="mt-2 flex items-center gap-2">
+                   <span class="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                     {{ item.category || '未分类' }}
+                   </span>
+                   <span
+                     v-if="isNewItem(item)"
+                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-fuchsia-100/80 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-200 border border-fuchsia-200/80 dark:border-fuchsia-700/60"
+                   >
+                     <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                     New
+                   </span>
+                 </div>
                </div>
                <Menu as="div" class="relative">
                  <MenuButton @click.stop class="p-1.5 rounded-lg hover:bg-gray-100/60 dark:hover:bg-gray-700/60 transition-all duration-200 opacity-0 group-hover:opacity-100 text-gray-500 dark:text-gray-400 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
@@ -146,12 +155,19 @@
 
           <!-- 2. 中间：信息区 -->
           <div class="flex-1 min-w-0 flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-1 min-w-0">
               <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
                 {{ item.name }}
               </h3>
               <span class="text-xs px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600/30">
                 {{ item.category || '未分类' }}
+              </span>
+              <span
+                v-if="isNewItem(item)"
+                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-fuchsia-100/80 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-200 border border-fuchsia-200/80 dark:border-fuchsia-700/60"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                New
               </span>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 w-full pr-4">
@@ -216,6 +232,7 @@ import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
 import { isSignedIn } from '../../lib/clerk'
 import { getIconUrl } from '../../services/localIconCache'
 import type { SoftwareListItem } from '../../types'
+import { computed } from 'vue'
 import SystemIcon from '../SystemIcon.vue'
 
 const props = defineProps<{
@@ -224,6 +241,7 @@ const props = defineProps<{
   hasComparisons: Record<number, boolean>
   viewMode: 'grid' | 'list'
   deferIcons?: boolean
+  newSince?: string
 }>()
 
 // 使用可见的骨架占位图标（灰色圆形），避免透明导致视觉空白
@@ -244,6 +262,20 @@ const handleItemClick = (item: SoftwareListItem, _view: 'grid' | 'list') => {
 const getDescription = (description?: string) => description || '暂无描述'
 
 const getLicenseLabel = (license?: string) => license || '未知'
+
+const newSinceTimestamp = computed(() => {
+  if (!props.newSince) return Number.NaN
+  const parsed = Date.parse(props.newSince)
+  return Number.isNaN(parsed) ? Number.NaN : parsed
+})
+
+const isNewItem = (item: SoftwareListItem) => {
+  if (!Number.isFinite(newSinceTimestamp.value)) return false
+  if (!item.created_at) return false
+  const createdAt = Date.parse(item.created_at)
+  if (Number.isNaN(createdAt)) return false
+  return createdAt >= newSinceTimestamp.value
+}
 
 const getLicenseClass = (license?: string) => {
   switch (license) {

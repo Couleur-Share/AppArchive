@@ -34,6 +34,7 @@ declare module 'vue' {
     IUilAndroid: typeof import('~icons/uil/android')['default']
     IUilWindows: typeof import('~icons/uil/windows')['default']
     LoadingOverlay: typeof import('./src/components/layout/LoadingOverlay.vue')['default']
+    NewArrivalRadar: typeof import('./src/components/common/NewArrivalRadar.vue')['default']
     ProsConsEditor: typeof import('./src/components/ProsConsEditor.vue')['default']
     RelatedArticlesEditor: typeof import('./src/components/RelatedArticlesEditor.vue')['default']
     SearchBar: typeof import('./src/components/common/SearchBar.vue')['default']

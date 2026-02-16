@@ -26,6 +26,21 @@
 
           <!-- 布局切换按钮 -->
           <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+            <button
+              v-if="shouldHideNewArrivalRadar"
+              @click="handleExpandNewArrivalRadar"
+              class="inline-flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center
+                     bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
+                     border border-gray-200 dark:border-gray-800
+                     text-gray-600 dark:text-gray-300
+                     shadow-sm hover:shadow-md
+                     transition-all duration-200"
+              title="打开新增筛选"
+              aria-label="打开新增筛选"
+            >
+              <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
             <!-- 移动端隐藏切换按钮，默认使用列表模式 -->
             <button
               @click="toggleViewMode"
@@ -57,6 +72,20 @@
           </div>
         </div>
 
+        <Transition name="new-arrival-panel">
+          <div v-if="!shouldHideNewArrivalRadar" class="mb-3 sm:mb-8">
+            <NewArrivalRadar
+              :mode="newArrivalMode"
+              :only-new="showNewOnly"
+              :new-count="newArrivalsCount"
+              :can-collapse="canCollapseNewArrivalRadar"
+              @update:mode="handleNewArrivalModeChange"
+              @update:only-new="handleNewOnlyChange"
+              @collapse="handleCollapseNewArrivalRadar"
+            />
+          </div>
+        </Transition>
+
         <SkeletonLoader
           v-if="shouldShowSkeleton"
           :count="skeletonCount"
@@ -70,6 +99,7 @@
           :has-comparisons="softwareComparisons"
           :view-mode="viewMode"
           :defer-icons="isIconsDeferred"
+          :new-since="activeNewSince"
           @edit="editSoftware"
           @delete="deleteSoftware"
           @click="showSoftwareDetail"
@@ -211,10 +241,14 @@
 </template>
 
 <script setup lang="ts">
-import { LayoutGrid, List, Plus } from 'lucide-vue-next'
+import { LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BlurFade from './components/animations/BlurFade.vue'
+import CategoryFilter from './components/common/CategoryFilter.vue'
+import NewArrivalRadar from './components/common/NewArrivalRadar.vue'
+import AppHeader from './components/layout/AppHeader.vue'
 import SkeletonLoader from './components/SkeletonLoader.vue'
+import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
 import { isSignedIn, signOut, user } from './lib/clerk'
 import { comparisonService } from './services/comparison'
 import { initImageCache } from './services/imageCache'
@@ -222,9 +256,6 @@ import { softwareService } from './services/software'
 import { type LicenseType, type Software, type SoftwareListItem, type SystemType } from './types'
 import logger from './utils/logger'
 import { devPerformanceTips, performanceChecker } from './utils/performance'
-
-import AppHeader from './components/layout/AppHeader.vue'
-import CategoryFilter from './components/common/CategoryFilter.vue'
 
 // 异步导入组件
 const AppFooter = defineAsyncComponent(() => import('./components/layout/AppFooter.vue'))
@@ -262,7 +293,6 @@ const SoftwareGrid = defineAsyncComponent({
 void requestSoftwareGridModule()
 
 const SoftwareForm = defineAsyncComponent(() => import('./components/SoftwareForm.vue'))
-import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
 
 const softwareDetailModuleState = {
   promise: null as Promise<typeof import('./components/SoftwareDetail.vue')> | null,
@@ -317,6 +347,10 @@ const categories = [
   '编程',
 ]
 
+type NewArrivalMode = '7d' | '30d'
+
+const NEW_ARRIVAL_SETTINGS_KEY = 'new-arrival-settings-v1'
+
 
 // 状态管理
 // const softwares = ref<Software[]>([]) // 移除全量数据
@@ -344,6 +378,13 @@ const isSubmitting = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const gridColumns = ref(4)
 const isIconsDeferred = ref(true)
+const newArrivalMode = ref<NewArrivalMode>('7d')
+const showNewOnly = ref(false)
+const newArrivalsCount = ref(0)
+const isNewArrivalPanelExpanded = ref(false)
+const isMobileViewport = ref(
+  typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
+)
 
 const shouldShowSkeleton = computed(() => {
   // 1. 如果组件还没加载完，必须显示骨架（避免空白）
@@ -354,6 +395,24 @@ const shouldShowSkeleton = computed(() => {
   
   return false
 })
+
+const activeNewSince = computed(() => {
+  const days = newArrivalMode.value === '7d' ? 7 : 30
+
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+})
+
+const shouldHideNewArrivalRadar = computed(() =>
+  !isMobileViewport.value &&
+  !showNewOnly.value &&
+  !isNewArrivalPanelExpanded.value
+)
+
+const canCollapseNewArrivalRadar = computed(() =>
+  !isMobileViewport.value &&
+  !showNewOnly.value &&
+  isNewArrivalPanelExpanded.value
+)
 
 // Tabs 图标映射（可按需自定义）
 const categoryIcons: Record<string, string> = {
@@ -397,6 +456,7 @@ const getGridColumnsByWidth = (width: number) => {
 
 const updateGridColumns = () => {
   gridColumns.value = getGridColumnsByWidth(window.innerWidth)
+  isMobileViewport.value = window.matchMedia('(max-width: 640px)').matches
 }
 
 // 根据屏幕宽度自动计算骨架数量（固定 3 行）
@@ -415,6 +475,72 @@ const scheduleIconLoad = () => {
       isIconsDeferred.value = false
     })
   })
+}
+
+const persistNewArrivalSettings = () => {
+  localStorage.setItem(
+    NEW_ARRIVAL_SETTINGS_KEY,
+    JSON.stringify({
+      mode: newArrivalMode.value,
+      onlyNew: showNewOnly.value,
+    })
+  )
+}
+
+const loadNewArrivalSettings = () => {
+  const rawSettings = localStorage.getItem(NEW_ARRIVAL_SETTINGS_KEY)
+  if (!rawSettings) return
+
+  try {
+    const parsed = JSON.parse(rawSettings)
+    if (parsed?.mode === '7d' || parsed?.mode === '30d') {
+      newArrivalMode.value = parsed.mode
+    } else if (typeof parsed?.mode === 'string') {
+      newArrivalMode.value = '7d'
+    }
+    if (typeof parsed?.onlyNew === 'boolean') {
+      showNewOnly.value = parsed.onlyNew
+    }
+  } catch (error) {
+    logger.debug('读取新增雷达设置失败:', error)
+  }
+}
+
+const fetchNewArrivalsCount = async () => {
+  try {
+    const result = await softwareService.getSoftwareList({
+      page: 1,
+      limit: 1,
+      sortField: 'created_at',
+      sortOrder: 'desc',
+      addedSince: activeNewSince.value,
+    })
+    newArrivalsCount.value = result.pagination.total
+  } catch (error) {
+    newArrivalsCount.value = 0
+    logger.debug('获取新增数量失败:', error)
+  }
+}
+
+const handleNewArrivalModeChange = (mode: NewArrivalMode) => {
+  newArrivalMode.value = mode
+}
+
+const handleNewOnlyChange = (value: boolean) => {
+  showNewOnly.value = value
+  if (value) {
+    isNewArrivalPanelExpanded.value = true
+  } else if (newArrivalsCount.value === 0) {
+    isNewArrivalPanelExpanded.value = false
+  }
+}
+
+const handleExpandNewArrivalRadar = () => {
+  isNewArrivalPanelExpanded.value = true
+}
+
+const handleCollapseNewArrivalRadar = () => {
+  isNewArrivalPanelExpanded.value = false
 }
 
 const loadCachedSoftwares = (options: { allowStale?: boolean } = {}) => {
@@ -508,6 +634,29 @@ watch(filterSystems, () => {
 watch([sortBy, sortOrder], () => {
   currentPage.value = 0
   fetchSoftwares({ showLoading: true })
+})
+
+watch(newArrivalMode, () => {
+  void fetchNewArrivalsCount()
+  if (showNewOnly.value) {
+    currentPage.value = 0
+    fetchSoftwares({ showLoading: true })
+  }
+})
+
+watch(showNewOnly, () => {
+  currentPage.value = 0
+  fetchSoftwares({ showLoading: true })
+})
+
+watch(newArrivalsCount, (count) => {
+  if (count > 0) {
+    isNewArrivalPanelExpanded.value = true
+  }
+})
+
+watch([newArrivalMode, showNewOnly], () => {
+  persistNewArrivalSettings()
 })
 
 // 移除 watch([paginatedBase, viewMode])
@@ -605,6 +754,7 @@ const handleFormSubmit = async (software: Partial<Software>) => {
 
     // 重新获取软件列表
     await fetchSoftwares()
+    void fetchNewArrivalsCount()
     
     // 关闭对话框
     closeDialog()
@@ -666,6 +816,7 @@ const confirmDelete = async () => {
         (s) => s.id !== softwareToDelete.value?.id
       )
       await fetchSoftwares()
+      void fetchNewArrivalsCount()
       showToast(`已删除 "${softwareToDelete.value.name}"`, 'success')
       showDeleteDialog.value = false
       softwareToDelete.value = null
@@ -713,6 +864,9 @@ onMounted(async () => {
   updateGridColumns()
   window.addEventListener('resize', updateGridColumns, { passive: true })
 
+  loadNewArrivalSettings()
+  void fetchNewArrivalsCount()
+
   // 读取设置
   const savedSettings = localStorage.getItem('app-settings')
   let hasViewModePreference = false
@@ -749,10 +903,11 @@ onMounted(async () => {
   // 有缓存时后台更新数据，无缓存则正常加载
   await fetchSoftwares({ showLoading: !hasCachedSoftwares })
   
-  // 通过环境变量控制是否启用性能检查，默认关闭
-  if (import.meta.env.VITE_ENABLE_PERF_CHECK === 'true') {
+  // 启动性能检查：开发环境默认开启，或者通过环境变量显式开启
+  const shouldEnablePerfCheck = import.meta.env.DEV && import.meta.env.VITE_ENABLE_PERF_CHECK !== 'false'
+  
+  if (shouldEnablePerfCheck || import.meta.env.VITE_ENABLE_PERF_CHECK === 'true') {
     setTimeout(() => {
-      logger.debug('🚀 启动性能检查...')
       devPerformanceTips.checkForCommonIssues()
       performanceChecker.runFullCheck()
     }, 3000)
@@ -771,7 +926,8 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
     category: activeCategory.value,
     systems: filterSystems.value,
     sortField: sortBy.value,
-    sortOrder: sortOrder.value
+    sortOrder: sortOrder.value,
+    addedSince: showNewOnly.value ? activeNewSince.value : undefined,
   }
   const cacheKey = JSON.stringify(params)
   let usedCache = false
@@ -826,7 +982,13 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
       })
       
       // 缓存第一页数据 (仅当没有筛选条件时)
-      if (currentPage.value === 0 && !searchTerm.value && activeCategory.value === 'all' && filterSystems.value.length === 0) {
+      if (
+        currentPage.value === 0 &&
+        !showNewOnly.value &&
+        !searchTerm.value &&
+        activeCategory.value === 'all' &&
+        filterSystems.value.length === 0
+      ) {
         localStorage.setItem(
           SOFTWARE_CACHE_KEY,
           JSON.stringify({ cachedAt: Date.now(), data: result.data, total: result.pagination.total })
@@ -857,6 +1019,7 @@ const handleRefresh = async () => {
     currentPage.value = 0 // 重置页码
   }
   await fetchSoftwares({ forceRefresh: true }) // 强制重新获取数据
+  void fetchNewArrivalsCount()
   showToast('刷新成功', 'success')
 }
 
@@ -1298,5 +1461,44 @@ input[type="number"] {
 /* 优化省略号的显示 */
 .ellipsis {
   @apply text-gray-400 dark:text-gray-600 font-medium select-none;
+}
+
+/* 新增雷达展开/收起过渡 */
+.new-arrival-panel-enter-active,
+.new-arrival-panel-leave-active {
+  transition:
+    max-height 260ms ease,
+    opacity 220ms ease,
+    transform 220ms ease;
+  overflow: hidden;
+}
+
+.new-arrival-panel-enter-from,
+.new-arrival-panel-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.new-arrival-panel-enter-to,
+.new-arrival-panel-leave-from {
+  max-height: 420px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-arrival-panel-enter-active,
+  .new-arrival-panel-leave-active {
+    transition: opacity 120ms ease;
+  }
+
+  .new-arrival-panel-enter-from,
+  .new-arrival-panel-leave-to,
+  .new-arrival-panel-enter-to,
+  .new-arrival-panel-leave-from {
+    max-height: none;
+    transform: none;
+  }
 }
 </style>

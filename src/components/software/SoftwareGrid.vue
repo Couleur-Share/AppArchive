@@ -5,6 +5,7 @@
     :has-comparisons="hasComparisons"
     :view-mode="viewMode"
     :defer-icons="deferIcons"
+    :new-since="newSince"
     @edit="$emit('edit', $event)"
     @delete="$emit('delete', $event)"
     @click="$emit('click', $event)"
@@ -22,6 +23,7 @@ defineProps<{
   hasComparisons: Record<number, boolean>
   viewMode: 'grid' | 'list'
   deferIcons?: boolean
+  newSince?: string
 }>()
 
 defineEmits<{

@@ -43,6 +43,7 @@ export const softwareService = {
 		systems?: string[];
 		sortField?: string;
 		sortOrder?: "asc" | "desc";
+		addedSince?: string;
 	} = {}) {
 		try {
 			logger.debug("开始从 API 获取数据...", params);
@@ -55,6 +56,7 @@ export const softwareService = {
 			if (params.systems && params.systems.length > 0) queryParams.append("systems", params.systems.join(","));
 			if (params.sortField) queryParams.append("sortField", params.sortField);
 			if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+			if (params.addedSince) queryParams.append("addedSince", params.addedSince);
 
 			const result = await apiRequest(`/software?${queryParams.toString()}`);
 

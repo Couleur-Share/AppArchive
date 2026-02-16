@@ -106,6 +106,7 @@ async function verifySchema() {
                                 `[SCHEMA] softwares 缺少列: ${missing.join(", ")}，请先执行迁移脚本 (npm run migrate:up)。`,
                         );
                 }
+
         } catch (error) {
                 console.error("[SCHEMA] 校验失败，请先执行迁移或检查数据库连接。", error);
         }
@@ -636,6 +637,7 @@ app.get("/api/software", async (req, res) => {
 			systems,
 			sortField = "created_at",
 			sortOrder = "desc",
+			addedSince,
 		} = req.query;
 
 		const offset = (Number(page) - 1) * Number(limit);
@@ -668,9 +670,19 @@ app.get("/api/software", async (req, res) => {
 			paramIndex++;
 		}
 
+		// 新增时间筛选
+		if (addedSince) {
+			const parsedSince = new Date(String(addedSince));
+			if (!Number.isNaN(parsedSince.getTime())) {
+				whereConditions.push(`created_at >= $${paramIndex}`);
+				params.push(parsedSince.toISOString());
+				paramIndex++;
+			}
+		}
+
 		const whereClause =
 			whereConditions.length > 0
-				? "WHERE " + whereConditions.join(" AND ")
+				? `WHERE ${whereConditions.join(" AND ")}`
 				: "";
 
 		// 排序字段白名单
