@@ -2,25 +2,16 @@
   <nav class="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-xl transition-all duration-300">
     <div class="container mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
       <!-- Logo部分 -->
-      <div class="flex items-center space-x-2 sm:space-x-4">
-        <div class="flex items-center">
-          <img 
-            src="/favicon-96x96.png"
-            alt="Logo" 
-            class="h-7 w-7 sm:h-8 sm:w-8 object-contain"
-            width="32"
-            height="32"
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-          />
-          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 sm:mx-3 hidden sm:block"></div>
-          <div class="ml-1.5 sm:ml-2 flex items-center gap-2">
-            <h1 class="text-base sm:text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              软件清单
-            </h1>
-          </div>
-        </div>
+      <div class="flex items-center">
+        <img 
+          src="/logo-header.svg"
+          alt="AppArchive Logo" 
+          class="h-10 w-auto sm:h-12 sm:w-auto max-w-[200px] sm:max-w-[280px] object-contain"
+          height="48"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
       </div>
 
       <!-- 右侧工具栏 -->

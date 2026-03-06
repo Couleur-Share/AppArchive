@@ -34,6 +34,20 @@
 └── package.json        # 项目配置
 ```
 
+## 🎨 品牌与图标资源
+
+- 站点头部 Logo：`public/logo-header.svg`（在 `src/components/layout/AppHeader.vue` 中使用）
+- Favicon 资源：
+  - `public/favicon.ico`
+  - `public/favicon.svg`
+  - `public/favicon-16x16.png`
+  - `public/favicon-32x32.png`
+  - `public/favicon-96x96.png`
+- PWA/Manifest 资源：
+  - `public/site.webmanifest`
+  - `public/web-app-manifest-192x192.png`
+  - `public/web-app-manifest-512x512.png`
+
 ## 🛠️ 开发环境
 
 ### 环境要求
@@ -86,20 +100,21 @@ VITE_API_BASE_URL=/api
    npm install
    ```
 
-2. 启动开发环境
+2. 启动开发环境（前后端同时）
    
    ```bash
-   # 方式一：同时启动前后端（推荐）
-   npm run dev:full
-   
-   # 方式二：分别启动
-   npm run server    # 启动后端服务器 (端口3001)
-   npm run dev       # 启动前端开发服务器 (端口5173)
+   npm run dev
    ```
-  
-   > 注意：`dev:full` 使用 `concurrently` 确保跨平台兼容性
 
-3. 网络访问配置
+   > `npm run dev` 已通过 `concurrently` 同时启动后端（3001）和前端（5173）
+
+3. 仅启动后端服务（可选）
+
+   ```bash
+   npm run server
+   ```
+
+4. 网络访问配置
    
    - **本地访问**: [http://localhost:5173/](http://localhost:5173/)
    - **IP访问**: [http://你的本机IP:5173/](http://你的本机IP:5173/)
@@ -107,19 +122,31 @@ VITE_API_BASE_URL=/api
   
    > 提示：前后端都已配置监听所有网络接口，支持通过 IP 地址访问
 
-4. 构建生产版本
+5. 构建生产版本
    
    ```bash
    npm run build
    ```
 
-## 🗄️ 数据库迁移
-- 配置好 PG 环境变量后执行 `npm run migrate:up` 完成当前 schema。
-- 仅在本地/测试需要回滚时使用 `npm run migrate:down`。
-- 服务启动不再自动执行 DDL，如日志出现 `[SCHEMA]` 提示，请先跑迁移。
+## 🧰 常用脚本
+- `npm run dev`：并行启动前后端开发服务。
+- `npm run server`：仅启动后端服务。
+- `npm run build`：构建前端生产包。
+- `npm run start`：启动后端服务（生产环境常用）。
+- `npm run lint`：运行 Biome 检查。
+- `npm run format`：使用 Biome 格式化代码。
+- `npm run deploy:local`：执行本地部署脚本。
+- `npm run full-rebuild`：执行全量重建脚本。
 
-## 🖼️ 图标下载脚本
-- 配置好 PG 环境变量后执行 `npm run download-icons`，会把外链图标下载到 `public/icons` 并回写数据库字段 `softwares.icon`。
+## 🗄️ 数据库迁移
+- 当前仓库未配置 `npm run migrate:up/down` 快捷命令。
+- 如需补齐 `related_articles` 字段，可执行：
+
+```bash
+node scripts/migrate-related-articles.js
+```
+
+- 若后端日志出现 `[SCHEMA]` 提示，请按日志缺失字段执行对应迁移脚本或手动 SQL 迁移。
 
 ## 🔒 认证与限流
 - 所有写接口（新增/更新/删除/上传/AI）需要 `X-User-Id` 请求头；前端通过 Clerk 自动附带。
@@ -127,7 +154,7 @@ VITE_API_BASE_URL=/api
 - 上传 MIME/大小在后端复核，日志会记录耗时与失败原因。
 
 ## ✅ 手动验证清单
-- 跑通 `npm run migrate:up`，启动后端无 `[SCHEMA]` 警告。
+- 启动后端后无 `[SCHEMA]` 迁移警告。
 - 未登录请求写接口返回 401，登录后正常。
 - 上传非图片或超限文件返回 400；频繁上传命中 429。
 - 打开“对比结果”弹窗默认展示详情，不再空白。
