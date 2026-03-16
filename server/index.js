@@ -1460,9 +1460,88 @@ const distPath = path.join(
         "..",
         "dist",
 );
+// OG 元信息注入：HTML 转义防止 XSS
+const escapeHtml = (str) => {
+        if (!str) return "";
+        return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+};
+
+// OG 元信息注入：为分享链接返回带 meta 标签的 HTML
+const injectOgMeta = async (req, res, indexHtml) => {
+        const softwareId = req.params.id;
+        try {
+                const result = await pool.query(
+                        "SELECT name, description, icon, category, license, systems FROM softwares WHERE id = $1",
+                        [softwareId],
+                );
+                if (result.rows.length === 0) {
+                        return res.send(indexHtml);
+                }
+                const sw = result.rows[0];
+                const title = escapeHtml(sw.name);
+                const desc = escapeHtml(
+                        (sw.description || "").length > 200
+                                ? `${sw.description.slice(0, 200)}...`
+                                : sw.description || "",
+                );
+                const image = escapeHtml(sw.icon || "");
+                const fullUrl = escapeHtml(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
+                const systems = (sw.systems || []).join(" / ");
+                const badge = [sw.category, sw.license, systems].filter(Boolean).join(" · ");
+                const fullDesc = badge ? `${badge} — ${desc}` : desc;
+
+                const ogTags = [
+                        `<meta property="og:title" content="${title}" />`,
+                        `<meta property="og:description" content="${fullDesc}" />`,
+                        `<meta property="og:image" content="${image}" />`,
+                        `<meta property="og:url" content="${fullUrl}" />`,
+                        `<meta property="og:type" content="article" />`,
+                        `<meta property="og:site_name" content="软件清单" />`,
+                        `<meta name="twitter:card" content="summary" />`,
+                        `<meta name="twitter:title" content="${title}" />`,
+                        `<meta name="twitter:description" content="${fullDesc}" />`,
+                        `<meta name="twitter:image" content="${image}" />`,
+                        `<meta name="description" content="${fullDesc}" />`,
+                ].join("\n    ");
+
+                let html = indexHtml;
+                html = html.replace("</head>", `    ${ogTags}\n  </head>`);
+                html = html.replace(
+                        "<title>软件清单</title>",
+                        `<title>${title} - 软件清单</title>`,
+                );
+                res.send(html);
+        } catch (error) {
+                console.error("OG 注入失败:", error.message);
+                res.send(indexHtml);
+        }
+};
+
 if (fs.existsSync(distPath)) {
         // 静态文件服务：提供dist目录中的CSS、JS、图片等资源
         app.use(express.static(distPath));
+
+        // 预读 index.html 模板，避免每次请求都读文件
+        const indexHtml = fs.readFileSync(
+                path.join(distPath, "index.html"),
+                "utf-8",
+        );
+
+        // Open Graph 元信息注入：分享链接和详情链接
+        // Express 5.x (path-to-regexp v8) 不支持内联正则，用纯参数 + 函数内校验
+        app.get("/share/software/:id", async (req, res, next) => {
+                if (!/^\d+$/.test(req.params.id)) return next();
+                await injectOgMeta(req, res, indexHtml);
+        });
+        app.get("/software/:id", async (req, res, next) => {
+                if (!/^\d+$/.test(req.params.id)) return next();
+                await injectOgMeta(req, res, indexHtml);
+        });
 
         // SPA路由fallback：所有非API路由都返回index.html，让Vue Router处理前端路由
         // Express 5.x 需要使用命名通配符语法
@@ -1472,7 +1551,7 @@ if (fs.existsSync(distPath)) {
                         return next();
                 }
                 // 返回index.html，让Vue Router处理路由
-                res.sendFile(path.join(distPath, "index.html"));
+                res.send(indexHtml);
         });
 
         console.log("✅ 已启用生产模式：静态文件服务和SPA路由fallback");

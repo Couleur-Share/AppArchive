@@ -253,6 +253,7 @@
 <script setup lang="ts">
 import { LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import BlurFade from './components/animations/BlurFade.vue'
 import CategoryFilter from './components/common/CategoryFilter.vue'
 import NewArrivalRadar from './components/common/NewArrivalRadar.vue'
@@ -451,6 +452,8 @@ const categoryCounts = computed<Record<string, number>>(() => {
 })
 
 // 使用组合式函数
+const route = useRoute()
+const router = useRouter()
 const { isDark } = useTheme()
 const { showToast, toasts } = useToast()
 const { currentPage, totalItems, pageSize, handlePageChange, setPageSize } = usePagination(20)
@@ -628,6 +631,14 @@ const startProgressiveRender = () => { ... }
 onBeforeUnmount(() => {
   // if (progressiveTimer !== null) { ... }
   window.removeEventListener('resize', updateGridColumns)
+})
+
+// 浏览器后退时自动关闭详情弹窗
+watch(() => route.name, (newName, oldName) => {
+  if (oldName === 'software-detail' && newName === 'home' && showDetailDialog.value) {
+    showDetailDialog.value = false
+    selectedSoftware.value = null
+  }
 })
 
 // 监听搜索词变化
@@ -915,6 +926,22 @@ onMounted(async () => {
   // 有缓存时后台更新数据，无缓存则正常加载
   await fetchSoftwares({ showLoading: !hasCachedSoftwares })
   
+  // 直接链接访问：URL 包含软件 ID 时自动打开详情弹窗
+  if (route.name === 'software-detail' && route.params.id) {
+    const targetId = Number(route.params.id)
+    if (!Number.isNaN(targetId)) {
+      try {
+        const sw = await softwareService.getSoftwareById(targetId)
+        selectedSoftware.value = sw
+        showDetailDialog.value = true
+      } catch (error) {
+        logger.error('从链接打开软件详情失败:', error)
+        showToast('该软件不存在或已被删除', 'error')
+        router.replace({ name: 'home' })
+      }
+    }
+  }
+
   // 启动性能检查：开发环境默认开启，或者通过环境变量显式开启
   const shouldEnablePerfCheck = import.meta.env.DEV && import.meta.env.VITE_ENABLE_PERF_CHECK !== 'false'
   
@@ -1059,16 +1086,21 @@ const selectedSoftware = ref<SoftwareListItem | null>(null)
 
 const handleDetailClosed = () => {
   selectedSoftware.value = null
+  if (route.name === 'software-detail') {
+    router.replace({ name: 'home' })
+  }
 }
 
 const showSoftwareDetail = (software: SoftwareListItem) => {
   selectedSoftware.value = { ...software }
   showDetailDialog.value = true
+  router.push({ name: 'software-detail', params: { id: software.id } })
 }
 
 // 处理详情弹窗中的软件导航切换
 const handleSoftwareNavigate = (software: SoftwareListItem) => {
   selectedSoftware.value = { ...software }
+  router.replace({ name: 'software-detail', params: { id: software.id } })
 }
 
 // 添加更新设置的方法

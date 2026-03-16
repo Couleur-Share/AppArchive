@@ -39,6 +39,8 @@ declare module 'vue' {
     NewArrivalRadar: typeof import('./src/components/common/NewArrivalRadar.vue')['default']
     ProsConsEditor: typeof import('./src/components/ProsConsEditor.vue')['default']
     RelatedArticlesEditor: typeof import('./src/components/RelatedArticlesEditor.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/components/common/SearchBar.vue')['default']
     SelectedComparisonList: typeof import('./src/components/comparison/SelectedComparisonList.vue')['default']
     SettingsDialog: typeof import('./src/components/SettingsDialog.vue')['default']

@@ -146,7 +146,18 @@
                                 </BaseButton>
                             </Tooltip>
 
-                            <Tooltip content="分享软件信息">
+                            <Tooltip content="复制分享链接">
+                                <BaseButton
+                                    @click="copyShareLink"
+                                    variant="secondary"
+                                    size="md"
+                                    class="rounded-md"
+                                >
+                                    <Link2 class="w-4 h-4" />
+                                </BaseButton>
+                            </Tooltip>
+
+                            <Tooltip content="生成分享卡片">
                                 <BaseButton
                                     @click="generateShareImage"
                                     variant="secondary"
@@ -552,7 +563,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { 
     CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, 
     FileSearch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
-    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link
+    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link, Link2
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
@@ -900,6 +911,16 @@ const copySecret = async (sec: SecretItem) => {
 // ... Share ...
 const showSharePreview = ref(false)
 const generateShareImage = async () => { showSharePreview.value = true }
+const copyShareLink = async () => {
+  const shareUrl = `${window.location.origin}/share/software/${software.value.id}`
+  try {
+    await copyToClipboard(shareUrl)
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 2000)
+  } catch (err) {
+    logger.error('复制链接失败:', err)
+  }
+}
 const initialFocusRef = ref<HTMLElement | null>(null)
 const handleDetailClose = () => {
   if (showSharePreview.value) return;
