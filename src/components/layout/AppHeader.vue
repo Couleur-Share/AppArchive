@@ -62,6 +62,7 @@
             :user="user"
             @sign-in="openSignIn"
             @sign-out="handleSignOut"
+            @change-password="$emit('change-password')"
           />
         </div>
       </div>
@@ -104,7 +105,7 @@ import { gsap } from 'gsap'
 import { RotateCcw, Search, Settings, X, XCircle } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useToast } from '../../composables/useToast'
-import { openSignIn as clerkOpenSignIn, signOut } from '../../lib/clerk'
+import { logout, openLoginDialog } from '../../lib/auth'
 import logger from '../../utils/logger'
 import UserMenu from '../auth/UserMenu.vue'
 import SearchBar from '../common/SearchBar.vue'
@@ -126,6 +127,7 @@ const emit = defineEmits<{
   (e: 'refresh'): void
   (e: 'settings'): void
   (e: 'search', term: string): void
+  (e: 'change-password'): void
 }>()
 
 const searchTerm = ref('')
@@ -160,23 +162,13 @@ const handleRefresh = () => {
 }
 
 // 处理登录
-const openSignIn = async () => {
-  try {
-    await clerkOpenSignIn()
-  } catch (error) {
-    showToast('登录失败', 'error')
-    logger.error('登录错误:', error)
-  }
+const openSignIn = () => {
+  openLoginDialog()
 }
 
 // 处理退出登录
-const handleSignOut = async () => {
-  try {
-    await signOut()
-    showToast('已退出登录', 'success')
-  } catch (error) {
-    showToast('退出登录失败', 'error')
-    logger.error('退出登录错误:', error)
-  }
+const handleSignOut = () => {
+  logout()
+  showToast('已退出登录', 'success')
 }
 </script> 

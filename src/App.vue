@@ -8,6 +8,7 @@
       @refresh="handleRefresh"
       @settings="showSettings = true"
       @search="handleSearch"
+      @change-password="openPasswordDialog"
     />
 
     <div class="w-full relative z-30">
@@ -232,6 +233,15 @@
 
   <AppFooter />
 
+  <LoginDialog
+    :is-open="showLoginDialog"
+    @success="handleLoginSuccess"
+  />
+
+  <ChangePasswordDialog
+    :is-open="showPasswordDialog"
+  />
+
   <DeleteConfirmDialog
     v-model:show="showDeleteDialog"
     :item-name="softwareToDelete?.name"
@@ -249,7 +259,7 @@ import NewArrivalRadar from './components/common/NewArrivalRadar.vue'
 import AppHeader from './components/layout/AppHeader.vue'
 import SkeletonLoader from './components/SkeletonLoader.vue'
 import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
-import { isSignedIn, signOut, user } from './lib/clerk'
+import { isSignedIn, logout, openPasswordDialog, showLoginDialog, showPasswordDialog, user } from './lib/auth'
 import { comparisonService } from './services/comparison'
 import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
@@ -328,6 +338,8 @@ const DeleteConfirmDialog = defineAsyncComponent(() => import('./components/comm
 const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsDialog.vue'))
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
 const ComparisonResult = defineAsyncComponent(() => import('./components/ComparisonResult.vue'))
+const LoginDialog = defineAsyncComponent(() => import('./components/auth/LoginDialog.vue'))
+const ChangePasswordDialog = defineAsyncComponent(() => import('./components/auth/ChangePasswordDialog.vue'))
 
 import { usePagination } from './composables/usePagination'
 import { useTheme } from './composables/useTheme'
@@ -1026,15 +1038,15 @@ const handleRefresh = async () => {
 // 添加权限检查的计算属性
 const canEditSoftware = computed(() => isSignedIn.value)
 
-// 添加退出登录处理方法
-const handleSignOut = async () => {
-  try {
-    await signOut()
-    showToast('已退出登录', 'success')
-  } catch (error) {
-    showToast('退出登录失败', 'error')
-    logger.error('退出登录错误:', error)
-  }
+// 退出登录
+const handleSignOut = () => {
+  logout()
+  showToast('已退出登录', 'success')
+}
+
+// 登录成功回调
+const handleLoginSuccess = () => {
+  showToast('登录成功', 'success')
 }
 
 const handleCategoryChange = (newCategory: string) => {

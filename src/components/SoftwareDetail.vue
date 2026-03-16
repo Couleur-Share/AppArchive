@@ -562,7 +562,7 @@ import { buildApiUrl } from '../services/apiBase'
 import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../types'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
-import { isSignedIn } from '../lib/clerk'
+import { isSignedIn } from '../lib/auth'
 import SystemIcon from './SystemIcon.vue'
 import Toast from './Toast.vue'
 import Tooltip from './common/Tooltip.vue' // New Component

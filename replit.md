@@ -7,7 +7,7 @@ A Vue 3 + TypeScript software record management system for tracking and displayi
 - **Frontend**: Vue 3 + TypeScript + Tailwind CSS + Vite
 - **Backend**: Express.js + Node.js
 - **Database**: PostgreSQL (Replit built-in)
-- **Authentication**: Clerk (optional, disabled by default)
+- **Authentication**: Self-hosted JWT (bcrypt + jsonwebtoken)
 - **Build Tool**: Vite
 
 ## Project Structure
@@ -41,7 +41,7 @@ Uses Replit's built-in PostgreSQL database. Tables:
 - `comparison_analyses` - AI analysis results
 
 ## Optional Features (require configuration)
-1. **Clerk Authentication**: Set `VITE_CLERK_PUBLISHABLE_KEY` to enable
+1. **JWT Authentication**: Run `node scripts/migrate-users.js` to create users table, set `JWT_SECRET` in env
 2. **Tencent COS Storage**: Set `COS_SECRET_ID`, `COS_SECRET_KEY`, `COS_BUCKET`, `COS_REGION`
 3. **Kimi AI Analysis**: Set `KIMI_API_KEY`
 

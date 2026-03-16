@@ -1,4 +1,4 @@
-import { isSignedIn } from "../lib/clerk";
+import { isSignedIn } from "../lib/auth";
 import type { SoftwareListItem } from "../types";
 import logger from "../utils/logger";
 import { getApiBase } from "./apiBase";

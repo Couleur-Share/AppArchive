@@ -9,25 +9,29 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import multer from "multer";
+import jwt from "jsonwebtoken";
 import {
-        deleteFileFromCOS,
-        extractKeyFromCosUrl,
-        generateUniqueFileName,
-        generateUniqueFileNameFromSoftwareName,
-        renameFileInCOS,
-        uploadToCOS,
+	deleteFileFromCOS,
+	extractKeyFromCosUrl,
+	generateUniqueFileName,
+	generateUniqueFileNameFromSoftwareName,
+	renameFileInCOS,
+	uploadToCOS,
 } from "./cos.js";
 import { handleDatabaseError, pool, testConnection } from "./database.js";
 import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
+import authRouter, { JWT_SECRET } from "./auth.js";
+import {
+	PROVIDER_PRESETS,
+	callAI,
+	getAIConfigForClient,
+	saveAIConfig,
+	testAIConfig,
+} from "./ai.js";
 
 // 加载环境变量（允许覆盖已存在的变量，避免系统级 PG* 干扰）
 dotenv.config({ override: true }); // 默认读取 .env
 dotenv.config({ path: ".env.local", override: true }); // 额外读取 .env.local（若存在）
-
-// 兼容前端变量名：若仅设置了 VITE_PERPLEXITY_API_KEY，则作为后端 PERPLEXITY_API_KEY 使用
-if (!process.env.PERPLEXITY_API_KEY && process.env.VITE_PERPLEXITY_API_KEY) {
-	process.env.PERPLEXITY_API_KEY = process.env.VITE_PERPLEXITY_API_KEY;
-}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -76,12 +80,6 @@ app.use(
                 ),
         ),
 );
-
-// ========== Perplexity API 配置 ==========
-const PERPLEXITY_API_BASE = process.env.PERPLEXITY_API_BASE || "https://api.perplexity.ai";
-const PERPLEXITY_MODEL = process.env.PERPLEXITY_MODEL || "sonar";
-const PERPLEXITY_TEMPERATURE = Number(process.env.PERPLEXITY_TEMPERATURE ?? 0.6);
-const PERPLEXITY_MAX_TOKENS = Number(process.env.PERPLEXITY_MAX_TOKENS ?? 1024);
 
 // 启动时做一次基础连接验证，便于快速发现凭据配置问题
 testConnection().catch((err) => {
@@ -225,73 +223,31 @@ function maskSecretsForClient(secretsRow) {
         }));
 }
 
-// ========== 用户认证中间件 ==========
-// 从请求头获取用户ID（Clerk用户ID）
-// 前端需要在请求头中传递: X-User-Id: <clerk_user_id>
+// ========== 用户认证中间件（JWT 验证） ==========
 const requireAuth = (req, res, next) => {
-        const userId = req.headers["x-user-id"];
-        if (!userId) {
-                return res.status(401).json({
-                        error: "未授权",
-                        message: "缺少用户ID，请先登录",
-                });
-        }
-        req.userId = userId;
-        next();
-};
+	const authHeader = req.headers.authorization;
+	if (!authHeader?.startsWith("Bearer ")) {
+		return res.status(401).json({
+			error: "未授权",
+			message: "缺少认证令牌，请先登录",
+		});
+	}
 
-// ========== AI 辅助函数 ==========
-const ensurePerplexityKey = () => {
-	if (!process.env.PERPLEXITY_API_KEY) {
-		const error = new Error("后端缺少 PERPLEXITY_API_KEY 环境变量");
-		error.status = 500;
-		throw error;
+	try {
+		const token = authHeader.slice(7);
+		const decoded = jwt.verify(token, JWT_SECRET);
+		req.userId = decoded.userId;
+		next();
+	} catch (err) {
+		const message =
+			err.name === "TokenExpiredError" ? "登录已过期，请重新登录" : "无效的认证令牌";
+		return res.status(401).json({ error: "未授权", message });
 	}
 };
 
-// 移除 Perplexity 返回内容中的引用序号（如 [1]、[2]、[3] 等）
-const removeCitationMarkers = (text) => {
-	if (typeof text !== "string") return text;
-	// 匹配 [数字] 格式的引用标记，包括连续多个如 [1][2]
-	return text.replace(/\[\d+\]/g, "").replace(/\s{2,}/g, " ").trim();
-};
 
-// 清理 Perplexity API 响应中的引用标记
-const cleanPerplexityResponse = (data) => {
-	if (!data?.choices?.[0]?.message?.content) return data;
-	const content = data.choices[0].message.content;
-	data.choices[0].message.content = removeCitationMarkers(content);
-	return data;
-};
-
-const callPerplexityChatCompletions = async (messages, options = {}) => {
-	ensurePerplexityKey();
-	const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-		},
-		body: JSON.stringify({
-			model: PERPLEXITY_MODEL,
-			messages,
-			temperature: PERPLEXITY_TEMPERATURE,
-			max_tokens: PERPLEXITY_MAX_TOKENS,
-			...options,
-		}),
-	});
-
-	if (!response.ok) {
-		const text = await response.text().catch(() => "");
-		const error = new Error(`Perplexity API 调用失败: ${response.status} ${text}`);
-		error.status = response.status;
-		throw error;
-	}
-
-	const data = await response.json();
-	// 移除 Perplexity 自动添加的引用序号
-	return cleanPerplexityResponse(data);
-};
+// ========== 认证路由 ==========
+app.use("/api/auth", authRouter);
 
 // 测试路由
 app.get("/api/test", async (_req, res) => {
@@ -420,9 +376,9 @@ const allowedMimeTypes = new Set([
         "image/vnd.microsoft.icon",
 ]);
 
-// 统一限流 key，优先使用用户ID，其次 IP
+// 统一限流 key：优先使用已认证的 userId（由 requireAuth 中间件设置），其次 IP
 const rateLimitKey = (req) =>
-        (req.headers["x-user-id"] || req.ip || "anonymous").toString();
+	(req.userId || req.ip || "anonymous").toString();
 
 const uploadRateLimiter = rateLimit({
         windowMs: Number(process.env.UPLOAD_WINDOW_MS || 15 * 60 * 1000),
@@ -544,38 +500,8 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 		}
 
 		const messages = buildAnalyzeMessages(software);
-
-		// Perplexity API内置网络搜索功能
-		// 配置搜索参数以获取更优质的软件信息
-		ensurePerplexityKey();
-		const response = await fetch(`${PERPLEXITY_API_BASE}/chat/completions`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-			},
-			body: JSON.stringify({
-				model: PERPLEXITY_MODEL,
-				messages,
-				temperature: PERPLEXITY_TEMPERATURE,
-				max_tokens: PERPLEXITY_MAX_TOKENS,
-				// Perplexity 搜索增强：优先获取近期信息，确保软件信息时效性
-				search_recency_filter: "month",
-			}),
-		});
-
-		if (!response.ok) {
-			const text = await response.text().catch(() => "");
-			const error = new Error(
-				`Perplexity API 调用失败: ${response.status} ${text}`,
-			);
-			error.status = response.status;
-			throw error;
-		}
-
-		const data = await response.json();
-		// 移除 Perplexity 自动添加的引用序号 [1]、[2] 等
-		return res.json(cleanPerplexityResponse(data));
+		const data = await callAI(messages);
+		return res.json(data);
 	} catch (error) {
 		console.error("AI分析错误:", error);
 		res
@@ -584,7 +510,7 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 	} finally {
 		const duration = Date.now() - startedAt;
 		console.log(
-			`[AI_ANALYZE_METRIC] user=${userId} duration=${duration}ms model=${PERPLEXITY_MODEL}`,
+			`[AI_ANALYZE_METRIC] user=${userId} duration=${duration}ms`,
 		);
 	}
 });
@@ -603,11 +529,7 @@ app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
 		}
 
 		const messages = buildCompareMessages(softwares);
-
-		// Perplexity 搜索增强：优先近期信息
-		const data = await callPerplexityChatCompletions(messages, {
-			search_recency_filter: "month",
-		});
+		const data = await callAI(messages);
 		res.json(data);
 	} catch (error) {
 		console.error("AI对比错误:", error);
@@ -617,14 +539,72 @@ app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
 	} finally {
 		const duration = Date.now() - startedAt;
 		console.log(
-			`[AI_COMPARE_METRIC] user=${userId} duration=${duration}ms model=${PERPLEXITY_MODEL}`,
+			`[AI_COMPARE_METRIC] user=${userId} duration=${duration}ms`,
 		);
 	}
 });
 
-// ========== 用户AI配置API ==========
-// 注意：AI配置已统一使用 prompts.js 文件中的提示词，不再支持用户自定义配置
-// 用户的其他配置（如 temperature、maxTokens 等）可通过前端 localStorage 保存
+// ========== AI 配置 API ==========
+
+// 获取支持的供应商列表
+app.get("/api/ai/providers", (_req, res) => {
+	const providers = Object.entries(PROVIDER_PRESETS).map(([key, preset]) => ({
+		id: key,
+		name: preset.name,
+		api_base: preset.api_base,
+		models: preset.models,
+		default_model: preset.default_model,
+	}));
+	res.json({ success: true, data: providers });
+});
+
+// 获取当前 AI 配置（脱敏）
+app.get("/api/ai/config", requireAuth, async (_req, res) => {
+	try {
+		const config = await getAIConfigForClient();
+		res.json({ success: true, data: config });
+	} catch (error) {
+		console.error("获取AI配置失败:", error);
+		res.status(500).json({ error: "获取AI配置失败", message: error.message });
+	}
+});
+
+// 保存 AI 配置
+app.put("/api/ai/config", requireAuth, async (req, res) => {
+	try {
+		const { provider, api_base, api_key, model } = req.body || {};
+		if (!provider || !api_key || !model) {
+			return res.status(400).json({
+				error: "参数不完整",
+				message: "供应商、API Key 和模型名称为必填项",
+			});
+		}
+		await saveAIConfig({ provider, api_base, api_key, model });
+		const config = await getAIConfigForClient();
+		res.json({ success: true, data: config, message: "AI 配置已保存" });
+	} catch (error) {
+		console.error("保存AI配置失败:", error);
+		res.status(400).json({ error: "保存失败", message: error.message });
+	}
+});
+
+// 测试 AI 配置连通性
+app.post("/api/ai/config/test", requireAuth, async (req, res) => {
+	try {
+		const { provider, api_base, api_key, model } = req.body || {};
+		if (!provider || !api_key || !model) {
+			return res.status(400).json({
+				error: "参数不完整",
+				message: "供应商、API Key 和模型名称为必填项",
+			});
+		}
+		const result = await testAIConfig({ provider, api_base, api_key, model });
+		res.json({ success: true, ...result });
+	} catch (error) {
+		console.error("AI配置测试失败:", error);
+		res.status(400).json({ success: false, error: "测试失败", message: error.message });
+	}
+});
 
 // 获取所有软件 (支持分页、筛选、排序)
 app.get("/api/software", async (req, res) => {

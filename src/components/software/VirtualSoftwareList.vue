@@ -229,7 +229,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
-import { isSignedIn } from '../../lib/clerk'
+import { isSignedIn } from '../../lib/auth'
 import { getIconUrl } from '../../services/localIconCache'
 import type { SoftwareListItem } from '../../types'
 import { computed } from 'vue'

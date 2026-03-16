@@ -26,10 +26,19 @@ export async function fetchWithRetry(
 				detail = text;
 			} catch {}
 
+			// AI 未配置
+			if (response.status === 503) {
+				throw new AppError(
+					"AI 尚未配置，请在「设置 → AI 设置」中配置供应商和 API Key",
+					ErrorCode.API_ERROR,
+					response.status,
+				);
+			}
+
 			// 针对 401/403 提供更明确的提示
 			if (response.status === 401 || response.status === 403) {
 				throw new AppError(
-					`认证失败(${response.status})，请检查 PERPLEXITY_API_KEY 是否正确以及是否拥有调用权限。${detail ? ` 详情: ${detail}` : ""}`,
+					`认证失败(${response.status})，请检查 API Key 是否正确以及是否拥有调用权限。${detail ? ` 详情: ${detail}` : ""}`,
 					ErrorCode.API_ERROR,
 					response.status,
 				);

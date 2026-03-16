@@ -7,7 +7,7 @@
 - **前端**: Vue 3 + TypeScript + Tailwind CSS
 - **后端**: Express.js + Node.js
 - **数据库**: PostgreSQL
-- **认证**: Clerk
+- **认证**: 自建 JWT（bcrypt + jsonwebtoken）
 - **构建工具**: Vite
 - **动画**: GSAP
 
@@ -80,17 +80,19 @@ COS_REGION=ap-guangzhou
 COS_STORAGE_PATH=AppArchive/
 COS_DOMAIN=https://<bucket>.cos.<region>.myqcloud.com
 
-# AI
-KIMI_API_KEY=sk-xxxxxx
-KIMI_API_BASE=https://api.moonshot.cn/v1
+# AI 配置通过界面管理，不再需要环境变量
 
-# 认证
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
+# 认证（自建 JWT）
+JWT_SECRET=your-jwt-secret-key
+JWT_EXPIRES_IN=7d
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+
 # 生产环境（HTTPS）推荐使用同源 /api（需在反向代理中把 /api 转发到后端 3001）
 VITE_API_BASE_URL=/api
 ```
 
-> 密钥曾经入库的请立即吊销旧密钥并清理 Git 历史。后台仅接受带 `X-User-Id` 的请求。
+> 密钥曾经入库的请立即吊销旧密钥并清理 Git 历史。写接口需要 JWT 认证（`Authorization: Bearer <token>`）。
 
 ### 快速开始
 
@@ -149,7 +151,8 @@ node scripts/migrate-related-articles.js
 - 若后端日志出现 `[SCHEMA]` 提示，请按日志缺失字段执行对应迁移脚本或手动 SQL 迁移。
 
 ## 🔒 认证与限流
-- 所有写接口（新增/更新/删除/上传/AI）需要 `X-User-Id` 请求头；前端通过 Clerk 自动附带。
+- 所有写接口（新增/更新/删除/上传/AI）需要 JWT 认证（`Authorization: Bearer <token>`）。
+- 首次使用需执行 `node scripts/migrate-users.js` 创建 users 表和初始管理员账户。
 - 上传/AI/写接口已启用速率限制（默认 15 分钟窗口），可用环境变量 `UPLOAD_MAX`/`AI_MAX`/`WRITE_MAX` 调整。
 - 上传 MIME/大小在后端复核，日志会记录耗时与失败原因。
 
@@ -213,18 +216,25 @@ interface RelatedArticle {
 
 MIT License
 
-## 🔌 AI 使用说明（Kimi 后端代理）
+## 🔌 AI 使用说明
 
-- 项目已内置后端代理调用 Kimi，前端不会直接携带 API Key。
-- 后端新增路由：
+- AI 功能通过界面配置，无需手动编辑环境变量。
+- 首次使用请执行迁移脚本创建 `ai_config` 表：
+  ```bash
+  node scripts/migrate-ai-config.js
+  ```
+- 登录后进入「设置 → AI 设置」，选择供应商、模型并填写 API Key。
+- 支持的供应商：Perplexity、OpenAI、Moonshot (Kimi)、DeepSeek、自定义 (OpenAI 兼容)。
+- API Key 在数据库中以 AES-256-GCM 加密存储，前端不会接触明文密钥。
+- 后端 AI 路由：
   - `POST /api/ai/analyze`：软件优缺点分析，Body: `{ software }`
   - `POST /api/ai/compare`：多软件对比分析，Body: `{ softwares }`
-- 后端会从环境变量读取 `KIMI_API_KEY`，并调用 `https://api.moonshot.cn/v1/chat/completions`。
+  - `GET /api/ai/providers`：获取支持的供应商列表
+  - `GET /api/ai/config`：获取当前 AI 配置（脱敏）
+  - `PUT /api/ai/config`：保存 AI 配置
+  - `POST /api/ai/config/test`：测试 AI 配置连通性
 
 ### 常见问题排查
-- 500 后端缺少 Key：请在项目根目录 `.env.local` 或部署环境中设置 `KIMI_API_KEY=sk-...`
-- 401 Invalid Authentication：确认使用的是 Kimi 平台颁发的 Key，且未过期/未禁用。
-- Windows 保存 `.env.local` 可能变为 `.env.local.txt`：请检查真实扩展名。
-- 如果你想继续前端直连（不推荐），可设置 `VITE_KIMI_API_KEY` 并修改前端代码，但存在泄露风险。
-
-> 文档参考：Kimi 开放平台使用指南（`https://platform.moonshot.cn/docs/guide/start-using-kimi-api`）
+- AI 分析提示"AI 尚未配置"：请在「设置 → AI 设置」中完成配置。
+- 401 认证失败：确认 API Key 正确且未过期。
+- 配置保存后可点击"测试连接"验证是否生效。
