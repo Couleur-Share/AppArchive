@@ -152,10 +152,9 @@
 
 <script setup lang="ts">
 import { gsap } from 'gsap'
-import { TextPlugin } from 'gsap/TextPlugin'
 import { nextTick, ref, watch, onUnmounted } from 'vue'
 
-gsap.registerPlugin(TextPlugin)
+// TextPlugin 已在 plugins/gsap.ts 中全局注册，无需重复注册
 
 const props = defineProps<{ active: boolean }>()
 

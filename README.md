@@ -1,70 +1,93 @@
-# 软件记录管理系统
+# AppArchive — 软件记录管理系统
 
 一个基于 Vue 3 + TypeScript 开发的软件记录管理系统，用于管理和展示各类软件信息。
 
+---
+
 ## 🚀 技术栈
 
-- **前端**: Vue 3 + TypeScript + Tailwind CSS
-- **后端**: Express.js + Node.js
-- **数据库**: PostgreSQL
-- **认证**: 自建 JWT（bcrypt + jsonwebtoken）
-- **构建工具**: Vite
-- **动画**: GSAP
+| 层级 | 技术 |
+|------|------|
+| **前端** | Vue 3 · TypeScript · Tailwind CSS · GSAP |
+| **后端** | Express 5 · Node.js |
+| **数据库** | PostgreSQL |
+| **认证** | JWT（bcrypt + jsonwebtoken） |
+| **对象存储** | 腾讯云 COS |
+| **构建工具** | Vite 5 |
+| **代码质量** | Biome |
 
 ## ✨ 主要功能
 
-- 软件信息管理（增删改查）
-- 软件对比分析
-- 分类筛选和搜索
-- 用户认证系统
-- 响应式设计 + 暗色模式
+- 📦 软件信息管理（增删改查）
+- 🔍 分类筛选与全局搜索
+- ⚖️ 软件对比分析
+- 🤖 AI 辅助分析（多供应商支持）
+- 🔐 用户认证系统（JWT）
+- 🌗 响应式设计 + 暗色模式
+
+---
 
 ## 📁 项目结构
 
 ```text
-├── src/                # 前端源码
-│   ├── components/     # Vue 组件
-│   ├── services/       # 业务逻辑服务
-│   ├── types/          # TypeScript 类型定义
-│   ├── utils/          # 工具函数
-│   └── App.vue         # 主应用组件
-├── server/             # 后端源码
-│   ├── index.js        # Express 服务器
-│   └── database.js     # 数据库配置
-└── package.json        # 项目配置
+AppArchive/
+├── public/                 # 静态资源（Favicon / PWA Manifest / Logo）
+├── src/                    # 前端源码
+│   ├── components/         # Vue 组件
+│   ├── composables/        # 组合式函数
+│   ├── config/             # 前端配置
+│   ├── directives/         # 自定义指令
+│   ├── lib/                # 通用库封装
+│   ├── plugins/            # Vue 插件
+│   ├── router/             # 路由配置
+│   ├── services/           # 业务逻辑服务
+│   ├── styles/             # 全局样式
+│   ├── types/              # TypeScript 类型定义
+│   ├── utils/              # 工具函数
+│   ├── views/              # 页面视图
+│   ├── App.vue             # 主应用组件
+│   └── main.ts             # 入口文件
+├── server/                 # 后端源码
+│   ├── index.js            # Express 服务器入口
+│   ├── database.js         # 数据库配置
+│   ├── auth.js             # 认证模块
+│   ├── ai.js               # AI 分析模块
+│   ├── cos.js              # 腾讯云 COS 集成
+│   └── prompts.js          # AI 提示词
+├── scripts/                # 运维迁移脚本
+├── docs/                   # 项目文档
+└── package.json            # 项目配置
 ```
 
-## 🎨 品牌与图标资源
+---
 
-- 站点头部 Logo：`public/logo-header.svg`（在 `src/components/layout/AppHeader.vue` 中使用）
-- Favicon 资源：
-  - `public/favicon.ico`
-  - `public/favicon.svg`
-  - `public/favicon-16x16.png`
-  - `public/favicon-32x32.png`
-  - `public/favicon-96x96.png`
-- PWA/Manifest 资源：
-  - `public/site.webmanifest`
-  - `public/web-app-manifest-192x192.png`
-  - `public/web-app-manifest-512x512.png`
-
-## 🛠️ 开发环境
+## 🛠️ 快速开始
 
 ### 环境要求
-- Node.js 18+
-- npm / pnpm
 
-### 环境变量
-参考 `env.example` 创建 `.env` 或 `.env.local`，关键项：
+- **Node.js** ≥ 18
+- **pnpm**（推荐）或 npm
+- **PostgreSQL** 实例
+
+### 1. 安装依赖
+
+```bash
+pnpm install
+# 或
+npm install
+```
+
+### 2. 配置环境变量
+
+参照 `env.example` 创建 `.env` 或 `.env.local`：
 
 ```env
-# 后端服务
+# ── 后端服务 ──────────────────────────────────────
 PORT=3001
 JSON_LIMIT=1mb
-# 多个来源用逗号分隔；生产环境请把你的 https 域名也加上
-CORS_ORIGINS=http://localhost:5173,https://your-domain.com
+CORS_ORIGINS=http://localhost:5173,https://your-domain.com   # 多个来源用逗号分隔
 
-# PostgreSQL（或使用 DATABASE_URL）
+# ── PostgreSQL ────────────────────────────────────
 PGHOST=localhost
 PGPORT=5432
 PGDATABASE=Softwares
@@ -72,7 +95,7 @@ PGUSER=postgres
 PGPASSWORD=your_password
 PGSSL=false
 
-# 腾讯云 COS（填写后务必轮换旧密钥并清理历史）
+# ── 腾讯云 COS ────────────────────────────────────
 COS_SECRET_ID=
 COS_SECRET_KEY=
 COS_BUCKET=
@@ -80,106 +103,128 @@ COS_REGION=ap-guangzhou
 COS_STORAGE_PATH=AppArchive/
 COS_DOMAIN=https://<bucket>.cos.<region>.myqcloud.com
 
-# AI 配置通过界面管理，不再需要环境变量
-
-# 认证（自建 JWT）
+# ── 认证（JWT） ───────────────────────────────────
 JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRES_IN=7d
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
 
-# 生产环境（HTTPS）推荐使用同源 /api（需在反向代理中把 /api 转发到后端 3001）
+# ── 前端 API 地址 ─────────────────────────────────
+# 生产环境推荐同源 /api（需反向代理 /api → 后端 3001）
 VITE_API_BASE_URL=/api
 ```
 
-> 密钥曾经入库的请立即吊销旧密钥并清理 Git 历史。写接口需要 JWT 认证（`Authorization: Bearer <token>`）。
+> [!WARNING]
+> 密钥若曾提交到 Git 历史，请立即**吊销旧密钥**并使用 `git filter-repo` 等工具清理历史记录。
 
-### 快速开始
+### 3. 数据库迁移
 
-1. 安装依赖
-   
-   ```bash
-   npm install
-   ```
-
-2. 启动开发环境（前后端同时）
-   
-   ```bash
-   npm run dev
-   ```
-
-   > `npm run dev` 已通过 `concurrently` 同时启动后端（3001）和前端（5173）
-
-3. 仅启动后端服务（可选）
-
-   ```bash
-   npm run server
-   ```
-
-4. 网络访问配置
-   
-   - **本地访问**: [http://localhost:5173/](http://localhost:5173/)
-   - **IP访问**: [http://你的本机IP:5173/](http://你的本机IP:5173/)
-   - **移动端测试**: 确保设备在同一网络下
-  
-   > 提示：前后端都已配置监听所有网络接口，支持通过 IP 地址访问
-
-5. 构建生产版本
-   
-   ```bash
-   npm run build
-   ```
-
-## 🧰 常用脚本
-- `npm run dev`：并行启动前后端开发服务。
-- `npm run server`：仅启动后端服务。
-- `npm run build`：构建前端生产包。
-- `npm run start`：启动后端服务（生产环境常用）。
-- `npm run lint`：运行 Biome 检查。
-- `npm run format`：使用 Biome 格式化代码。
-- `npm run deploy:local`：执行本地部署脚本。
-- `npm run full-rebuild`：执行全量重建脚本。
-
-## 🗄️ 数据库迁移
-- 当前仓库未配置 `npm run migrate:up/down` 快捷命令。
-- 如需补齐 `related_articles` 字段，可执行：
+首次使用前执行以下迁移脚本：
 
 ```bash
+# 创建 users 表和初始管理员账户
+node scripts/migrate-users.js
+
+# 创建 AI 配置表
+node scripts/migrate-ai-config.js
+
+# 补齐 related_articles 字段（按需）
 node scripts/migrate-related-articles.js
 ```
 
-- 若后端日志出现 `[SCHEMA]` 提示，请按日志缺失字段执行对应迁移脚本或手动 SQL 迁移。
+> 若后端日志出现 `[SCHEMA]` 提示，请按日志中的缺失字段执行对应迁移脚本或手动 SQL。
+
+### 4. 启动开发服务
+
+```bash
+# 前后端并行启动（推荐）
+pnpm dev      # 后端 → :3001 / 前端 → :5173
+
+# 仅启动后端
+pnpm server
+```
+
+### 5. 访问应用
+
+| 访问方式 | 地址 |
+|---------|------|
+| 本地 | http://localhost:5173 |
+| 局域网 / 移动端 | http://你的本机IP:5173（需同一网络） |
+
+> 前后端均已配置监听所有网络接口，支持通过 IP 地址访问。
+
+---
+
+## 🧰 常用脚本
+
+| 命令 | 说明 |
+|------|------|
+| `pnpm dev` | 并行启动前后端开发服务 |
+| `pnpm server` | 仅启动后端服务 |
+| `pnpm build` | 构建前端生产包 |
+| `pnpm start` | 启动后端（生产环境） |
+| `pnpm lint` | Biome 代码检查 |
+| `pnpm format` | Biome 代码格式化 |
+| `pnpm deploy:local` | 本地部署脚本 |
+| `pnpm full-rebuild` | 全量重建脚本 |
+
+---
 
 ## 🔒 认证与限流
-- 所有写接口（新增/更新/删除/上传/AI）需要 JWT 认证（`Authorization: Bearer <token>`）。
-- 首次使用需执行 `node scripts/migrate-users.js` 创建 users 表和初始管理员账户。
-- 上传/AI/写接口已启用速率限制（默认 15 分钟窗口），可用环境变量 `UPLOAD_MAX`/`AI_MAX`/`WRITE_MAX` 调整。
-- 上传 MIME/大小在后端复核，日志会记录耗时与失败原因。
 
-## ✅ 手动验证清单
-- 启动后端后无 `[SCHEMA]` 迁移警告。
-- 未登录请求写接口返回 401，登录后正常。
-- 上传非图片或超限文件返回 400；频繁上传命中 429。
-- 打开“对比结果”弹窗默认展示详情，不再空白。
-- 图片多次加载后无 `localStorage` 满额报错（已改为 IndexedDB 缓存）。
+- 所有**写接口**（新增 / 更新 / 删除 / 上传 / AI）均需 JWT 认证：
+  ```
+  Authorization: Bearer <token>
+  ```
+- 速率限制已启用（默认 15 分钟窗口），可通过环境变量调整：
+  - `UPLOAD_MAX` — 上传请求上限
+  - `AI_MAX` — AI 请求上限
+  - `WRITE_MAX` — 写请求上限
+- 上传 MIME 类型及文件大小在后端复核，日志会记录耗时与失败原因。
 
-## ❓ 常见问题排查（通用）
+---
 
-- 无法解析 `vuenime`：报错 `[plugin:vite:import-analysis] Failed to resolve import "vuenime" from "src/main.ts"`。
-  - 原因：项目未安装该依赖，且当前未实际使用。
-  - 解决：已在本仓库移除相关导入与类型声明。如确需使用请安装 `npm i vuenime` 并在 `src/main.ts` 中 `app.use(Vuenime)`。
-- 端口被占用（如 5173/3001）：结束占用进程或修改端口后重启。
-  - Windows 可在 PowerShell 使用 `Get-Process -Id <PID>` / `Stop-Process -Id <PID>`。
+## 🤖 AI 功能
 
-### HTTPS 域名访问提示（Mixed Content）
-- 若你用 `https://your-domain.com` 访问前端，但前端去请求 `http://.../api`，浏览器会拦截并出现“获取数据失败 / Mixed Content”。
-- 生产环境推荐做法：
-  - **域名(443)反向代理到后端 3001**（或至少把 `/api` 反代到 3001）
-  - 构建时设置 `VITE_API_BASE_URL=/api`，然后重新构建再部署
+### 配置方式
+
+AI 功能**通过界面配置**，无需手动编辑环境变量。
+
+1. 登录后进入 **设置 → AI 设置**
+2. 选择供应商、模型并填写 API Key
+3. 点击「测试连接」验证配置
+
+### 支持的供应商
+
+Perplexity · OpenAI · Moonshot (Kimi) · DeepSeek · 自定义 (OpenAI 兼容)
+
+### API 端点
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/ai/analyze` | 软件优缺点分析 `{ software }` |
+| `POST` | `/api/ai/compare` | 多软件对比分析 `{ softwares }` |
+| `GET` | `/api/ai/providers` | 获取支持的供应商列表 |
+| `GET` | `/api/ai/config` | 获取当前 AI 配置（脱敏） |
+| `PUT` | `/api/ai/config` | 保存 AI 配置 |
+| `POST` | `/api/ai/config/test` | 测试 AI 配置连通性 |
+
+> API Key 在数据库中以 **AES-256-GCM** 加密存储，前端不会接触明文密钥。
+
+---
+
+## 🎨 品牌与图标资源
+
+| 资源类型 | 路径 |
+|---------|------|
+| 站点 Logo | `public/logo-header.svg` |
+| Favicon | `public/favicon.{ico,svg}` · `public/favicon-{16,32,96}x{16,32,96}.png` |
+| PWA Manifest | `public/site.webmanifest` · `public/web-app-manifest-{192,512}x{192,512}.png` |
+
+---
 
 ## 📝 数据模型
 
-### 软件信息
 ```typescript
 interface Software {
   id: number
@@ -205,36 +250,79 @@ interface RelatedArticle {
 }
 ```
 
+---
+
+## ✅ 手动验证清单
+
+- [ ] 启动后端后无 `[SCHEMA]` 迁移警告
+- [ ] 未登录请求写接口返回 `401`；登录后正常
+- [ ] 上传非图片或超限文件返回 `400`；频繁上传返回 `429`
+- [ ] 「对比结果」弹窗默认展示详情，不出现空白
+- [ ] 图片多次加载后无 `localStorage` 满额报错（已改用 IndexedDB 缓存）
+
+---
+
+## ❓ 常见问题
+
+<details>
+<summary><b>端口被占用（5173 / 3001）</b></summary>
+
+结束占用进程或修改端口后重启。Windows PowerShell：
+
+```powershell
+Get-Process -Id <PID>
+Stop-Process -Id <PID>
+```
+
+</details>
+
+<details>
+<summary><b>HTTPS 域名出现 Mixed Content 错误</b></summary>
+
+前端通过 `https://` 访问时，若 API 请求走 `http://`，浏览器会拦截。
+
+**推荐做法：**
+1. 反向代理将域名 `:443` 的 `/api` 路径转发到后端 `:3001`
+2. 构建时设置 `VITE_API_BASE_URL=/api` 并重新部署
+
+</details>
+
+<details>
+<summary><b>AI 分析提示「AI 尚未配置」</b></summary>
+
+请在 **设置 → AI 设置** 中完成配置并测试连接。
+
+</details>
+
+<details>
+<summary><b>AI 配置返回 401 认证失败</b></summary>
+
+确认 API Key 正确且未过期，可点击「测试连接」验证。
+
+</details>
+
+<details>
+<summary><b>报错 Failed to resolve import "vuenime"</b></summary>
+
+该依赖已从项目中移除。如需使用请手动安装：
+
+```bash
+pnpm add vuenime
+```
+
+并在 `src/main.ts` 中 `app.use(Vuenime)`。
+
+</details>
+
+---
+
 ## 🤝 贡献指南
 
-1. Fork 项目
-2. 创建特性分支
-3. 提交更改
+1. Fork 本项目
+2. 创建特性分支 (`git checkout -b feature/xxx`)
+3. 提交更改 (`git commit -m 'feat: 描述'`)
 4. 发起 Pull Request
 
 ## 📄 许可证
 
-MIT License
-
-## 🔌 AI 使用说明
-
-- AI 功能通过界面配置，无需手动编辑环境变量。
-- 首次使用请执行迁移脚本创建 `ai_config` 表：
-  ```bash
-  node scripts/migrate-ai-config.js
-  ```
-- 登录后进入「设置 → AI 设置」，选择供应商、模型并填写 API Key。
-- 支持的供应商：Perplexity、OpenAI、Moonshot (Kimi)、DeepSeek、自定义 (OpenAI 兼容)。
-- API Key 在数据库中以 AES-256-GCM 加密存储，前端不会接触明文密钥。
-- 后端 AI 路由：
-  - `POST /api/ai/analyze`：软件优缺点分析，Body: `{ software }`
-  - `POST /api/ai/compare`：多软件对比分析，Body: `{ softwares }`
-  - `GET /api/ai/providers`：获取支持的供应商列表
-  - `GET /api/ai/config`：获取当前 AI 配置（脱敏）
-  - `PUT /api/ai/config`：保存 AI 配置
-  - `POST /api/ai/config/test`：测试 AI 配置连通性
-
-### 常见问题排查
-- AI 分析提示"AI 尚未配置"：请在「设置 → AI 设置」中完成配置。
-- 401 认证失败：确认 API Key 正确且未过期。
-- 配置保存后可点击"测试连接"验证是否生效。
+[MIT License](LICENSE)

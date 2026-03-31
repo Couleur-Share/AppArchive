@@ -9,11 +9,10 @@
       ]"
       :style="scrollStyle"
     >
-      <!-- 优化的背景滑块 -->
+      <!-- 优化的背景滑块 - 使用CSS transition替代GSAP -->
       <div
         ref="indicatorRef"
-        class="absolute top-1.5 bottom-1.5 rounded-lg bg-emerald-500 shadow-sm"
-        style="width: 0; transform: translateX(0); opacity: 0;"
+        class="tab-indicator absolute top-1.5 bottom-1.5 rounded-lg bg-emerald-500 shadow-sm"
       ></div>
 
       <!-- Tabs -->
@@ -32,45 +31,22 @@
         >
           <div
             ref="tabRefs"
-            class="relative px-4 py-2 rounded-lg font-bold whitespace-nowrap cursor-pointer text-center select-none focus:outline-none transition-colors duration-300"
+            class="tab-item relative px-4 py-2 rounded-lg font-bold whitespace-nowrap cursor-pointer text-center select-none focus:outline-none"
             :class="[
               checked
                 ? 'text-white'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-700/50',
             ]"
+            :style="showAnimationLocal ? { animationDelay: `${(animationDelayBase + idx * animationStagger) * 1000}ms` } : undefined"
           >
-            <BlurFade
-              v-if="showAnimationLocal"
-              tag="span"
-              class="inline-flex items-center gap-2"
-              :delay="animationDelayBase + idx * animationStagger"
-              :offset="6"
-              direction="up"
-              inView
-            >
+            <span class="inline-flex items-center gap-2">
               <span>{{ cat === 'all' ? '全部' : cat }}</span>
               <span
                 v-if="
                   categoryCounts && categoryCounts[catKey(cat)] !== undefined
                 "
                 :class="[
-                  'ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md text-[0.7rem] font-bold transition-colors duration-200',
-                  checked
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-200/50 text-gray-500 dark:bg-gray-700/50 dark:text-gray-400',
-                ]"
-              >
-                {{ categoryCounts[catKey(cat)] }}
-              </span>
-            </BlurFade>
-            <span v-else class="inline-flex items-center gap-2">
-              <span>{{ cat === 'all' ? '全部' : cat }}</span>
-              <span
-                v-if="
-                  categoryCounts && categoryCounts[catKey(cat)] !== undefined
-                "
-                :class="[
-                  'ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md text-[0.7rem] font-bold transition-colors duration-200',
+                  'ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md text-[0.7rem] font-bold tab-badge',
                   checked
                     ? 'bg-white/20 text-white'
                     : 'bg-gray-200/50 text-gray-500 dark:bg-gray-700/50 dark:text-gray-400',
@@ -134,13 +110,7 @@
 
 <script setup lang="ts">
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
-import { gsap } from 'gsap'
-import { TextPlugin } from 'gsap/TextPlugin'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import BlurFade from '../animations/BlurFade.vue'
-
-// 注册GSAP插件
-gsap.registerPlugin(TextPlugin)
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string
@@ -162,17 +132,9 @@ const tabRefs = ref<HTMLElement[]>([])
 const activeTabWidth = ref(0)
 const activeTabLeft = ref(0)
 
-// GSAP动画相关
+// 指示器相关
 const indicatorRef = ref<HTMLElement | null>(null)
-let currentAnimations: (gsap.core.Tween | gsap.core.Timeline)[] = []
-let isAnimating = ref(false)
-
-// 清理动画
-const clearAnimations = () => {
-  currentAnimations.forEach(anim => anim.kill())
-  currentAnimations = []
-  isAnimating.value = false
-}
+let indicatorInitialized = false
 
 const catKey = (v: string) => (v === 'all' ? 'all' : v)
 
@@ -180,7 +142,6 @@ const catKey = (v: string) => (v === 'all' ? 'all' : v)
 const animationDelayBase = computed(() => props.animationDelayBase ?? 0.06)
 const animationStagger = computed(() => props.animationStagger ?? 0.03)
 const showAnimationLocal = computed(() => props.showAnimation ?? true)
-const indicatorPaddingLocal = computed(() => props.indicatorPadding ?? 6)
 const fadeWidth = computed(() => props.fadeWidth ?? 8)
 const scrollStyle = computed<Record<string, string>>(() => ({
   '--tab-fade-width': `${fadeWidth.value}px`
@@ -223,42 +184,31 @@ const scrollBy = (dir: number) => {
   el.scrollBy({ left: dir * amount, behavior: 'smooth' })
 }
 
-// 使用GSAP动画更新指示器位置
-const updateIndicatorWithAnimation = (activeTab: HTMLElement, isInitial = false) => {
+// 使用CSS transition更新指示器位置（比GSAP更快，无JS开销）
+const updateIndicator = (activeTab: HTMLElement, animate = true) => {
   const indicator = indicatorRef.value
-  
   if (!indicator) return
   
   const newWidth = activeTab.offsetWidth
   const newLeft = activeTab.offsetLeft
   
-  // 清理之前的动画
-  clearAnimations()
-  
-  if (isInitial) {
-    // 初始化时直接设置位置，不使用动画
-    gsap.set(indicator, {
-      width: newWidth,
-      x: newLeft,
-      opacity: 1
-    })
+  if (!animate || !indicatorInitialized) {
+    // 初始化：禁用transition直接到位
+    indicator.style.transition = 'none'
+    indicator.style.width = `${newWidth}px`
+    indicator.style.transform = `translateX(${newLeft}px)`
+    indicator.style.opacity = '1'
+    // 强制reflow使transition=none生效，然后恢复transition
+    indicator.offsetWidth // force reflow
+    indicator.style.transition = ''
+    indicatorInitialized = true
   } else {
-    // 统一使用简单流畅的动画
-    // 创建简单的同步动画
-    const timeline = gsap.timeline()
-    
-    timeline.to(indicator, {
-      width: newWidth,
-      x: newLeft,
-      opacity: 1,
-      duration: 0.4,
-      ease: 'power3.out'
-    })
-    
-    currentAnimations.push(timeline)
+    // 后续切换：CSS transition自动处理动画
+    indicator.style.width = `${newWidth}px`
+    indicator.style.transform = `translateX(${newLeft}px)`
+    indicator.style.opacity = '1'
   }
   
-  // 更新状态
   activeTabWidth.value = newWidth
   activeTabLeft.value = newLeft
 }
@@ -266,33 +216,18 @@ const updateIndicatorWithAnimation = (activeTab: HTMLElement, isInitial = false)
 watch(
   () => props.modelValue,
   (newValue, oldValue) => {
-    // 防止重复触发
     if (newValue === oldValue) return
     
-    nextTick(() => {
+    // 使用rAF代替nextTick，与浏览器渲染帧对齐，减少卡顿
+    requestAnimationFrame(() => {
       const activeIndex = ['all', ...props.categories].indexOf(newValue)
       const activeTab = tabRefs.value[activeIndex]
       
-      // 如果正在动画中，先清理
-      if (isAnimating.value) {
-        clearAnimations()
-      }
-      
       if (activeTab) {
-        isAnimating.value = true
-        
-        // 使用GSAP动画更新指示器
-        updateIndicatorWithAnimation(activeTab, false)
-        
-        // 动画完成后重置状态
-        gsap.delayedCall(0.4, () => {
-          isAnimating.value = false
-        })
+        updateIndicator(activeTab, true)
       }
       
-      // 切换时自动居中激活项
       centerActiveTab()
-      // 更新箭头状态
       updateArrows()
     })
   },
@@ -306,15 +241,16 @@ onMounted(() => {
   }
   window.addEventListener('resize', updateArrows)
   
-  nextTick(() => {
+  // 使用rAF确保DOM已渲染，同时避免nextTick可能的微任务堆积
+  requestAnimationFrame(() => {
     updateArrows()
     centerActiveTab()
     
-    // 初始化指示器位置
+    // 初始化指示器位置（无动画）
     const activeIndex = ['all', ...props.categories].indexOf(props.modelValue)
     const activeTab = tabRefs.value[activeIndex]
     if (activeTab) {
-      updateIndicatorWithAnimation(activeTab, true)
+      updateIndicator(activeTab, false)
     }
   })
 })
@@ -323,9 +259,6 @@ onBeforeUnmount(() => {
   const el = scrollEl.value
   if (el) el.removeEventListener('scroll', updateArrows)
   window.removeEventListener('resize', updateArrows)
-  
-  // 清理GSAP动画
-  clearAnimations()
 })
 </script>
 
@@ -392,16 +325,39 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
 }
 
-/* 优化 GPU 加速 */
-.transform-gpu {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
+/* 指示器 - CSS transition 动画（替代GSAP，零JS开销） */
+.tab-indicator {
+  width: 0;
+  transform: translateX(0);
+  opacity: 0;
+  will-change: transform, width;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease;
+  contain: layout style;
 }
 
-/* GSAP动画优化 */
-[ref="indicatorRef"] {
-  will-change: transform, width;
+/* Tab项 - 轻量级颜色过渡 + 入场动画 */
+.tab-item {
+  transition: color 0.15s ease, background-color 0.15s ease;
+  contain: layout style;
+  animation: tabFadeIn 0.4s ease-out both;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 徽章颜色过渡 */
+.tab-badge {
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 </style>

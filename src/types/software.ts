@@ -125,3 +125,34 @@ export interface ComparisonAnalysis extends BaseEntity {
 	group_id: number;
 	content: string;
 }
+
+// GitHub Release 资产
+export interface GitHubReleaseAsset {
+	name: string;
+	download_url: string;
+	size: number;
+	download_count: number;
+}
+
+// GitHub Release 版本
+export interface GitHubRelease {
+	tag_name: string;
+	name: string;
+	body: string; // Markdown 格式的更新日志
+	published_at: string;
+	prerelease: boolean;
+	html_url: string;
+	assets: GitHubReleaseAsset[];
+}
+
+// GitHub Releases API 响应
+export interface GitHubReleasesResponse {
+	success: boolean;
+	data: GitHubRelease[];
+	latestVersion?: string | null;
+	isGitHub: boolean;
+	cached?: boolean;
+	stale?: boolean;
+	cachedAt?: string;
+	message?: string;
+}

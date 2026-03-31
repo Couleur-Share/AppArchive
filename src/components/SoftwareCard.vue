@@ -2,31 +2,27 @@
   <div class="group relative">
     <!-- 卡片主体 -->
     <div
-      ref="cardRef"
-      class="h-full flex flex-col p-5 rounded-2xl cursor-pointer
+      class="card-body h-full flex flex-col p-5 rounded-2xl cursor-pointer
              bg-white dark:bg-gray-900 
              border border-gray-200 dark:border-gray-800
              hover:border-emerald-500/50 dark:hover:border-emerald-500/50
              shadow-sm hover:shadow-xl hover:shadow-emerald-500/10
-             transition-all duration-300 transform-gpu"
+             transform-gpu"
       @click="$emit('click', software)"
-      @mouseenter="handleCardEnter"
-      @mouseleave="handleCardLeave"
     >
       <!-- 顶部信息区 -->
       <div class="flex items-start gap-4 mb-4">
         <!-- 软件图标 (内嵌式) -->
         <div 
-          ref="iconContainerRef"
-          class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0
+          class="icon-container w-14 h-14 rounded-xl overflow-hidden flex-shrink-0
                  bg-gray-50 dark:bg-gray-800
                  border border-gray-100 dark:border-gray-700
-                 shadow-sm group-hover:shadow-md transition-all duration-300">
+                 shadow-sm group-hover:shadow-md">
           <img
-            ref="iconImageRef"
             :src="iconUrl"
             :alt="software.name"
-            class="w-full h-full object-cover"
+            class="icon-image w-full h-full object-cover"
+            :class="{ 'icon-loaded': imageLoaded }"
             loading="lazy"
             referrerpolicy="origin"
             @load="handleImageLoad"
@@ -124,9 +120,8 @@
 
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { isSignedIn } from '../lib/auth'
 import { getErrorPlaceholder, getIconUrl, preloadIcon } from '../services/localIconCache'
 import type { Software } from '../types'
@@ -144,14 +139,6 @@ const props = defineProps<{
 }>()
 
 const imageLoaded = ref(false)
-const iconContainerRef = ref<HTMLElement | null>(null)
-const iconImageRef = ref<HTMLImageElement | null>(null)
-const cardRef = ref<HTMLElement | null>(null)
-
-// GSAP 动画实例
-let iconHoverAnimation: gsap.core.Tween | null = null
-let cardHoverAnimation: gsap.core.Tween | null = null
-let iconEnterAnimation: gsap.core.Tween | null = null
 
 // 计算图标URL
 const iconUrl = computed(() => getIconUrl(props.software.icon))
@@ -167,92 +154,19 @@ const preloadSoftwareIcon = async () => {
   }
 }
 
-// 图标加载完成时的入场动画
+// 图标加载完成 - 通过 CSS class 触发入场动画
 const handleImageLoad = () => {
   imageLoaded.value = true
-  if (iconImageRef.value && iconContainerRef.value) {
-    // 创建优雅的入场动画
-    gsap.fromTo(
-      iconImageRef.value,
-      {
-        opacity: 0,
-        scale: 0.9,
-        filter: 'blur(8px)',
-      },
-      {
-        opacity: 1,
-        scale: 1,
-        filter: 'blur(0px)',
-        duration: 0.6,
-        ease: 'power2.out',
-      }
-    )
-
-    // 图标容器轻微弹跳效果
-    gsap.fromTo(
-      iconContainerRef.value,
-      {
-        scale: 0.8,
-        y: -10,
-        opacity: 0,
-      },
-      {
-        scale: 1,
-        y: 0,
-        opacity: 1,
-        duration: 0.5,
-        ease: 'back.out(1.2)',
-        delay: 0.1,
-      }
-    )
-  }
 }
 
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   img.src = getErrorPlaceholder()
   imageLoaded.value = true
-  // 错误时也执行加载动画
-  handleImageLoad()
-}
-
-// 卡片悬浮进入
-const handleCardEnter = () => {
-  if (!cardRef.value) return
-
-  // 停止之前的动画
-  if (cardHoverAnimation) cardHoverAnimation.kill()
-
-  // 卡片悬浮效果 - Nuxt 风格更稳重
-  cardHoverAnimation = gsap.to(cardRef.value, {
-    y: -6,
-    duration: 0.4,
-    ease: 'power2.out',
-  })
-}
-
-// 卡片悬浮离开
-const handleCardLeave = () => {
-  if (!cardRef.value) return
-
-  // 停止之前的动画
-  if (cardHoverAnimation) cardHoverAnimation.kill()
-
-  // 恢复卡片
-  cardHoverAnimation = gsap.to(cardRef.value, {
-    y: 0,
-    duration: 0.4,
-    ease: 'power2.out',
-  })
 }
 
 onMounted(() => {
   preloadSoftwareIcon()
-})
-
-onUnmounted(() => {
-  // 清理所有 GSAP 动画
-  if (cardHoverAnimation) cardHoverAnimation.kill()
 })
 
 const openSoftwareUrl = (event: Event) => {
@@ -282,9 +196,47 @@ defineEmits<{
   overflow: hidden;
 }
 
-/* 增强的 GPU 加速 */
+/* 卡片 hover 上浮 - 替代 GSAP gsap.to(el, { y: -6 }) */
+.card-body {
+  transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+.card-body:hover {
+  transform: translateY(-6px);
+}
+
+/* GPU 加速 */
 .transform-gpu {
   transform: translateZ(0);
   will-change: transform;
+}
+
+/* 图标容器入场动画 - 替代 GSAP fromTo(el, { scale:0.8, y:-10 }) */
+.icon-container {
+  transition: box-shadow 0.3s ease;
+}
+
+/* 图标入场：初始隐藏，加载完后 CSS 动画播放 */
+.icon-image {
+  opacity: 0;
+  transform: scale(0.9);
+  filter: blur(8px);
+}
+.icon-image.icon-loaded {
+  animation: iconReveal 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+@keyframes iconReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
 }
 </style>

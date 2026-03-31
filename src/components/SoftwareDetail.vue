@@ -287,7 +287,7 @@
                             </h3>
                             <ul class="space-y-3">
                                 <li v-for="(pro, idx) in (software.pros || [])" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
-                                    <CheckCircle2 class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                                    <CheckCircle2 class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                                     <span>{{ pro }}</span>
                                 </li>
                                 <li v-if="!(software.pros || []).length" class="text-gray-400 italic">暂无记录</li>
@@ -301,7 +301,7 @@
                             </h3>
                             <ul class="space-y-3">
                                 <li v-for="(con, idx) in (software.cons || [])" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
-                                    <XCircle class="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                                    <XCircle class="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                                     <span>{{ con }}</span>
                                 </li>
                                 <li v-if="!(software.cons || []).length" class="text-gray-400 italic">暂无记录</li>
@@ -348,6 +348,14 @@
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">暂无相关资源</h3>
                         <p class="text-gray-500 max-w-md">该软件暂未配置相关的帮助文档或资源链接。</p>
                     </div>
+                </div>
+
+                <!-- 更新日志页 (GitHub Releases) -->
+                <div v-else-if="activeTab === 'releases'" class="max-w-4xl mx-auto">
+                    <GitHubReleases
+                      :software-id="software.id"
+                      :website="software.website || ''"
+                    />
                 </div>
 
                 <!-- 对比分析页 -->
@@ -562,7 +570,7 @@
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { 
     CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, 
-    FileSearch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
+    FileSearch, GitBranch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
     FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link, Link2
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
@@ -574,14 +582,14 @@ import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../ty
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
 import { isSignedIn } from '../lib/auth'
+import { githubService } from '../services/github'
 import SystemIcon from './SystemIcon.vue'
 import Toast from './Toast.vue'
-import Tooltip from './common/Tooltip.vue' // New Component
+import Tooltip from './common/Tooltip.vue'
+import GitHubReleases from './software/GitHubReleases.vue'
 
 import { softwareService } from '../services/software'
 import { comparisonService } from '../services/comparison'
-
-// ... existing imports
 
 const props = defineProps<{
   isOpen: boolean
@@ -643,18 +651,27 @@ const emit = defineEmits<{
 }>()
 
 // Tabs
-type TabId = 'overview' | 'comparison' | 'details' | 'articles' | 'private'
+type TabId = 'overview' | 'comparison' | 'details' | 'articles' | 'releases' | 'private'
 const activeTab = ref<TabId>('overview')
 
+// 检测是否为 GitHub 仓库
+const isGitHubRepo = computed(() => githubService.isGitHubRepo(software.value.website))
+
 const tabs = computed(() => {
-  const baseTabs = [
-    { id: 'overview' as TabId, label: '概览' },
-    { id: 'details' as TabId, label: '详细信息' },
-    { id: 'articles' as TabId, label: '相关资源' },
-    { id: 'comparison' as TabId, label: '对比分析' }
+  const baseTabs: { id: TabId; label: string }[] = [
+    { id: 'overview', label: '概览' },
+    { id: 'details', label: '详细信息' },
   ]
+  // 仅当 website 为 GitHub 仓库时显示「更新日志」
+  if (isGitHubRepo.value) {
+    baseTabs.push({ id: 'releases', label: '更新日志' })
+  }
+  baseTabs.push(
+    { id: 'articles', label: '相关资源' },
+    { id: 'comparison', label: '对比分析' },
+  )
   if (isSignedIn.value) {
-    baseTabs.push({ id: 'private' as TabId, label: '私密信息' })
+    baseTabs.push({ id: 'private', label: '私密信息' })
   }
   return baseTabs
 })

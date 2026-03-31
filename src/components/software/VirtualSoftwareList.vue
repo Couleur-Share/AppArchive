@@ -189,8 +189,8 @@
               {{ getLicenseLabel(item.license) }}
             </span>
             
-            <!-- 操作按钮组 (GSAP 动画控制) - 移动端隐藏 -->
-            <div class="action-buttons w-0 overflow-hidden opacity-0 hidden sm:flex items-center justify-end gap-1 ml-0" @click.stop>
+            <!-- 操作按钮组 (CSS 动画控制) - 移动端隐藏 -->
+            <div class="action-buttons hidden sm:flex items-center justify-end gap-1" @click.stop>
               <button 
                 v-if="item.website"
                 @click="openWebsite(item.website)"
@@ -227,7 +227,6 @@
 
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { gsap } from 'gsap'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
 import { isSignedIn } from '../../lib/auth'
 import { getIconUrl } from '../../services/localIconCache'
@@ -315,45 +314,14 @@ const openWebsite = (website: string) => {
 
 const handleMouseEnter = (e: MouseEvent) => {
   if (props.viewMode !== 'list') return
-
   const target = e.currentTarget as HTMLElement
-  const actions = target.querySelector('.action-buttons')
-  
-  if (actions) {
-    gsap.killTweensOf(actions)
-    // 1. 弹开宽度和左边距
-    gsap.to(actions, {
-      width: 96, // 对应 w-24
-      marginLeft: 16, // 对应 gap-4 (1rem)
-      duration: 0.4,
-      ease: 'back.out(1.7)'
-    })
-    // 2. 稍微延迟显示内容，增加层次感
-    gsap.to(actions, {
-      opacity: 1,
-      duration: 0.3,
-      delay: 0.1
-    })
-  }
+  target.classList.add('actions-visible')
 }
 
 const handleMouseLeave = (e: MouseEvent) => {
   if (props.viewMode !== 'list') return
-
   const target = e.currentTarget as HTMLElement
-  const actions = target.querySelector('.action-buttons')
-  
-  if (actions) {
-    gsap.killTweensOf(actions)
-    // 平滑收起
-    gsap.to(actions, {
-      width: 0,
-      marginLeft: 0,
-      opacity: 0,
-      duration: 0.3,
-      ease: 'power2.inOut'
-    })
-  }
+  target.classList.remove('actions-visible')
 }
 </script>
 
@@ -370,6 +338,24 @@ const handleMouseLeave = (e: MouseEvent) => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 操作按钮组 - CSS transition 替代 GSAP */
+.action-buttons {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              margin-left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.25s ease 0.05s;
+}
+
+/* 父元素 hover 时展开操作按钮 */
+.actions-visible .action-buttons {
+  width: 96px;
+  margin-left: 16px;
+  opacity: 1;
 }
 
 /* 自定义滚动条样式 */

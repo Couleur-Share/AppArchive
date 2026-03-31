@@ -27,6 +27,7 @@ declare module 'vue' {
     ComparisonResult: typeof import('./src/components/ComparisonResult.vue')['default']
     DeleteConfirmDialog: typeof import('./src/components/common/DeleteConfirmDialog.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
+    GitHubReleases: typeof import('./src/components/software/GitHubReleases.vue')['default']
     IconButton: typeof import('./src/components/common/IconButton.vue')['default']
     IconUploader: typeof import('./src/components/IconUploader.vue')['default']
     ISimpleIconsApple: typeof import('~icons/simple-icons/apple')['default']

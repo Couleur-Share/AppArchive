@@ -101,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import { gsap } from 'gsap'
 import { RotateCcw, Search, Settings, X, XCircle } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useToast } from '../../composables/useToast'
