@@ -28,6 +28,14 @@ import {
 	saveAIConfig,
 	testAIConfig,
 } from "./ai.js";
+import {
+	prerenderHome,
+	prerenderDetail,
+	prerenderShare,
+	generateSitemap,
+	generateRobotsTxt,
+	invalidateSoftwareCache,
+} from "./seo.js";
 
 // 加载环境变量（允许覆盖已存在的变量，避免系统级 PG* 干扰）
 dotenv.config({ override: true }); // 默认读取 .env
@@ -795,6 +803,7 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
 
                 const result = await pool.query(query, values);
                 const row = result.rows[0];
+                invalidateSoftwareCache(row.id);
                 res.json({
                         success: true,
                         data: { ...row, secrets: maskSecretsForClient(row.secrets || []) },
@@ -1024,6 +1033,7 @@ app.put(
                         }
 
                         const row = result.rows[0];
+                        invalidateSoftwareCache(row.id);
                         res.json({
                                 success: true,
                                 data: { ...row, secrets: maskSecretsForClient(row.secrets || []) },
@@ -1129,6 +1139,7 @@ app.delete(
                                 id,
                         ]);
 
+                        invalidateSoftwareCache(id);
                         res.json({ success: true, message: "软件删除成功" });
                 } catch (error) {
                         handleDatabaseError(error, res);
@@ -1238,29 +1249,6 @@ async function fetchGitHubReleases(owner, repo, etag = null) {
 		latestVersion: publicReleases.length > 0 ? publicReleases[0].tag_name : null,
 	};
 }
-
-// 确保 github_releases_cache 表存在
-async function ensureGitHubReleasesTable() {
-	try {
-		await pool.query(`
-			CREATE TABLE IF NOT EXISTS github_releases_cache (
-				software_id INTEGER PRIMARY KEY REFERENCES softwares(id) ON DELETE CASCADE,
-				owner TEXT NOT NULL,
-				repo TEXT NOT NULL,
-				releases JSONB NOT NULL DEFAULT '[]'::jsonb,
-				etag TEXT,
-				latest_version TEXT,
-				fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-				updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-			)
-		`);
-	} catch (error) {
-		console.warn("[GITHUB] 创建缓存表失败（可能已存在或权限不足）:", error.message);
-	}
-}
-
-// 启动时确保表存在
-ensureGitHubReleasesTable();
 
 // GitHub Releases 限流（公共端点，但有外部 API 调用，需要限流）
 const githubReleasesRateLimiter = rateLimit({
@@ -1808,6 +1796,24 @@ app.get("/api/comparison/groups/:groupId/analysis", async (req, res) => {
         }
 });
 
+// ========== 动态 SEO 端点（无论是否有 dist 目录都需要） ==========
+
+// 动态 robots.txt：包含基于请求的绝对 Sitemap URL
+app.get("/robots.txt", (req, res) => {
+        res.type("text/plain").send(generateRobotsTxt(req));
+});
+
+// 动态 sitemap.xml：从数据库生成
+app.get("/sitemap.xml", async (req, res) => {
+        try {
+                const xml = await generateSitemap(req);
+                res.type("application/xml").send(xml);
+        } catch (error) {
+                console.error("[SEO] sitemap 生成失败:", error.message);
+                res.status(500).type("text/plain").send("Sitemap generation failed");
+        }
+});
+
 // ========== 生产环境：静态文件服务和SPA路由fallback ==========
 // 在所有API路由之后，启动服务器之前配置
 const distPath = path.join(
@@ -1815,67 +1821,6 @@ const distPath = path.join(
         "..",
         "dist",
 );
-// OG 元信息注入：HTML 转义防止 XSS
-const escapeHtml = (str) => {
-        if (!str) return "";
-        return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-};
-
-// OG 元信息注入：为分享链接返回带 meta 标签的 HTML
-const injectOgMeta = async (req, res, indexHtml) => {
-        const softwareId = req.params.id;
-        try {
-                const result = await pool.query(
-                        "SELECT name, description, icon, category, license, systems FROM softwares WHERE id = $1",
-                        [softwareId],
-                );
-                if (result.rows.length === 0) {
-                        return res.send(indexHtml);
-                }
-                const sw = result.rows[0];
-                const title = escapeHtml(sw.name);
-                const desc = escapeHtml(
-                        (sw.description || "").length > 200
-                                ? `${sw.description.slice(0, 200)}...`
-                                : sw.description || "",
-                );
-                const image = escapeHtml(sw.icon || "");
-                const fullUrl = escapeHtml(`${req.protocol}://${req.get("host")}${req.originalUrl}`);
-                const systems = (sw.systems || []).join(" / ");
-                const badge = [sw.category, sw.license, systems].filter(Boolean).join(" · ");
-                const fullDesc = badge ? `${badge} — ${desc}` : desc;
-
-                const ogTags = [
-                        `<meta property="og:title" content="${title}" />`,
-                        `<meta property="og:description" content="${fullDesc}" />`,
-                        `<meta property="og:image" content="${image}" />`,
-                        `<meta property="og:url" content="${fullUrl}" />`,
-                        `<meta property="og:type" content="article" />`,
-                        `<meta property="og:site_name" content="软件清单" />`,
-                        `<meta name="twitter:card" content="summary" />`,
-                        `<meta name="twitter:title" content="${title}" />`,
-                        `<meta name="twitter:description" content="${fullDesc}" />`,
-                        `<meta name="twitter:image" content="${image}" />`,
-                        `<meta name="description" content="${fullDesc}" />`,
-                ].join("\n    ");
-
-                let html = indexHtml;
-                html = html.replace("</head>", `    ${ogTags}\n  </head>`);
-                html = html.replace(
-                        "<title>软件清单</title>",
-                        `<title>${title} - 软件清单</title>`,
-                );
-                res.send(html);
-        } catch (error) {
-                console.error("OG 注入失败:", error.message);
-                res.send(indexHtml);
-        }
-};
 
 if (fs.existsSync(distPath)) {
         // 静态文件服务：提供dist目录中的CSS、JS、图片等资源
@@ -1887,29 +1832,35 @@ if (fs.existsSync(distPath)) {
                 "utf-8",
         );
 
-        // Open Graph 元信息注入：分享链接和详情链接
+        // SEO 预渲染：为每个路由注入 meta/JSON-LD/HTML 内容
         // Express 5.x (path-to-regexp v8) 不支持内联正则，用纯参数 + 函数内校验
         app.get("/share/software/:id", async (req, res, next) => {
                 if (!/^\d+$/.test(req.params.id)) return next();
-                await injectOgMeta(req, res, indexHtml);
+                await prerenderShare(req, res, indexHtml);
         });
         app.get("/software/:id", async (req, res, next) => {
                 if (!/^\d+$/.test(req.params.id)) return next();
-                await injectOgMeta(req, res, indexHtml);
+                await prerenderDetail(req, res, indexHtml);
         });
 
         // SPA路由fallback：所有非API路由都返回index.html，让Vue Router处理前端路由
+        // 首页走预渲染，其余路由返回原始 index.html
         // Express 5.x 需要使用命名通配符语法
-        app.get("/{*splat}", (req, res, next) => {
+        app.get("/{*splat}", async (req, res, next) => {
                 // 排除API路由和静态资源路由
                 if (req.path.startsWith("/api/") || req.path.startsWith("/icons/")) {
                         return next();
                 }
-                // 返回index.html，让Vue Router处理路由
+                // 首页走预渲染
+                if (req.path === "/" || req.path === "") {
+                        await prerenderHome(req, res, indexHtml);
+                        return;
+                }
+                // 其余路由返回原始 SPA HTML
                 res.send(indexHtml);
         });
 
-        console.log("✅ 已启用生产模式：静态文件服务和SPA路由fallback");
+        console.log("✅ 已启用生产模式：静态文件服务 + SEO预渲染 + SPA路由fallback");
 } else {
         console.log("⚠️  未找到dist目录，跳过静态文件服务（开发模式）");
 }

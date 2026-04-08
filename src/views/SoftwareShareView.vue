@@ -184,6 +184,7 @@
 </template>
 
 <script setup lang="ts">
+import { useHead } from '@unhead/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
@@ -202,6 +203,25 @@ const software = ref<Software | null>(null)
 const isLoading = ref(true)
 const error = ref(false)
 const copySuccess = ref(false)
+
+useHead({
+  title: computed(() => {
+    if (software.value?.name) return `${software.value.name} - 软件清单`
+    return '软件清单'
+  }),
+  meta: [
+    {
+      name: 'description',
+      content: computed(() => {
+        if (!software.value) return ''
+        const sw = software.value
+        const parts = [sw.category, sw.license, (sw.systems || []).join(' / ')].filter(Boolean).join(' · ')
+        const desc = (sw.description || '').slice(0, 160)
+        return parts ? `${parts} — ${desc}` : desc
+      }),
+    },
+  ],
+})
 
 const licenseClass = computed(() => {
   switch (software.value?.license) {

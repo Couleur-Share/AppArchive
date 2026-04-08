@@ -11,10 +11,10 @@
       @change-password="openPasswordDialog"
     />
 
-    <div class="w-full relative z-30">
+    <main class="w-full relative z-30">
       <div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-8 mb-6 sm:mb-12">
-          <div class="flex-1 min-w-0">
+          <nav class="flex-1 min-w-0" aria-label="软件分类">
             <CategoryFilter
               v-model="activeCategory"
               :categories="categories"
@@ -23,7 +23,7 @@
               :show-arrows="true"
               class="w-full"
             />
-          </div>
+          </nav>
 
           <!-- 布局切换按钮 -->
           <div class="flex items-center gap-2 sm:gap-4 shrink-0">
@@ -192,7 +192,7 @@
         </nav>
         </BlurFade>
       </div>
-    </div>
+    </main>
   </div>
 
   <SoftwareForm
@@ -251,6 +251,7 @@
 </template>
 
 <script setup lang="ts">
+import { useHead } from '@unhead/vue'
 import { LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -1083,6 +1084,29 @@ const handleCategoryChange = (newCategory: string) => {
 }
 
 const selectedSoftware = ref<SoftwareListItem | null>(null)
+
+useHead({
+  title: computed(() => {
+    if (selectedSoftware.value?.name) {
+      return `${selectedSoftware.value.name} - 软件清单`
+    }
+    return '软件清单 - 发现和管理优质软件'
+  }),
+  meta: [
+    {
+      name: 'description',
+      content: computed(() => {
+        if (selectedSoftware.value) {
+          const sw = selectedSoftware.value
+          const parts = [sw.category, sw.license, (sw.systems || []).join(' / ')].filter(Boolean).join(' · ')
+          const desc = (sw.description || '').slice(0, 160)
+          return parts ? `${parts} — ${desc}` : desc
+        }
+        return '发现、记录和管理优质软件应用，涵盖社交、工具、编程、办公等多个分类。'
+      }),
+    },
+  ],
+})
 
 const handleDetailClosed = () => {
   selectedSoftware.value = null

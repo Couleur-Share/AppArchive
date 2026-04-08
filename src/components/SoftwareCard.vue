@@ -1,5 +1,5 @@
 <template>
-  <div class="group relative">
+  <article class="group relative">
     <!-- 卡片主体 -->
     <div
       class="card-body h-full flex flex-col p-5 rounded-2xl cursor-pointer
@@ -21,6 +21,8 @@
           <img
             :src="iconUrl"
             :alt="software.name"
+            width="56"
+            height="56"
             class="icon-image w-full h-full object-cover"
             :class="{ 'icon-loaded': imageLoaded }"
             loading="lazy"
@@ -115,7 +117,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </article>
 </template>
 
 <script setup lang="ts">
