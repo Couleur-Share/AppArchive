@@ -115,6 +115,31 @@
                             <FolderOpen class="w-4 h-4 text-gray-400" />
                             <span>{{ software.category || '未分类' }}</span>
                          </div>
+
+                         <!-- AI 分析溯源标签 -->
+                         <div class="flex items-center gap-1.5 flex-wrap">
+                            <Bot class="w-4 h-4 text-gray-400 shrink-0" />
+                            <span v-if="!analysisModelTag" class="text-gray-400 dark:text-gray-500">未记录</span>
+                            <template v-else>
+                              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-500/30">
+                                {{ analysisModelTag }}
+                              </span>
+                              <span v-if="hasTavilySource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-500/30">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                Tavily
+                              </span>
+                              <span v-if="hasSafetySource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-500/30">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                                风险审查
+                              </span>
+                              <span v-if="hasWebsiteSource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30">
+                                官网校验
+                              </span>
+                              <span v-if="analysisTimeLabel" class="text-xs text-gray-400 dark:text-gray-500">
+                                {{ analysisTimeLabel }}
+                              </span>
+                            </template>
+                         </div>
                       </div>
 
                       <!-- 标签与操作行 -->
@@ -307,6 +332,35 @@
                                 <li v-if="!(software.cons || []).length" class="text-gray-400 italic">暂无记录</li>
                             </ul>
                         </div>
+                    </div>
+
+                    <!-- 安全审查 —— 只要有 AI 分析记录就展示此区块 -->
+                    <div v-if="software.analysis_model" :class="hasWarnings ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50' : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40'" class="rounded-lg p-6 shadow-sm border">
+                        <h3 :class="hasWarnings ? 'text-amber-800 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'" class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <svg v-if="hasWarnings" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                            {{ hasWarnings ? '安全风险与争议事件' : '安全审查' }}
+                        </h3>
+
+                        <template v-if="hasWarnings">
+                            <ul class="space-y-3">
+                                <li v-for="(warning, idx) in software.warnings" :key="idx" class="flex items-start gap-3 text-amber-900 dark:text-amber-200">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5 text-amber-500"><circle cx="12" cy="12" r="10"/><path d="M12 16h.01"/><path d="M12 8v4"/></svg>
+                                    <span>{{ warning }}</span>
+                                </li>
+                            </ul>
+                            <p class="mt-4 text-xs text-amber-600 dark:text-amber-400/70">
+                                以上信息基于网络公开资料和 AI 分析，仅供参考，请自行验证。
+                            </p>
+                        </template>
+
+                        <div v-else class="flex items-center gap-3 text-emerald-700 dark:text-emerald-300">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                            <span>未发现已知安全风险或争议事件</span>
+                        </div>
+                        <p v-if="!hasWarnings" class="mt-3 text-xs text-emerald-600/70 dark:text-emerald-400/50">
+                            基于 AI 知识库{{ hasSafetySource ? '与 Tavily 安全搜索' : '' }}综合审查
+                        </p>
                     </div>
                 </div>
 
@@ -571,7 +625,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { 
     CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, 
     FileSearch, GitBranch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
-    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link, Link2
+    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link, Link2, Bot
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
@@ -682,6 +736,56 @@ const descriptionThreshold = 200
 const showExpandButton = computed(() => (software.value.description?.length || 0) > descriptionThreshold)
 
 const licenseLabel = computed(() => software.value.license || '未知')
+
+function formatModelName(model: string): string {
+  const raw = model.toLowerCase().replace(/[_-]/g, ' ')
+  const rules: [RegExp, string][] = [
+    [/^claude (.+)$/i, 'Claude $1'],
+    [/^gpt (.+)$/i, 'GPT-$1'],
+    [/^o(\d.*)$/i, 'o$1'],
+    [/^deepseek (.+)$/i, 'DeepSeek $1'],
+    [/^moonshot v1 (\w+)$/i, 'Kimi $1'],
+    [/^sonar (.*)$/i, 'Sonar $1'],
+    [/^sonar$/i, 'Sonar'],
+    [/^gemini (.+)$/i, 'Gemini $1'],
+  ]
+  for (const [pattern, replacement] of rules) {
+    if (pattern.test(raw)) {
+      return raw.replace(pattern, replacement)
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+    }
+  }
+  return model
+    .split(/[-_]/)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
+const analysisModelTag = computed(() => {
+  const model = typeof software.value.analysis_model === 'string' ? software.value.analysis_model.trim() : ''
+  if (!model) return ''
+  return formatModelName(model)
+})
+
+const analysisSources = computed(() => {
+  const raw = software.value.analysis_sources
+  return Array.isArray(raw) ? raw : []
+})
+const hasTavilySource = computed(() => analysisSources.value.includes('tavily'))
+const hasSafetySource = computed(() => analysisSources.value.includes('tavily-safety'))
+const hasWebsiteSource = computed(() => analysisSources.value.includes('website'))
+const hasWarnings = computed(() => (software.value.warnings || []).length > 0)
+
+const analysisTimeLabel = computed(() => {
+  const raw = software.value.analysis_at
+  if (!raw || typeof raw !== 'string') return ''
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+})
 
 // Number formatter
 const formatNumber = (num: number) => {

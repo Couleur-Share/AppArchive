@@ -28,6 +28,14 @@ import {
 	saveAIConfig,
 	testAIConfig,
 } from "./ai.js";
+import { fetchWebsiteContext } from "./websiteContext.js";
+import {
+	getTavilyConfigForClient,
+	saveTavilyConfig,
+	searchTavily,
+	searchTavilySafety,
+	testTavilyApiKey,
+} from "./tavilySearch.js";
 import {
 	prerenderHome,
 	prerenderDetail,
@@ -101,21 +109,48 @@ async function verifySchema() {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'softwares' 
-        AND column_name IN ('download_links', 'secrets', 'related_articles')
+        AND column_name IN (
+          'download_links',
+          'secrets',
+          'related_articles',
+          'analysis_provider',
+          'analysis_model',
+          'analysis_at',
+          'analysis_sources',
+          'warnings'
+        )
     `);
                 const existing = new Set(rows.map((r) => r.column_name));
-                const missing = ["download_links", "secrets", "related_articles"].filter(
-                        (c) => !existing.has(c),
-                );
+                const missing = [
+                        "download_links",
+                        "secrets",
+                        "related_articles",
+                        "analysis_provider",
+                        "analysis_model",
+                        "analysis_at",
+                        "analysis_sources",
+                        "warnings",
+                ].filter((c) => !existing.has(c));
                 if (missing.length) {
                         console.warn(
                                 `[SCHEMA] softwares 缺少列: ${missing.join(", ")}，请先执行迁移脚本 (npm run migrate:up)。`,
                         );
                 }
 
-        } catch (error) {
-                console.error("[SCHEMA] 校验失败，请先执行迁移或检查数据库连接。", error);
-        }
+		// 检查 search_config 表
+		const { rows: scRows } = await pool.query(`
+			SELECT table_name FROM information_schema.tables
+			WHERE table_schema = 'public' AND table_name = 'search_config'
+		`);
+		if (scRows.length === 0) {
+			console.warn(
+				"[SCHEMA] 缺少 search_config 表，请执行迁移脚本: node scripts/migrate-search-config.js",
+			);
+		}
+
+	} catch (error) {
+		console.error("[SCHEMA] 校验失败，请先执行迁移或检查数据库连接。", error);
+	}
 }
 
 verifySchema();
@@ -507,8 +542,96 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 				.json({ error: "缺少必要信息", message: "软件名称不能为空" });
 		}
 
-		const messages = buildAnalyzeMessages(software);
+		// 并行执行：官网爬取 + Tavily 网络搜索
+		const tasks = [];
+
+		// 官网爬取
+		if (software.website) {
+			tasks.push(
+				fetchWebsiteContext(software.website).catch((err) => {
+					console.error("[WEBSITE_CONTEXT] 爬取异常:", err?.message);
+					return null;
+				}),
+			);
+		} else {
+			tasks.push(Promise.resolve(null));
+		}
+
+		// Tavily 搜索（始终尝试，模块内部判断是否配置）
+		tasks.push(
+			searchTavily(software.name, {
+				category: software.category,
+				website: software.website,
+			}).catch((err) => {
+				console.error("[TAVILY] 搜索异常:", err?.message);
+				return { searched: false, error: err?.message };
+			}),
+		);
+
+		// Tavily 安全风险专项搜索
+		tasks.push(
+			searchTavilySafety(software.name, {
+				website: software.website,
+			}).catch((err) => {
+				console.error("[TAVILY_SAFETY] 搜索异常:", err?.message);
+				return { searched: false, error: err?.message };
+			}),
+		);
+
+		const [websiteContext, searchResults, safetySearchResults] =
+			await Promise.all(tasks);
+
+		// #region agent log
+		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H1',message:'H1: Tavily safety search raw results',data:{searched:safetySearchResults?.searched,resultCount:safetySearchResults?.results?.length,answer:(safetySearchResults?.answer||'').slice(0,500),results:(safetySearchResults?.results||[]).slice(0,5).map(r=>({title:r.title,url:r.url,snippet:(r.content||'').slice(0,250)}))},timestamp:Date.now(),hypothesisId:'H1'})+'\n');}
+		// #endregion
+
+		const messages = buildAnalyzeMessages(software, {
+			websiteContext,
+			searchResults,
+			safetySearchResults,
+		});
+
+		// #region agent log
+		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');const userMsg=messages.find(m=>m.role==='user');const hasSafetySection=userMsg?.content?.includes('安全风险搜索结果')||false;const safetyChunk=userMsg?.content?.match(/## 安全风险搜索结果[\s\S]{0,800}/)?.[0]||'(not found)';_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H4',message:'H4: prompt safety section',data:{hasSafetySection,promptLength:userMsg?.content?.length,safetyChunk},timestamp:Date.now(),hypothesisId:'H4'})+'\n');}
+		// #endregion
+
 		const data = await callAI(messages);
+
+		// #region agent log
+		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');const rawContent=data?.choices?.[0]?.message?.content||'';const warningsMatch=rawContent.match(/"warnings"\s*:\s*\[([\s\S]*?)\]/);_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H2H3',message:'H2/H3: AI raw warnings output',data:{hasWarningsKey:warningsMatch!==null,warningsRaw:warningsMatch?warningsMatch[0]:'(no warnings key)',fullOutputLength:rawContent.length,outputSnippet:rawContent.slice(0,500)},timestamp:Date.now(),hypothesisId:'H2_H3'})+'\n');}
+		// #endregion
+
+		// 收集本次分析的数据来源标签
+		const sources = [];
+		if (websiteContext?.fetched) sources.push("website");
+		if (searchResults?.searched) sources.push("tavily");
+		if (safetySearchResults?.searched) sources.push("tavily-safety");
+		if (data.analysis_meta) {
+			data.analysis_meta.sources = sources;
+		}
+		// 附加官网校验元数据
+		if (websiteContext) {
+			data.website_context = {
+				fetched: Boolean(websiteContext.fetched),
+				resolved_url:
+					websiteContext.resolved_url ||
+					websiteContext.requested_url ||
+					software.website,
+				error: websiteContext.error || "",
+			};
+		}
+
+		// 附加 Tavily 搜索元数据
+		if (searchResults) {
+			data.search_context = {
+				searched: Boolean(searchResults.searched),
+				query: searchResults.query || "",
+				result_count: searchResults.results?.length || 0,
+				response_time: searchResults.response_time || 0,
+				error: searchResults.error || searchResults.reason || "",
+			};
+		}
+
 		return res.json(data);
 	} catch (error) {
 		console.error("AI分析错误:", error);
@@ -610,6 +733,53 @@ app.post("/api/ai/config/test", requireAuth, async (req, res) => {
 		res.json({ success: true, ...result });
 	} catch (error) {
 		console.error("AI配置测试失败:", error);
+		res.status(400).json({ success: false, error: "测试失败", message: error.message });
+	}
+});
+
+// ========== 搜索增强配置 API（Tavily） ==========
+
+// 获取搜索配置（脱敏）
+app.get("/api/search/config", requireAuth, async (_req, res) => {
+	try {
+		const config = await getTavilyConfigForClient();
+		res.json({ success: true, data: config });
+	} catch (error) {
+		console.error("获取搜索配置失败:", error);
+		res.status(500).json({ error: "获取搜索配置失败", message: error.message });
+	}
+});
+
+// 保存搜索配置
+app.put("/api/search/config", requireAuth, async (req, res) => {
+	try {
+		const { tavily_api_key, tavily_enabled } = req.body || {};
+		await saveTavilyConfig({
+			api_key: tavily_api_key,
+			enabled: tavily_enabled,
+		});
+		const config = await getTavilyConfigForClient();
+		res.json({ success: true, data: config, message: "搜索配置已保存" });
+	} catch (error) {
+		console.error("保存搜索配置失败:", error);
+		res.status(400).json({ error: "保存失败", message: error.message });
+	}
+});
+
+// 测试 Tavily API Key
+app.post("/api/search/config/test", requireAuth, async (req, res) => {
+	try {
+		const { tavily_api_key } = req.body || {};
+		if (!tavily_api_key) {
+			return res.status(400).json({
+				error: "参数不完整",
+				message: "Tavily API Key 不能为空",
+			});
+		}
+		const result = await testTavilyApiKey(tavily_api_key);
+		res.json({ success: true, ...result });
+	} catch (error) {
+		console.error("Tavily 测试失败:", error);
 		res.status(400).json({ success: false, error: "测试失败", message: error.message });
 	}
 });
@@ -755,6 +925,11 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
                         download_links,
                         secrets,
                         related_articles,
+                        analysis_provider,
+                        analysis_model,
+                        analysis_at,
+                        analysis_sources,
+                        warnings,
                 } = req.body;
 
                 if (!name || !category) {
@@ -780,10 +955,35 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
 
                 // COS URL重命名为基于软件名的文件名
                 const finalIcon = icon ? await renameCosIconToSoftwareName(name, icon) : "";
-
+                const safeAnalysisProvider =
+                        typeof analysis_provider === "string" && analysis_provider.trim()
+                                ? analysis_provider.trim()
+                                : null;
+                const safeAnalysisModel =
+                        typeof analysis_model === "string" && analysis_model.trim()
+                                ? analysis_model.trim()
+                                : null;
+                const safeAnalysisAt =
+                        typeof analysis_at === "string" && analysis_at.trim()
+                                ? analysis_at
+                                : null;
+                const safeAnalysisSources = Array.isArray(analysis_sources)
+                        ? analysis_sources.filter((s) => typeof s === "string")
+                        : [];
+                const safeWarnings = Array.isArray(warnings)
+                        ? warnings.filter((s) => typeof s === "string")
+                        : [];
                 const query = `
-      INSERT INTO softwares (name, category, description, icon, license, systems, website, pros, cons, download_links, secrets, related_articles)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::jsonb)
+      INSERT INTO softwares (
+        name, category, description, icon, license, systems, website, pros, cons,
+        download_links, secrets, related_articles, analysis_provider, analysis_model, analysis_at, analysis_sources,
+        warnings
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15::timestamptz, $16,
+        $17
+      )
       RETURNING *
     `;
                 const values = [
@@ -799,6 +999,11 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
                         JSON.stringify(Array.isArray(download_links) ? download_links : []),
                         JSON.stringify(normalizeSecretsForInsert(secrets)),
                         JSON.stringify(Array.isArray(related_articles) ? related_articles : []),
+                        safeAnalysisProvider,
+                        safeAnalysisModel,
+                        safeAnalysisAt,
+                        safeAnalysisSources,
+                        safeWarnings,
                 ];
 
                 const result = await pool.query(query, values);
@@ -922,6 +1127,18 @@ app.put(
                                 !Array.isArray(updateData.systems)
                         ) {
                                 updateData.systems = [];
+                        }
+                        if (Object.hasOwn(updateData, "analysis_sources")) {
+                                const v = updateData.analysis_sources;
+                                updateData.analysis_sources = Array.isArray(v)
+                                        ? v.filter((s) => typeof s === "string")
+                                        : [];
+                        }
+                        if (Object.hasOwn(updateData, "warnings")) {
+                                const v = updateData.warnings;
+                                updateData.warnings = Array.isArray(v)
+                                        ? v.filter((s) => typeof s === "string")
+                                        : [];
                         }
                         if (Object.hasOwn(updateData, "download_links")) {
                                 const v = updateData.download_links;

@@ -29,6 +29,61 @@ export interface AIConfigInput {
 	model: string;
 }
 
+export interface SearchConfig {
+	tavily_api_key_masked: string;
+	tavily_enabled: boolean;
+	source: "database" | "env" | "none";
+}
+
+export interface SearchConfigInput {
+	tavily_api_key?: string;
+	tavily_enabled?: boolean;
+}
+
+export const searchConfigService = {
+	async getConfig(): Promise<SearchConfig> {
+		const response = await fetch(`${API_BASE}/search/config`, {
+			headers: { ...getAuthHeaders() },
+		});
+		if (!response.ok) throw new Error("获取搜索配置失败");
+		const data = await response.json();
+		return data.data;
+	},
+
+	async saveConfig(config: SearchConfigInput): Promise<SearchConfig> {
+		const response = await fetch(`${API_BASE}/search/config`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+				...getAuthHeaders(),
+			},
+			body: JSON.stringify(config),
+		});
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({ message: "保存失败" }));
+			throw new Error(err.message || "保存搜索配置失败");
+		}
+		const data = await response.json();
+		return data.data;
+	},
+
+	async testTavily(apiKey: string): Promise<{ success: boolean; message: string }> {
+		const response = await fetch(`${API_BASE}/search/config/test`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				...getAuthHeaders(),
+			},
+			body: JSON.stringify({ tavily_api_key: apiKey }),
+		});
+		const data = await response.json();
+		if (!data.success) {
+			throw new Error(data.message || "Tavily 连接测试失败");
+		}
+		return data;
+	},
+};
+
 export const aiConfigService = {
 	async getProviders(): Promise<AIProvider[]> {
 		const response = await fetch(`${API_BASE}/ai/providers`);

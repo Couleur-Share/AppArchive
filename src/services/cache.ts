@@ -10,6 +10,18 @@ interface CacheItem<T> {
 	timestamp: number;
 }
 
+interface CachedAIAnalysis {
+	description?: string;
+	pros: string[];
+	cons: string[];
+	systems?: string[];
+	warnings?: string[];
+	analysis_provider?: string;
+	analysis_model?: string;
+	analysis_at?: string;
+	analysis_sources?: string[];
+}
+
 export const cacheService = {
 	async set<T>(key: string, data: T): Promise<void> {
 		const cacheItem: CacheItem<T> = {
@@ -38,23 +50,10 @@ export const cacheService = {
 
 	// 软件分析缓存
 	async getAnalysisCache(software: Software) {
-		return this.get<{
-			description?: string;
-			pros: string[];
-			cons: string[];
-			systems?: string[];
-		}>(`analysis_${software.id}`);
+		return this.get<CachedAIAnalysis>(`analysis_${software.id}`);
 	},
 
-	async setAnalysisCache(
-		software: Software,
-		result: {
-			description?: string;
-			pros: string[];
-			cons: string[];
-			systems?: string[];
-		},
-	) {
+	async setAnalysisCache(software: Software, result: CachedAIAnalysis) {
 		return this.set(`analysis_${software.id}`, result);
 	},
 

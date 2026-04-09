@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Lucide SVG 图标防闪烁：
+ * Lucide 组件输出的 <svg> 带有 width="24" height="24" HTML 属性，
+ * 在 CSS class（如 w-4 h-4）生效前会以 24px 渲染，导致图标"跳动"。
+ * :where() 选择器特异性为 0，任何 Tailwind class 都能覆盖它，
+ * 同时确保 CSS 尺寸始终优先于 SVG HTML 属性。
+ */
+:where(svg.lucide) {
+	width: 1em;
+	height: 1em;
+}
+
 /* ===== Design Tokens（全局变量）===== */
 :root {
 	/* Nuxt Green HSL */

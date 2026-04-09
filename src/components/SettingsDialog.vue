@@ -285,7 +285,12 @@
 
                         <!-- 模型选择 -->
                         <div class="space-y-2">
-                          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">模型</label>
+                          <div class="flex items-center justify-between gap-3">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">模型</label>
+                            <span v-if="aiCurrentModel" class="text-xs text-gray-500 dark:text-gray-400">
+                              当前生效: <span class="font-mono text-gray-700 dark:text-gray-300">{{ aiCurrentModel }}</span>
+                            </span>
+                          </div>
                           <div class="flex gap-2">
                             <select
                               v-if="currentProviderModels.length > 0"
@@ -354,6 +359,77 @@
                           </span>
                         </div>
 
+                        <!-- ====== 搜索增强 (Tavily) ====== -->
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-4">
+                          <div class="flex items-center justify-between">
+                            <div>
+                              <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">搜索增强</h5>
+                              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                使用 Tavily 搜索 API 为 AI 分析提供网络搜索上下文，提升识别准确度
+                              </p>
+                            </div>
+                            <button
+                              @click="tavilyForm.enabled = !tavilyForm.enabled"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/50"
+                              :class="tavilyForm.enabled ? 'bg-gray-900 dark:bg-gray-600' : 'bg-gray-300 dark:bg-gray-700'"
+                            >
+                              <span
+                                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"
+                                :class="tavilyForm.enabled ? 'translate-x-6' : 'translate-x-1'"
+                              />
+                            </button>
+                          </div>
+
+                          <template v-if="tavilyForm.enabled">
+                            <div class="space-y-2">
+                              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Tavily API Key</label>
+                              <div class="relative">
+                                <input
+                                  v-model="tavilyForm.api_key"
+                                  :type="showTavilyKey ? 'text' : 'password'"
+                                  placeholder="输入 Tavily API Key (tvly-...)"
+                                  class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-200 dark:border-gray-600
+                                         bg-white dark:bg-gray-800
+                                         focus:ring-2 focus:ring-gray-500/50 focus:border-gray-500 duration-100
+                                         text-gray-900 dark:text-gray-100
+                                         placeholder-gray-400 dark:placeholder-gray-500 font-mono text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  @click="showTavilyKey = !showTavilyKey"
+                                  class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                  <Eye v-if="!showTavilyKey" class="w-4 h-4" />
+                                  <EyeOff v-else class="w-4 h-4" />
+                                </button>
+                              </div>
+                              <p v-if="tavilyExistingConfig && tavilyExistingConfig.tavily_api_key_masked && !tavilyForm.api_key" class="text-xs text-gray-500 dark:text-gray-400">
+                                当前密钥: {{ tavilyExistingConfig.tavily_api_key_masked }}
+                                <span v-if="tavilyExistingConfig.source === 'env'" class="text-amber-500">（来自环境变量）</span>
+                                <span v-if="tavilyExistingConfig.source === 'database'">（留空则保持不变）</span>
+                              </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                              <BaseButton
+                                @click="handleTestTavily"
+                                variant="secondary"
+                                :disabled="tavilyTesting || !tavilyForm.api_key"
+                              >
+                                {{ tavilyTesting ? '测试中...' : '测试 Tavily' }}
+                              </BaseButton>
+                              <span v-if="tavilyTestResult" class="text-sm" :class="tavilyTestResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-500'">
+                                {{ tavilyTestResult.message }}
+                              </span>
+                            </div>
+
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                              <a href="https://tavily.com" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700 dark:hover:text-gray-300">Tavily</a>
+                              免费版每月 1000 次搜索，无需信用卡
+                            </p>
+                          </template>
+                        </div>
+
                         <!-- 状态提示 -->
                         <p v-if="aiMessage" class="text-sm" :class="aiError ? 'text-red-500' : 'text-green-600 dark:text-green-400'">
                           {{ aiMessage }}
@@ -378,7 +454,7 @@ import { ArrowDown, ArrowUp, Camera, Eye, EyeOff, LayoutGrid, List, Monitor, Sma
 import { computed, ref, watch } from 'vue'
 import { isSignedIn, updateProfile, user } from '../lib/auth'
 import { uploadService } from '../services/upload'
-import { aiConfigService, type AIConfig, type AIProvider } from '../services/aiConfig'
+import { aiConfigService, searchConfigService, type AIConfig, type AIProvider, type SearchConfig } from '../services/aiConfig'
 import { SYSTEMS } from '@/types/constants'
 import BaseButton from './common/BaseButton.vue'
 
@@ -617,6 +693,19 @@ const currentProviderModels = computed(() => {
   return p?.models || []
 })
 
+const aiCurrentModel = computed(() => aiExistingConfig.value?.model || '')
+
+// ===== Tavily 搜索增强状态 =====
+const tavilyExistingConfig = ref<SearchConfig | null>(null)
+const tavilyTesting = ref(false)
+const tavilyTestResult = ref<{ success: boolean; message: string } | null>(null)
+const showTavilyKey = ref(false)
+
+const tavilyForm = ref({
+  enabled: false,
+  api_key: '',
+})
+
 const canTestAI = computed(() => {
   const f = aiForm.value
   const hasKey = Boolean(f.api_key || aiExistingConfig.value?.api_key_masked)
@@ -630,17 +719,20 @@ const selectProvider = (id: string) => {
   if (!p) return
   aiForm.value.provider = id
   aiForm.value.api_base = p.api_base
-  if (p.default_model) {
-    aiForm.value.model = p.default_model
-  }
+  aiForm.value.model = p.models.length > 0
+    ? (p.default_model || p.models[0] || '__custom__')
+    : '__custom__'
   aiCustomModel.value = ''
   aiTestResult.value = null
   aiMessage.value = ''
 }
 
 const resolveModel = () => {
-  if (aiForm.value.model === '__custom__' || currentProviderModels.value.length === 0) {
-    return aiCustomModel.value
+  if (aiForm.value.model === '__custom__') {
+    return aiCustomModel.value.trim()
+  }
+  if (currentProviderModels.value.length === 0) {
+    return (aiCustomModel.value || aiForm.value.model).trim()
   }
   return aiForm.value.model
 }
@@ -662,17 +754,26 @@ const loadAIConfig = async () => {
       aiConfigService.getProviders(),
       aiConfigService.getConfig(),
     ])
+    // 并行加载 Tavily 配置
+    loadTavilyConfig()
     aiProviders.value = providers
     aiExistingConfig.value = config
 
     if (config) {
       aiForm.value.provider = config.provider
       aiForm.value.api_base = config.api_base
-      aiForm.value.model = config.model
       aiForm.value.api_key = ''
-      // 如果当前模型不在预置列表中，切换到自定义输入
+
       const p = providers.find(x => x.id === config.provider)
-      if (p && p.models.length > 0 && !p.models.includes(config.model)) {
+      // 如果供应商没有预置模型，始终走自定义输入回填，确保当前模型可见
+      if (!p || p.models.length === 0) {
+        aiForm.value.model = '__custom__'
+        aiCustomModel.value = config.model
+      } else if (p.models.includes(config.model)) {
+        aiForm.value.model = config.model
+        aiCustomModel.value = ''
+      } else {
+        // 预置供应商下的自定义模型
         aiForm.value.model = '__custom__'
         aiCustomModel.value = config.model
       }
@@ -704,6 +805,45 @@ const handleTestAI = async () => {
   }
 }
 
+const handleTestTavily = async () => {
+  tavilyTesting.value = true
+  tavilyTestResult.value = null
+  try {
+    const result = await searchConfigService.testTavily(tavilyForm.value.api_key)
+    tavilyTestResult.value = { success: true, message: result.message }
+  } catch (err) {
+    tavilyTestResult.value = { success: false, message: err instanceof Error ? err.message : '测试失败' }
+  } finally {
+    tavilyTesting.value = false
+  }
+}
+
+const loadTavilyConfig = async () => {
+  try {
+    const config = await searchConfigService.getConfig()
+    tavilyExistingConfig.value = config
+    tavilyForm.value.enabled = config.tavily_enabled
+    tavilyForm.value.api_key = ''
+  } catch {
+    // 搜索配置加载失败不阻塞 AI 设置
+    tavilyExistingConfig.value = null
+    tavilyForm.value.enabled = false
+  }
+}
+
+const saveTavilySettings = async () => {
+  const payload: { tavily_api_key?: string; tavily_enabled: boolean } = {
+    tavily_enabled: tavilyForm.value.enabled,
+  }
+  if (tavilyForm.value.api_key) {
+    payload.tavily_api_key = tavilyForm.value.api_key
+  }
+  await searchConfigService.saveConfig(payload)
+  const config = await searchConfigService.getConfig()
+  tavilyExistingConfig.value = config
+  tavilyForm.value.api_key = ''
+}
+
 const saveAISettings = async () => {
   aiMessage.value = ''
   aiError.value = false
@@ -713,13 +853,15 @@ const saveAISettings = async () => {
     if (!payload.api_key && !aiExistingConfig.value) {
       throw new Error('API Key 不能为空')
     }
-    // 如果用户没输入新 key 但已有配置，提示用户
     if (!payload.api_key && aiExistingConfig.value) {
       throw new Error('请输入 API Key（出于安全考虑，已保存的密钥不会回显）')
     }
     await aiConfigService.saveConfig(payload)
+
+    // 同时保存 Tavily 搜索增强配置
+    await saveTavilySettings()
+
     aiMessage.value = 'AI 配置已保存'
-    // 刷新配置
     const config = await aiConfigService.getConfig()
     aiExistingConfig.value = config
     aiForm.value.api_key = ''

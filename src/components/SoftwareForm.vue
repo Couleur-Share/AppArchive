@@ -691,24 +691,43 @@ const consTouched = ref(false)
 const startAIFromName = async () => {
   if (!formData.value.name) return
   
+  const isEditing = Boolean(props.software?.id)
   const payload = {
     ...(formData.value as any),
     id: props.software?.id || 0,
+    // 编辑态重新分析时，不将现有简介/优缺点作为输入上下文
+    description: isEditing ? '' : formData.value.description,
+    pros: isEditing ? [] : formData.value.pros,
+    cons: isEditing ? [] : formData.value.cons,
   } as Software
 
-  const result = await analyze(payload)
+  const result = await analyze(payload, { forceFresh: isEditing })
   if (!result) return
 
   // Merge Logic
   commit() // Save state before AI modification for Undo capability
 
-  if (result.description) formData.value.description = result.description
-  
-  if (!prosTouched.value) formData.value.pros = normalizeList(result.pros)
-  else formData.value.pros = mergeUnique((formData.value.pros as string[]) || [], result.pros)
-  
-  if (!consTouched.value) formData.value.cons = normalizeList(result.cons)
-  else formData.value.cons = mergeUnique((formData.value.cons as string[]) || [], result.cons)
+  // 记录本次 AI 分析元数据，随表单提交持久化
+  formData.value.analysis_provider = result.analysis_provider || undefined
+  formData.value.analysis_model = result.analysis_model || undefined
+  formData.value.analysis_at = result.analysis_at || new Date().toISOString()
+  formData.value.analysis_sources = Array.isArray(result.analysis_sources) ? result.analysis_sources : []
+  formData.value.warnings = Array.isArray(result.warnings) ? result.warnings : []
+
+  if (isEditing) {
+    // 编辑态：使用全新分析结果，直接覆盖旧内容
+    formData.value.description = result.description || ''
+    formData.value.pros = normalizeList(result.pros)
+    formData.value.cons = normalizeList(result.cons)
+  } else {
+    if (result.description) formData.value.description = result.description
+    
+    if (!prosTouched.value) formData.value.pros = normalizeList(result.pros)
+    else formData.value.pros = mergeUnique((formData.value.pros as string[]) || [], result.pros)
+    
+    if (!consTouched.value) formData.value.cons = normalizeList(result.cons)
+    else formData.value.cons = mergeUnique((formData.value.cons as string[]) || [], result.cons)
+  }
 
   // System inference
   const aiSystems = (result.systems || []).map(s => normalizeSystem(s)).filter(Boolean) as SystemType[]

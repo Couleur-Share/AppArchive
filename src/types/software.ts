@@ -81,6 +81,12 @@ export interface Software extends BaseEntity {
 	downloads?: number; // 下载量
 	pros: string[];
 	cons: string[];
+	warnings?: string[];
+	// 最近一次 AI 分析元数据（用于详情页溯源展示）
+	analysis_provider?: string;
+	analysis_model?: string;
+	analysis_at?: string;
+	analysis_sources?: string[];
 	// 私密保存的安装包/网盘链接列表
 	download_links?: DownloadLink[];
 	// 私密信息（后端仅返回元信息，不含明文）
@@ -103,6 +109,11 @@ export interface SoftwareListItem extends BaseEntity {
 	downloads?: number;
 	pros?: string[];
 	cons?: string[];
+	warnings?: string[];
+	analysis_provider?: string;
+	analysis_model?: string;
+	analysis_at?: string;
+	analysis_sources?: string[];
 	download_links?: DownloadLink[];
 	secrets?: SecretItem[];
 	related_articles?: RelatedArticle[];

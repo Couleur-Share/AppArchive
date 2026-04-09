@@ -238,6 +238,13 @@ async function callAI(messages, options = {}) {
 		data.choices[0].message.content = removeCitationMarkers(data.choices[0].message.content);
 	}
 
+	// 附加本次分析模型元数据（不影响现有 choices 结构）
+	data.analysis_meta = {
+		provider: config.provider,
+		model: config.model,
+		analysis_at: new Date().toISOString(),
+	};
+
 	return data;
 }
 
@@ -285,6 +292,8 @@ async function testAIConfig({ provider, api_base, api_key, model }) {
 export {
 	PROVIDER_PRESETS,
 	callAI,
+	encryptValue,
+	decryptValue,
 	getAIConfigForClient,
 	getActiveAIConfig,
 	saveAIConfig,

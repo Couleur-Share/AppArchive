@@ -216,6 +216,20 @@ Perplexity · OpenAI · Moonshot (Kimi) · DeepSeek · 自定义 (OpenAI 兼容)
 | `PUT`  | `/api/ai/config`      | 保存 AI 配置                |
 | `POST` | `/api/ai/config/test` | 测试 AI 配置连通性             |
 
+### 迁移说明（AI 分析模型追溯）
+
+为支持在详情页展示“最后一次 AI 分析模型”，请执行一次迁移脚本：
+
+```bash
+node scripts/migrate-software-analysis-meta.js
+```
+
+迁移会在 `softwares` 表新增以下可空字段：
+
+- `analysis_provider`（分析供应商）
+- `analysis_model`（分析模型名）
+- `analysis_at`（分析时间，`TIMESTAMPTZ`）
+
 
 > API Key 在数据库中以 **AES-256-GCM** 加密存储，前端不会接触明文密钥。
 
@@ -247,6 +261,9 @@ interface Software {
   website: string
   pros: string[]
   cons: string[]
+  analysis_provider?: string
+  analysis_model?: string
+  analysis_at?: string
   related_articles: RelatedArticle[]
 }
 
@@ -269,6 +286,10 @@ interface RelatedArticle {
 - 上传非图片或超限文件返回 `400`；频繁上传返回 `429`
 - 「对比结果」弹窗默认展示详情，不出现空白
 - 图片多次加载后无 `localStorage` 满额报错（已改用 IndexedDB 缓存）
+- 新增软件后触发 AI 分析并保存，详情页可见“最后一次AI分析：供应商/模型”
+- 编辑软件重新 AI 分析并保存后，详情页模型信息会更新
+- 切换全局 AI 设置后，历史软件仍显示各自记录的分析模型（不串号）
+- 历史旧数据（无分析元数据）详情页显示“未记录”，且页面不报错
 
 ---
 

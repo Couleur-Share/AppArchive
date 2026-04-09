@@ -71,6 +71,7 @@ export function extractProsConsFromContent(content: string): {
 	pros: string[];
 	cons: string[];
 	systems?: string[];
+	warnings?: string[];
 } {
 	if (typeof content !== "string") {
 		return { description: "", pros: [], cons: [] };
@@ -96,6 +97,7 @@ export function extractProsConsFromContent(content: string): {
 		const pros = Array.isArray(parsed?.pros) ? parsed.pros : [];
 		const cons = Array.isArray(parsed?.cons) ? parsed.cons : [];
 		const systems = Array.isArray(parsed?.systems) ? parsed.systems : [];
+		const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings : [];
 		const description =
 			typeof parsed?.description === "string" ? parsed.description.trim() : "";
 		return {
@@ -109,6 +111,10 @@ export function extractProsConsFromContent(content: string): {
 				.map((s: string) => s.trim())
 				.filter(Boolean),
 			systems: systems
+				.filter((x: any) => typeof x === "string")
+				.map((s: string) => s.trim())
+				.filter(Boolean),
+			warnings: warnings
 				.filter((x: any) => typeof x === "string")
 				.map((s: string) => s.trim())
 				.filter(Boolean),
@@ -133,6 +139,7 @@ export function extractProsConsFromContent(content: string): {
 		.replace(/(\bpros\b)\s*:/gi, '"pros":')
 		.replace(/(\bcons\b)\s*:/gi, '"cons":')
 		.replace(/(\bsystems\b)\s*:/gi, '"systems":')
+		.replace(/(\bwarnings\b)\s*:/gi, '"warnings":')
 		// 移除数组/对象末尾多余逗号
 		.replace(/,(\s*[}\]])/g, "$1");
 
@@ -142,6 +149,7 @@ export function extractProsConsFromContent(content: string): {
 		const pros = Array.isArray(parsed?.pros) ? parsed.pros : [];
 		const cons = Array.isArray(parsed?.cons) ? parsed.cons : [];
 		const systems = Array.isArray(parsed?.systems) ? parsed.systems : [];
+		const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings : [];
 		const description =
 			typeof parsed?.description === "string" ? parsed.description.trim() : "";
 		return {
@@ -155,6 +163,10 @@ export function extractProsConsFromContent(content: string): {
 				.map((s: string) => s.trim())
 				.filter(Boolean),
 			systems: systems
+				.filter((x: any) => typeof x === "string")
+				.map((s: string) => s.trim())
+				.filter(Boolean),
+			warnings: warnings
 				.filter((x: any) => typeof x === "string")
 				.map((s: string) => s.trim())
 				.filter(Boolean),
@@ -173,6 +185,7 @@ export function extractProsConsFromContent(content: string): {
 	const prosMatch = bracketContent("pros");
 	const consMatch = bracketContent("cons");
 	const systemsMatch = bracketContent("systems");
+	const warningsMatch = bracketContent("warnings");
 
 	const splitItems = (inner?: string | null) => {
 		if (!inner) return [] as string[];
@@ -196,6 +209,7 @@ export function extractProsConsFromContent(content: string): {
 			.replace(/\\"/g, '"');
 	const description = unescape((descMatch?.[1] || "").trim());
 	const systems = splitItems(systemsMatch?.[1]);
+	const warnings = splitItems(warningsMatch?.[1]);
 
-	return { description, pros, cons, systems };
+	return { description, pros, cons, systems, warnings };
 }
