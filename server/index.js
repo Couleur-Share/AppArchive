@@ -581,30 +581,30 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 		const [websiteContext, searchResults, safetySearchResults] =
 			await Promise.all(tasks);
 
-		// #region agent log
-		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H1',message:'H1: Tavily safety search raw results',data:{searched:safetySearchResults?.searched,resultCount:safetySearchResults?.results?.length,answer:(safetySearchResults?.answer||'').slice(0,500),results:(safetySearchResults?.results||[]).slice(0,5).map(r=>({title:r.title,url:r.url,snippet:(r.content||'').slice(0,250)}))},timestamp:Date.now(),hypothesisId:'H1'})+'\n');}
-		// #endregion
-
 		const messages = buildAnalyzeMessages(software, {
 			websiteContext,
 			searchResults,
 			safetySearchResults,
 		});
-
-		// #region agent log
-		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');const userMsg=messages.find(m=>m.role==='user');const hasSafetySection=userMsg?.content?.includes('安全风险搜索结果')||false;const safetyChunk=userMsg?.content?.match(/## 安全风险搜索结果[\s\S]{0,800}/)?.[0]||'(not found)';_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H4',message:'H4: prompt safety section',data:{hasSafetySection,promptLength:userMsg?.content?.length,safetyChunk},timestamp:Date.now(),hypothesisId:'H4'})+'\n');}
-		// #endregion
-
 		const data = await callAI(messages);
-
-		// #region agent log
-		{const _fs=await import('node:fs');const _p=await import('node:path');const _lf=_p.default.resolve('debug-07b6f7.log');const rawContent=data?.choices?.[0]?.message?.content||'';const warningsMatch=rawContent.match(/"warnings"\s*:\s*\[([\s\S]*?)\]/);_fs.default.appendFileSync(_lf,JSON.stringify({sessionId:'07b6f7',location:'server/index.js:H2H3',message:'H2/H3: AI raw warnings output',data:{hasWarningsKey:warningsMatch!==null,warningsRaw:warningsMatch?warningsMatch[0]:'(no warnings key)',fullOutputLength:rawContent.length,outputSnippet:rawContent.slice(0,500)},timestamp:Date.now(),hypothesisId:'H2_H3'})+'\n');}
-		// #endregion
 
 		// 收集本次分析的数据来源标签
 		const sources = [];
-		if (websiteContext?.fetched) sources.push("website");
-		if (searchResults?.searched) sources.push("tavily");
+		const hasWebsiteInput =
+			typeof software.website === "string" && software.website.trim();
+		if (websiteContext?.fetched) {
+			sources.push("website");
+		} else if (hasWebsiteInput) {
+			sources.push("website-error");
+		}
+		if (searchResults?.searched) {
+			sources.push("tavily");
+			if (!Array.isArray(searchResults.results) || searchResults.results.length === 0) {
+				sources.push("tavily-empty");
+			}
+		} else if (searchResults?.error) {
+			sources.push("tavily-error");
+		}
 		if (safetySearchResults?.searched) sources.push("tavily-safety");
 		if (data.analysis_meta) {
 			data.analysis_meta.sources = sources;

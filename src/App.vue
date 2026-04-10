@@ -447,6 +447,11 @@ const categoryIcons: Record<string, string> = {
 const runtimeCache = new Map<string, { data: SoftwareListItem[], total: number, timestamp: number }>()
 const CACHE_VALID_TIME = 2 * 60 * 1000 // 2分钟缓存有效期
 
+const invalidateSoftwareCaches = () => {
+  runtimeCache.clear()
+  localStorage.removeItem(SOFTWARE_CACHE_KEY)
+}
+
 // 分类数量徽章 - 显示当前选中分类的数量
 const categoryCounts = computed<Record<string, number>>(() => {
   return { [activeCategory.value]: totalItems.value }
@@ -776,8 +781,9 @@ const handleFormSubmit = async (software: Partial<Software>) => {
       showToast('添加成功', 'success')
     }
 
-    // 重新获取软件列表
-    await fetchSoftwares()
+    // 写操作后先失效缓存，再强制刷新，避免命中旧数据导致列表不更新
+    invalidateSoftwareCaches()
+    await fetchSoftwares({ forceRefresh: true })
     void fetchNewArrivalsCount()
     
     // 关闭对话框
@@ -839,7 +845,8 @@ const confirmDelete = async () => {
       paginatedSoftwares.value = paginatedSoftwares.value.filter(
         (s) => s.id !== softwareToDelete.value?.id
       )
-      await fetchSoftwares()
+      invalidateSoftwareCaches()
+      await fetchSoftwares({ forceRefresh: true })
       void fetchNewArrivalsCount()
       showToast(`已删除 "${softwareToDelete.value.name}"`, 'success')
       showDeleteDialog.value = false

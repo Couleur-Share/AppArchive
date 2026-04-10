@@ -124,16 +124,13 @@
                               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-500/30">
                                 {{ analysisModelTag }}
                               </span>
-                              <span v-if="hasTavilySource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-500/30">
+                              <span v-if="tavilyIssueLabel" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                                Tavily
+                                {{ tavilyIssueLabel }}
                               </span>
-                              <span v-if="hasSafetySource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-500/30">
+                              <span v-if="hasWarnings" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-500/30">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                                风险审查
-                              </span>
-                              <span v-if="hasWebsiteSource" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30">
-                                官网校验
+                                安全警示
                               </span>
                               <span v-if="analysisTimeLabel" class="text-xs text-gray-400 dark:text-gray-500">
                                 {{ analysisTimeLabel }}
@@ -773,9 +770,12 @@ const analysisSources = computed(() => {
   const raw = software.value.analysis_sources
   return Array.isArray(raw) ? raw : []
 })
-const hasTavilySource = computed(() => analysisSources.value.includes('tavily'))
+const tavilyIssueLabel = computed(() => {
+  if (analysisSources.value.includes('tavily-error')) return '搜索异常'
+  if (analysisSources.value.includes('tavily-empty')) return '搜索未命中'
+  return ''
+})
 const hasSafetySource = computed(() => analysisSources.value.includes('tavily-safety'))
-const hasWebsiteSource = computed(() => analysisSources.value.includes('website'))
 const hasWarnings = computed(() => (software.value.warnings || []).length > 0)
 
 const analysisTimeLabel = computed(() => {

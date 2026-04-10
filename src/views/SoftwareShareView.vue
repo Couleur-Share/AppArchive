@@ -94,6 +94,13 @@
               <Monitor class="w-3.5 h-3.5" />
               {{ software.systems.join(' · ') }}
             </span>
+            <span
+              v-if="hasWarnings"
+              class="px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800/50 inline-flex items-center gap-1"
+            >
+              <AlertCircle class="w-3.5 h-3.5" />
+              安全警示
+            </span>
           </div>
           <!-- 操作按钮 -->
           <div class="mt-5 flex flex-wrap items-center justify-center sm:justify-start gap-3">
@@ -152,6 +159,30 @@
           </ul>
         </section>
       </div>
+
+      <!-- 安全风险与争议事件 -->
+      <section
+        v-if="hasWarnings"
+        class="mb-8 bg-amber-50 dark:bg-amber-950/25 rounded-xl p-6 shadow-sm border border-amber-200 dark:border-amber-800/50"
+      >
+        <h2 class="text-lg font-bold text-amber-800 dark:text-amber-300 mb-4 inline-flex items-center gap-2">
+          <AlertCircle class="w-5 h-5" />
+          安全风险与争议事件
+        </h2>
+        <ul class="space-y-3">
+          <li
+            v-for="(warning, i) in software.warnings"
+            :key="i"
+            class="flex items-start gap-3 text-amber-900 dark:text-amber-200"
+          >
+            <AlertCircle class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+            <span>{{ warning }}</span>
+          </li>
+        </ul>
+        <p class="mt-4 text-xs text-amber-700/80 dark:text-amber-400/70">
+          风险信息基于公开资料与 AI 分析，仅供参考，请结合官方公告自行核验。
+        </p>
+      </section>
 
       <!-- 相关文章 -->
       <section v-if="publicArticles.length" class="mb-8 bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-800">
@@ -236,6 +267,10 @@ const licenseClass = computed(() => {
 const hasProsOrCons = computed(() =>
   (software.value?.pros && software.value.pros.length > 0) ||
   (software.value?.cons && software.value.cons.length > 0)
+)
+
+const hasWarnings = computed(() =>
+  Array.isArray(software.value?.warnings) && software.value.warnings.length > 0
 )
 
 const publicArticles = computed(() =>
