@@ -2,7 +2,7 @@
   <TransitionRoot appear :show="isOpen" as="div">
     <!-- 加载状态指示器 -->
     <div v-if="isLoading" 
-         class="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-[60]">
+         class="fixed inset-0 app-modal-backdrop flex items-center justify-center z-[60]">
       <div class="flex flex-col items-center gap-4 p-6 bg-white/10 backdrop-blur-xl rounded-2xl">
         <div class="animate-spin rounded-full h-12 w-12 border-4 
                     border-blue-500/30 border-t-blue-500"></div>
@@ -10,18 +10,24 @@
       </div>
     </div>
 
-    <Dialog as="div" class="relative z-50" :open="isOpen" @close="handleMainDialogClose">
+    <Dialog
+      as="div"
+      class="relative z-50"
+      :open="isOpen"
+      :initialFocus="closeButtonRef"
+      @close="handleMainDialogClose"
+    >
       <div class="fixed inset-0">
         <TransitionChild
           as="div"
-          enter="ease-out duration-100"
+          enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-220"
           enter-from="opacity-0"
           enter-to="opacity-100"
-          leave="ease-in duration-100"
+          leave="ease-in duration-160"
           leave-from="opacity-100"
           leave-to="opacity-0"
         >
-          <div class="fixed inset-0 bg-black/50" />
+          <div class="fixed inset-0 app-modal-backdrop" />
         </TransitionChild>
       </div>
 
@@ -29,10 +35,10 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <TransitionChild
             as="div"
-            enter="ease-out duration-100"
+            enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-260"
             enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             enter-to="opacity-100 translate-y-0 sm:scale-100"
-            leave="ease-in duration-100"
+            leave="ease-in duration-170"
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
@@ -43,18 +49,16 @@
               @pointerdown.stop
               @pointerup.stop
               class="relative transform overflow-hidden rounded-lg 
-                     bg-white/90 dark:bg-gray-800/90 backdrop-blur 
+                     app-modal-panel app-modal-panel--interactive
                      text-left shadow-level3 transition-all duration-100 w-full max-w-6xl
-                     border border-gray-200/50 dark:border-gray-700/30"
+                     border border-gray-200/50 dark:border-gray-700/30 max-h-[min(90dvh,980px)]"
             >
               <!-- 标题栏 -->
               <div class="flex items-center justify-between px-8 py-6 
                           border-b border-gray-200/50 dark:border-gray-600/30
                           bg-white/30 dark:bg-gray-800/50 backdrop-blur-sm">
                 <DialogTitle as="h3" class="text-2xl font-bold bg-gradient-to-r 
-                                    from-blue-600 to-blue-400 
-                                    dark:from-blue-400 dark:to-blue-300 
-                                    bg-clip-text text-transparent">
+                                    text-gray-900 dark:text-white">
                   软件对比分析
                 </DialogTitle>
                 <div class="flex items-center gap-2">
@@ -65,6 +69,7 @@
                   <!-- <sm: 使用更多菜单收纳动作 -->
                   <Menu as="div" class="relative">
                     <MenuButton
+                      type="button"
                       class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       aria-label="更多操作"
                     >
@@ -118,12 +123,14 @@
 
                   <!-- 关闭按钮始终可见 -->
                   <button
+                    ref="closeButtonRef"
+                    type="button"
                     @click="$emit('update:isOpen', false)"
                     class="p-2 rounded-lg transition-all duration-200 
                            text-gray-600 dark:text-gray-400
                            hover:bg-gray-100 dark:hover:bg-gray-700 
                            hover:text-gray-900 dark:hover:text-white
-                           focus:outline-none focus:ring-2 focus:ring-gray-500/50"
+                           focus:outline-none focus:ring-2 focus:ring-gray-500/50 app-modal-close-btn"
                     aria-label="关闭"
                     title="关闭"
                   >
@@ -218,15 +225,9 @@
                             <span class="whitespace-nowrap">授权类型</span>
                           </td>
                           <td v-for="sw in [software, ...comparedSoftwares]" :key="sw.id" class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs"
-                                  :class="{
-                                    'bg-cyan-100/70 dark:bg-cyan-900/70 text-cyan-700 dark:text-cyan-200 border-cyan-200/50 dark:border-cyan-700/50': sw.license === '免费',
-                                    'bg-blue-100/50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200/50 dark:border-blue-700/50': sw.license === '收费',
-                                    'bg-green-100/50 dark:bg-green-900/50 text-green-700 dark:text-green-300 border-green-200/50 dark:border-green-700/50': sw.license === '开源',
-                                    'bg-purple-100/50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-200/50 dark:border-purple-700/50': sw.license === '已购'
-                                  }">
-                              {{ sw.license }}
-                            </span>
+                            <TagBadge size="xs" radius="full" strong :variant="getLicenseVariant(sw.license)">
+                              {{ sw.license || '未知' }}
+                            </TagBadge>
                           </td>
                         </tr>
                         <!-- 支持系统 -->
@@ -235,11 +236,10 @@
                             <span class="whitespace-nowrap">支持系统</span>
                           </td>
                           <td v-for="sw in [software, ...comparedSoftwares]" :key="sw.id" class="p-4">
-                            <div class="flex gap-1">
-                              <div v-for="sys in sw.systems" :key="sys"
-                                   class="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-sm">
+                            <div class="flex flex-wrap gap-1">
+                              <TagBadge v-for="sys in sw.systems" :key="sys" size="xs" variant="neutral">
                                 {{ sys }}
-                              </div>
+                              </TagBadge>
                             </div>
                           </td>
                         </tr>
@@ -332,12 +332,14 @@ import { Dialog, DialogPanel, DialogTitle, Menu, MenuButton, MenuItem, MenuItems
 import { toPng } from 'html-to-image'
 import { Check, ExternalLink, Eye, EyeOff, FileSearch, Image, MoreVertical, Plus, Settings, X } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { isSignedIn } from '../lib/auth'
 import { comparisonService } from '../services/comparison'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software } from '../types'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
+import TagBadge from './common/TagBadge.vue'
 import ShareCardPreview from './ShareCardPreview.vue'
 
 const props = defineProps<{
@@ -357,6 +359,8 @@ const comparedSoftwares = ref<Software[]>([])
 const comparisonSummary = ref('')
 // 展开/收起逻辑已移除
 const showSharePreview = ref(false)
+const closeButtonRef = ref<HTMLElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
 const selectedTheme = ref<'classic' | 'dark' | 'gradient'>('classic')
 const sharePreviewRef = ref<HTMLElement | null>(null)
 const shareExportRef = ref<HTMLElement | null>(null)
@@ -535,6 +539,23 @@ onMounted(() => {
     loadComparisons()
   }
 })
+
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (open) {
+      previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      await loadComparisons()
+      await nextTick()
+      closeButtonRef.value?.focus()
+      return
+    }
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
+  }
+)
 
 // 按视图模式返回可见的优/缺点（仅完整/隐藏两种）
 const getVisiblePros = (sw: Software): string[] => {

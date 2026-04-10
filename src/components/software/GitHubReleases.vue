@@ -32,17 +32,17 @@
       <!-- 顶部信息栏 -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50">
-            <Tag class="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-            <span class="text-sm font-bold text-green-700 dark:text-green-300">{{ latestVersion }}</span>
-          </div>
+          <TagBadge size="sm" variant="success" strong>
+            <Tag class="w-3.5 h-3.5" />
+            {{ latestVersion }}
+          </TagBadge>
           <span class="text-xs text-gray-500 dark:text-gray-400">
             共 {{ releases.length }} 个版本
           </span>
           <!-- 缓存/过期提示 -->
-          <span v-if="isStale" class="text-xs text-amber-500 flex items-center gap-1">
+          <TagBadge v-if="isStale" size="xs" variant="warning">
             <AlertCircle class="w-3 h-3" /> 缓存数据
-          </span>
+          </TagBadge>
         </div>
         <div class="flex items-center gap-2">
           <button
@@ -99,22 +99,20 @@
                   <span class="font-bold text-gray-900 dark:text-white text-base truncate">
                     {{ release.name || release.tag_name }}
                   </span>
-                  <span
-                    class="px-2 py-0.5 rounded text-xs font-semibold shrink-0"
-                    :class="index === 0
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                      : release.prerelease
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'"
+                  <TagBadge
+                    size="xs"
+                    strong
+                    class="shrink-0"
+                    :variant="getReleaseVersionVariant(index, release.prerelease)"
                   >
                     {{ release.tag_name }}
-                  </span>
-                  <span v-if="release.prerelease" class="px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 ring-1 ring-inset ring-amber-200 dark:ring-amber-700">
+                  </TagBadge>
+                  <TagBadge v-if="release.prerelease" size="xs" variant="warning">
                     预发布
-                  </span>
-                  <span v-if="index === 0" class="px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 ring-1 ring-inset ring-green-200 dark:ring-green-700">
+                  </TagBadge>
+                  <TagBadge v-if="index === 0" size="xs" variant="success">
                     最新
-                  </span>
+                  </TagBadge>
                 </div>
                 <a
                   :href="release.html_url"
@@ -213,10 +211,11 @@ import {
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
 import { computed, onMounted, ref, watch } from 'vue'
-import type { GitHubRelease } from '../../types/software'
-import { githubService } from '../../services/github'
 import { isSignedIn } from '../../lib/auth'
+import { githubService } from '../../services/github'
+import type { GitHubRelease } from '../../types/software'
 import logger from '../../utils/logger'
+import TagBadge from '../common/TagBadge.vue'
 
 const props = defineProps<{
   softwareId: number
@@ -255,6 +254,12 @@ const repoUrl = computed(() => {
 })
 
 const visibleReleases = computed(() => releases.value.slice(0, visibleCount.value))
+
+const getReleaseVersionVariant = (index: number, prerelease: boolean) => {
+  if (index === 0) return 'success'
+  if (prerelease) return 'warning'
+  return 'neutral'
+}
 
 // Methods
 const renderMarkdown = (body: string) => {
@@ -302,7 +307,7 @@ const formatSize = (bytes: number) => {
   if (bytes === 0) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return `${(bytes / Math.pow(1024, i)).toFixed(i > 1 ? 1 : 0)} ${units[i]}`
+  return `${(bytes / 1024 ** i).toFixed(i > 1 ? 1 : 0)} ${units[i]}`
 }
 
 const formatCount = (count: number) => {
@@ -363,65 +368,65 @@ watch(() => props.softwareId, () => {
 })
 </script>
 
-<style scoped>
-.release-markdown :deep(h1),
-.release-markdown :deep(h2),
-.release-markdown :deep(h3) {
+<style>
+.release-markdown h1,
+.release-markdown h2,
+.release-markdown h3 {
   @apply font-bold text-gray-900 dark:text-white mt-4 mb-2 text-sm;
 }
-.release-markdown :deep(h1) { @apply text-base; }
-.release-markdown :deep(h2) { @apply text-sm; }
+.release-markdown h1 { @apply text-base; }
+.release-markdown h2 { @apply text-sm; }
 
-.release-markdown :deep(p) {
+.release-markdown p {
   @apply my-1.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300;
 }
 
-.release-markdown :deep(ul) {
+.release-markdown ul {
   @apply list-disc pl-5 my-1.5 text-sm text-gray-700 dark:text-gray-300;
 }
-.release-markdown :deep(ol) {
+.release-markdown ol {
   @apply list-decimal pl-5 my-1.5 text-sm text-gray-700 dark:text-gray-300;
 }
 
-.release-markdown :deep(li) {
+.release-markdown li {
   @apply my-0.5;
 }
 
-.release-markdown :deep(code) {
+.release-markdown code {
   @apply px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs font-mono text-gray-800 dark:text-gray-200;
 }
 
-.release-markdown :deep(pre) {
+.release-markdown pre {
   @apply my-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 overflow-x-auto border border-gray-100 dark:border-gray-700;
 }
-.release-markdown :deep(pre code) {
+.release-markdown pre code {
   @apply bg-transparent p-0;
 }
 
-.release-markdown :deep(a) {
+.release-markdown a {
   @apply text-blue-500 hover:underline;
 }
 
-.release-markdown :deep(blockquote) {
+.release-markdown blockquote {
   @apply border-l-4 border-gray-200 dark:border-gray-700 pl-4 my-2 italic text-gray-600 dark:text-gray-400;
 }
 
-.release-markdown :deep(hr) {
+.release-markdown hr {
   @apply my-4 border-gray-200 dark:border-gray-700;
 }
 
-.release-markdown :deep(img) {
+.release-markdown img {
   @apply max-w-full h-auto rounded-lg my-2;
 }
 
-.release-markdown :deep(table) {
+.release-markdown table {
   @apply w-full text-sm my-2;
 }
-.release-markdown :deep(th),
-.release-markdown :deep(td) {
+.release-markdown th,
+.release-markdown td {
   @apply px-3 py-1.5 border border-gray-200 dark:border-gray-700 text-left;
 }
-.release-markdown :deep(th) {
+.release-markdown th {
   @apply bg-gray-50 dark:bg-gray-800 font-medium;
 }
 </style>

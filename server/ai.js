@@ -142,14 +142,32 @@ async function saveAIConfig({ provider, api_base, api_key, model }) {
 	if (!finalBase) {
 		throw new Error("API 地址不能为空");
 	}
-	if (!api_key) {
-		throw new Error("API Key 不能为空");
-	}
 	if (!model) {
 		throw new Error("模型名称不能为空");
 	}
 
-	const cipher = encryptValue(api_key);
+	const existingConfig = await getActiveAIConfig();
+	const incomingApiKey = typeof api_key === "string" ? api_key.trim() : "";
+	const isSwitchingTarget = Boolean(
+		existingConfig &&
+		(
+			existingConfig.provider !== provider ||
+			(existingConfig.api_base || "").trim() !== finalBase.trim()
+		),
+	);
+
+	let finalApiKey = incomingApiKey;
+	if (!finalApiKey) {
+		if (!existingConfig?.api_key) {
+			throw new Error("API Key 不能为空");
+		}
+		if (isSwitchingTarget) {
+			throw new Error("切换供应商或 API 地址时，API Key 不能为空");
+		}
+		finalApiKey = existingConfig.api_key;
+	}
+
+	const cipher = encryptValue(finalApiKey);
 
 	const client = await pool.connect();
 	try {

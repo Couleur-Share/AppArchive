@@ -2,17 +2,25 @@
   <!-- AI 分析全屏动画 -->
   <AIOverlay :active="isAnalyzingUI" />
 
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+  <div
+    v-if="isOpen"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="software-form-title"
+  >
     <!-- 背景遮罩 -->
     <div
-      class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-      @click="$emit('update:isOpen', false)"
+      class="absolute inset-0 app-modal-backdrop transition-opacity"
+      @click="closeFormDialog"
       v-gsap="{ duration: 0.2, from: { opacity: 0 }, to: { opacity: 1 } }"
     ></div>
 
     <!-- 对话框内容 -->
     <div
-      class="relative z-10 w-full max-w-4xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100 dark:border-gray-700"
+      ref="dialogPanelRef"
+      tabindex="-1"
+      class="relative z-10 w-full max-w-4xl rounded-2xl app-modal-panel app-modal-panel--interactive flex flex-col max-h-[min(92dvh,920px)] overflow-hidden border border-gray-100 dark:border-gray-700"
       v-gsap="{
         from: { y: 20, opacity: 0, scale: 0.98 },
         to: { y: 0, opacity: 1, scale: 1 },
@@ -23,7 +31,7 @@
       <!-- 顶部栏：标题 + 工具栏 -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-20">
         <div class="flex items-center gap-3">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+          <h2 id="software-form-title" class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
             {{ software ? '编辑软件' : '添加软件' }}
           </h2>
           <!-- 撤销/重做 工具栏 -->
@@ -55,8 +63,9 @@
              <span class="px-1.5 py-0.5 border border-gray-200 dark:border-gray-600 rounded text-[10px]">ESC</span> 关闭
            </div>
            <button
-            @click="$emit('update:isOpen', false)"
-            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+            type="button"
+            @click="closeFormDialog"
+            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors app-modal-close-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40"
           >
             <X class="w-5 h-5" />
           </button>
@@ -220,20 +229,21 @@
                       :key="license"
                       @click="formData.license = license"
                       class="cursor-pointer relative flex items-center p-3 rounded-xl border transition-all duration-200 group overflow-hidden"
-                      :class="[
-                        formData.license === license 
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-500/50' 
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-gray-800'
-                      ]"
+                     :class="getLicenseCardClass(license, formData.license === license)"
                     >
                       <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium mb-0.5" :class="formData.license === license ? 'text-purple-700 dark:text-purple-300' : 'text-gray-900 dark:text-gray-300'">
-                          {{ license }}
+                        <div class="mb-0.5">
+                          <TagBadge size="xs" strong :variant="getLicenseVariant(license)">
+                            {{ license }}
+                          </TagBadge>
+                        </div>
+                        <div class="text-xs" :class="formData.license === license ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                          {{ getLicenseHint(license) }}
                         </div>
                       </div>
                       <div 
                         class="w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
-                        :class="formData.license === license ? 'border-purple-500 bg-purple-500' : 'border-gray-300 dark:border-gray-600'"
+                        :class="getLicenseIndicatorClass(license, formData.license === license)"
                       >
                         <Check v-if="formData.license === license" class="w-2.5 h-2.5 text-white" />
                       </div>
@@ -266,7 +276,13 @@
                 ]"
               >
                 <SystemIcon :system="sys" class="w-8 h-8 mb-2 transition-transform group-hover:scale-110" />
-                <span class="text-xs font-medium" :class="(formData.systems || []).includes(sys) ? 'text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400'">{{ sys }}</span>
+                <TagBadge
+                  size="xs"
+                  :strong="(formData.systems || []).includes(sys)"
+                  :variant="(formData.systems || []).includes(sys) ? 'success' : 'neutral'"
+                >
+                  {{ sys }}
+                </TagBadge>
                 
                 <div v-if="(formData.systems || []).includes(sys)" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
               </button>
@@ -363,7 +379,7 @@
          <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
             <BaseButton
               type="button"
-              @click="$emit('update:isOpen', false)"
+              @click="closeFormDialog"
               :disabled="isSubmitting"
               variant="secondary"
               class="px-6"
@@ -405,12 +421,12 @@ import {
   Link2,
   Loader2,
   Monitor,
+  Redo2,
   Sparkles,
   Tag,
   ThumbsUp,
   Type,
   Undo2,
-  Redo2,
   X,
 } from 'lucide-vue-next'
 import {
@@ -418,8 +434,8 @@ import {
   nextTick,
   onUnmounted,
   ref,
+  toRefs,
   watch,
-  toRefs
 } from 'vue'
 import { useAIAnalysis } from '@/composables/useAIAnalysis'
 import { useSoftwareValidation } from '@/composables/useSoftwareValidation'
@@ -439,14 +455,16 @@ import {
 } from '../types'
 import { AppError, ErrorCode } from '../types/error'
 import { errorHandler } from '../utils/error-handler'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import AdvancedSection from './AdvancedSection.vue'
-import RelatedArticlesEditor from './RelatedArticlesEditor.vue'
 import AIOverlay from './AIOverlay.vue'
 import BlurFade from './animations/BlurFade.vue'
 import BaseButton from './common/BaseButton.vue'
+import TagBadge from './common/TagBadge.vue'
 import IconUploader from './IconUploader.vue'
 import ProsConsEditor from './ProsConsEditor.vue'
+import RelatedArticlesEditor from './RelatedArticlesEditor.vue'
 import SystemIcon from './SystemIcon.vue'
 
 const props = defineProps<{
@@ -548,6 +566,65 @@ const isSubmitting = ref(false)
 const showAdvanced = ref(false)
 const advancedSectionRef = ref<HTMLElement | null>(null)
 const nameInputRef = ref<HTMLInputElement | null>(null)
+const dialogPanelRef = ref<HTMLElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
+
+const closeFormDialog = () => {
+  if (isSubmitting.value) return
+  emit('update:isOpen', false)
+}
+
+const focusableSelectors = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ')
+
+const getFocusableElements = () => {
+  if (!dialogPanelRef.value) return [] as HTMLElement[]
+  return Array.from(dialogPanelRef.value.querySelectorAll<HTMLElement>(focusableSelectors))
+    .filter((el) => !el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null)
+}
+
+const trapTabKey = (event: KeyboardEvent) => {
+  if (event.key !== 'Tab') return
+  const focusable = getFocusableElements()
+  if (focusable.length === 0) {
+    event.preventDefault()
+    dialogPanelRef.value?.focus()
+    return
+  }
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  const active = document.activeElement as HTMLElement | null
+
+  if (event.shiftKey) {
+    if (!active || active === first || !dialogPanelRef.value?.contains(active)) {
+      event.preventDefault()
+      last.focus()
+    }
+    return
+  }
+
+  if (active === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+const handleWindowKeydown = (event: KeyboardEvent) => {
+  if (!props.isOpen) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    closeFormDialog()
+    return
+  }
+  trapTabKey(event)
+}
 
 // 脏状态跟踪
 const secretsDirty = ref(false)
@@ -570,16 +647,34 @@ const onRelatedArticlesUpdate = (v: RelatedArticle[]) => {
 
 // 滚动锁定
 const isLocked = useScrollLock(document.body)
-watch(() => props.isOpen, (v) => {
-  isLocked.value = v
-}, { immediate: true })
+watch(
+  () => props.isOpen,
+  async (v) => {
+    isLocked.value = v
+    if (v) {
+      previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      window.removeEventListener('keydown', handleWindowKeydown)
+      window.addEventListener('keydown', handleWindowKeydown)
+      await nextTick()
+      nameInputRef.value?.focus()
+    } else {
+      window.removeEventListener('keydown', handleWindowKeydown)
+      const restoreTarget = previousFocusedElement.value
+      if (restoreTarget) {
+        nextTick(() => restoreTarget.focus())
+      }
+    }
+  },
+  { immediate: true }
+)
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', handleWindowKeydown)
   isLocked.value = false
 })
 
 // ====== 快捷键 ======
-const { Ctrl_Enter, Escape, Ctrl_z, Ctrl_y } = useMagicKeys({
+const { Ctrl_Enter } = useMagicKeys({
   passive: false,
   onEventFired(e) {
     if (!props.isOpen) return
@@ -597,12 +692,58 @@ const { Ctrl_Enter, Escape, Ctrl_z, Ctrl_y } = useMagicKeys({
 whenever(Ctrl_Enter, () => {
   if (props.isOpen && !isSubmitting.value) handleSubmit()
 })
-whenever(Escape, () => {
-  if (props.isOpen && !isSubmitting.value) emit('update:isOpen', false)
-})
 
 
 // ====== 业务逻辑 ======
+
+const getLicenseCardClass = (license: string, selected: boolean) => {
+  if (!selected) {
+    return 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-gray-800'
+  }
+  switch (license) {
+    case '免费':
+      return 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 dark:border-cyan-500/50'
+    case '收费':
+      return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500/50'
+    case '开源':
+      return 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-500/50'
+    case '已购':
+      return 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 dark:border-violet-500/50'
+    default:
+      return 'border-gray-400 bg-gray-50 dark:bg-gray-700/40 dark:border-gray-500'
+  }
+}
+
+const getLicenseIndicatorClass = (license: string, selected: boolean) => {
+  if (!selected) return 'border-gray-300 dark:border-gray-600'
+  switch (license) {
+    case '免费':
+      return 'border-cyan-500 bg-cyan-500'
+    case '收费':
+      return 'border-blue-500 bg-blue-500'
+    case '开源':
+      return 'border-emerald-500 bg-emerald-500'
+    case '已购':
+      return 'border-violet-500 bg-violet-500'
+    default:
+      return 'border-gray-500 bg-gray-500'
+  }
+}
+
+const getLicenseHint = (license: string) => {
+  switch (license) {
+    case '免费':
+      return '无成本上手'
+    case '收费':
+      return '按功能付费'
+    case '开源':
+      return '可查看源码'
+    case '已购':
+      return '已购买许可'
+    default:
+      return '未设置授权'
+  }
+}
 
 // 系统切换
 const toggleSystem = (sys: SystemType) => {
@@ -669,7 +810,7 @@ const scrollToField = (field: string) => {
   }
 }
 
-const handleInput = (field: keyof Software, value: any) => {
+const handleInput = (_field: keyof Software, _value: any) => {
    // just helper if needed for non-v-model
 }
 
@@ -681,7 +822,9 @@ const onDescriptionInput = () => {
 // ====== AI Logic ======
 const { isAnalyzing, errorMessage, analyze } = useAIAnalysis()
 const isAnalyzingUI = ref(false)
-watch(isAnalyzing, v => isAnalyzingUI.value = !!v)
+watch(isAnalyzing, (v) => {
+  isAnalyzingUI.value = !!v
+})
 
 // User edit tracking for AI
 const descTouched = ref(false)

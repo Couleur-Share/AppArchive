@@ -163,3 +163,67 @@ html {
 		height: 5px;
 	}
 }
+
+/* ===== Modal Polish (shared popup system) ===== */
+:root {
+	--modal-overlay-light: rgb(15 23 42 / 0.58);
+	--modal-overlay-dark: rgb(2 6 23 / 0.74);
+	--modal-panel-bg-light: rgb(255 255 255 / 0.9);
+	--modal-panel-bg-dark: rgb(15 23 42 / 0.86);
+	--modal-panel-border-light: rgb(148 163 184 / 0.3);
+	--modal-panel-border-dark: rgb(148 163 184 / 0.22);
+	--modal-shadow:
+		0 28px 70px -24px rgb(2 6 23 / 0.45), 0 10px 30px -20px rgb(2 6 23 / 0.35);
+}
+
+.app-modal-backdrop {
+	background: var(--modal-overlay-light);
+	backdrop-filter: blur(12px) saturate(130%);
+}
+
+.dark .app-modal-backdrop {
+	background: var(--modal-overlay-dark);
+}
+
+.app-modal-panel {
+	background: var(--modal-panel-bg-light);
+	border: 1px solid var(--modal-panel-border-light);
+	box-shadow: var(--modal-shadow);
+}
+
+.dark .app-modal-panel {
+	background: var(--modal-panel-bg-dark);
+	border-color: var(--modal-panel-border-dark);
+}
+
+.app-modal-panel--interactive {
+	transition:
+		transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+		box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-modal-close-btn {
+	border-radius: 10px;
+	transition:
+		color 150ms var(--ease),
+		background-color 150ms var(--ease),
+		box-shadow 150ms var(--ease);
+}
+
+.app-modal-close-btn:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px rgb(59 130 246 / 0.45);
+}
+
+@media (max-width: 640px) {
+	.app-modal-panel {
+		border-radius: 16px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.app-modal-panel--interactive {
+		transition: none !important;
+	}
+}

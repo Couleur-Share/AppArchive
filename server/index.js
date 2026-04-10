@@ -704,10 +704,10 @@ app.get("/api/ai/config", requireAuth, async (_req, res) => {
 app.put("/api/ai/config", requireAuth, async (req, res) => {
 	try {
 		const { provider, api_base, api_key, model } = req.body || {};
-		if (!provider || !api_key || !model) {
+		if (!provider || !model) {
 			return res.status(400).json({
 				error: "参数不完整",
-				message: "供应商、API Key 和模型名称为必填项",
+				message: "供应商和模型名称为必填项",
 			});
 		}
 		await saveAIConfig({ provider, api_base, api_key, model });

@@ -1,13 +1,19 @@
 <template>
   <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog as="div" class="relative z-[60]" :open="isOpen" @close="() => {}">
-      <TransitionChild enter="ease-out duration-200" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-150" leave-from="opacity-100" leave-to="opacity-0">
-        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+    <Dialog
+      as="div"
+      class="relative z-[60]"
+      :open="isOpen"
+      :initialFocus="closeButtonRef"
+      @close="handleDialogClose"
+    >
+      <TransitionChild enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-220" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-160" leave-from="opacity-100" leave-to="opacity-0">
+        <div class="fixed inset-0 app-modal-backdrop" />
       </TransitionChild>
       <div class="fixed inset-0 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-6">
-          <TransitionChild enter="ease-out duration-200" enter-from="opacity-0 translate-y-2 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-150" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-2 sm:translate-y-0 sm:scale-95">
-            <DialogPanel @click.stop @mousedown.stop @mouseup.stop @pointerdown.stop @pointerup.stop class="w-full max-w-5xl rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/30 shadow-xl">
+          <TransitionChild enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-260" enter-from="opacity-0 translate-y-2 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-170" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-2 sm:translate-y-0 sm:scale-95">
+            <DialogPanel @click.stop @mousedown.stop @mouseup.stop @pointerdown.stop @pointerup.stop class="w-full max-w-5xl rounded-2xl app-modal-panel app-modal-panel--interactive border border-gray-200/50 dark:border-gray-700/30 shadow-xl max-h-[min(90dvh,980px)] overflow-y-auto">
               <div class="p-4 border-b border-gray-200/50 dark:border-gray-700/30 flex items-center justify-between">
                 <DialogTitle class="text-lg font-semibold">分享卡片预览</DialogTitle>
                 <div class="flex items-center gap-2">
@@ -20,12 +26,13 @@
                     分享
                   </BaseButton>
                   <button 
+                    ref="closeButtonRef"
                     class="p-2 rounded-lg transition-all duration-200 
                            text-gray-600 dark:text-gray-400
                            hover:bg-gray-100 dark:hover:bg-gray-700 
                            hover:text-gray-900 dark:hover:text-white
-                           focus:outline-none focus:ring-2 focus:ring-gray-500/50"
-                    @click.stop="emit('update:isOpen', false)"
+                           focus:outline-none focus:ring-2 focus:ring-gray-500/50 app-modal-close-btn"
+                    @click.stop="handleDialogClose"
                     title="关闭"
                     aria-label="关闭"
                   >
@@ -95,12 +102,20 @@
                         <div :class="['text-base mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ new Date().toLocaleDateString() }}</div>
                       </div>
                       <div class="flex flex-wrap items-center gap-4 mb-6">
-                        <div v-for="sw in comparison.softwares" :key="sw.id" class="flex items-center gap-2 px-3 py-2 rounded-xl" :class="theme === 'classic' ? 'bg-gray-100 text-gray-900' : 'bg-white/10 text-white'">
+                        <TagBadge
+                          v-for="sw in comparison.softwares"
+                          :key="sw.id"
+                          size="md"
+                          :variant="theme === 'classic' ? 'neutral' : 'primary'"
+                          :class="theme === 'classic'
+                            ? 'h-auto gap-2 py-2 text-sm text-gray-900 bg-gray-100 border-gray-200'
+                            : 'h-auto gap-2 py-2 text-sm text-white bg-white/10 border-white/20'"
+                        >
                           <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
                             <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                           </div>
-                          <div class="text-base font-medium">{{ sw.name }}</div>
-                        </div>
+                          <span class="text-base font-medium leading-tight">{{ sw.name }}</span>
+                        </TagBadge>
                       </div>
                       <div class="mb-6">
                         <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">对比要点</div>
@@ -193,12 +208,20 @@
                         <div :class="['text-base mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ new Date().toLocaleDateString() }}</div>
                       </div>
                       <div class="flex flex-wrap items-center gap-4 mb-6">
-                        <div v-for="sw in comparison.softwares" :key="'exp-b-'+sw.id" class="flex items-center gap-2 px-3 py-2 rounded-xl" :class="theme === 'classic' ? 'bg-gray-100 text-gray-900' : 'bg-white/10 text-white'">
+                        <TagBadge
+                          v-for="sw in comparison.softwares"
+                          :key="'exp-b-'+sw.id"
+                          size="md"
+                          :variant="theme === 'classic' ? 'neutral' : 'primary'"
+                          :class="theme === 'classic'
+                            ? 'h-auto gap-2 py-2 text-sm text-gray-900 bg-gray-100 border-gray-200'
+                            : 'h-auto gap-2 py-2 text-sm text-white bg-white/10 border-white/20'"
+                        >
                           <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
                             <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
                           </div>
-                          <div class="text-base font-medium">{{ sw.name }}</div>
-                        </div>
+                          <span class="text-base font-medium leading-tight">{{ sw.name }}</span>
+                        </TagBadge>
                       </div>
                       <div class="mb-6">
                         <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">对比要点</div>
@@ -261,11 +284,12 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 // @ts-expect-error
 import { toBlob } from 'html-to-image'
 import { X } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software, SoftwareListItem } from '../types'
 import BaseButton from './common/BaseButton.vue'
+import TagBadge from './common/TagBadge.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -287,6 +311,8 @@ const isOpen = computed({
 const theme = ref(props.defaultTheme ?? 'classic')
 const showWebsite = ref(!!props.defaultShowWebsite)
 const showSystems = ref(!!props.defaultShowSystems)
+const closeButtonRef = ref<HTMLElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
 
 const themeClass = computed(() => {
   if (theme.value === 'dark') return 'bg-[#020420] text-white'
@@ -297,6 +323,10 @@ const themeClass = computed(() => {
 const previewRef = ref<HTMLElement | null>(null)
 const exportRef = ref<HTMLElement | null>(null)
 const { showToast } = useToast()
+
+const handleDialogClose = () => {
+  emit('update:isOpen', false)
+}
 
 const metaLine = computed(() => {
   if (props.mode !== 'detail' || !props.detail?.software) return ''
@@ -344,6 +374,29 @@ const onSave = async () => {
     showToast('复制失败，请检查浏览器权限后重试', 'error')
   }
 }
+
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (open) {
+      previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      await nextTick()
+      closeButtonRef.value?.focus()
+      return
+    }
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
+  }
+)
+
+onUnmounted(() => {
+  const restoreTarget = previousFocusedElement.value
+  if (restoreTarget) {
+    restoreTarget.focus()
+  }
+})
 </script>
 
 <style scoped>

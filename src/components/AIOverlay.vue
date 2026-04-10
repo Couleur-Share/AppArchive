@@ -7,6 +7,9 @@
     <div
       v-if="active"
       class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden font-sans"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       style="--primary-h: 167; --primary-s: 100%; --primary-l: 50%;"
     >
       <!-- 背景层：多重叠加增强质感 -->
@@ -49,13 +52,13 @@
               stroke-linecap="round"
               stroke-dasharray="289"
               stroke-dashoffset="289"
-              class="text-primary transition-all duration-300 ease-linear will-change-[stroke-dashoffset] drop-shadow-[0_0_8px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]"
+              class="text-primary will-change-[stroke-dashoffset] drop-shadow-[0_0_8px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]"
             />
           </svg>
 
           <!-- Layer 4: 粒子轨道 -->
           <div class="absolute inset-0 animate-spin-slow">
-             <div class="absolute top-4 left-1/2 w-1 h-1 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),1)]"></div>
+             <div class="absolute top-4 left-1/2 w-1 h-1 bg-primary rounded-full shadow-[0_0_10px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),1)]"></div>
              <div class="absolute bottom-4 left-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_white]"></div>
           </div>
 
@@ -67,7 +70,7 @@
             <div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary/20 to-transparent translate-y-[-100%] animate-scan"></div>
             
             <!-- 图标主体 -->
-            <div class="relative z-10 text-primary drop-shadow-[0_0_15px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]">
+            <div class="relative z-10 text-primary drop-shadow-[0_0_15px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.6)]">
                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                </svg>
@@ -81,7 +84,7 @@
         <!-- 文本与状态区域 -->
         <div ref="textContainer" class="w-full text-center space-y-8 relative z-20">
           <div class="space-y-2">
-            <h3 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/70 tracking-tight drop-shadow-lg">
+            <h3 class="text-4xl font-bold text-white tracking-tight drop-shadow-lg">
               AI 智能分析中
             </h3>
             
@@ -93,7 +96,7 @@
                     :key="currentStep" 
                     class="absolute text-primary font-mono text-sm tracking-[0.2em] uppercase flex items-center gap-2"
                   >
-                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse step-dot-pulse"></span>
                     {{ currentStep }}
                   </p>
                </TransitionGroup>
@@ -109,8 +112,8 @@
             
             <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-sm ring-1 ring-white/5">
               <div 
-                class="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/40 via-primary to-primary shadow-[0_0_15px_rgba(var(--primary-h),var(--primary-s),var(--primary-l),0.8)] transition-all duration-100 ease-out will-change-[width]"
-                :style="{ width: `${visualProgress}%` }"
+                class="absolute left-0 top-0 h-full w-full origin-left bg-gradient-to-r from-primary/40 via-primary to-primary shadow-[0_0_15px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.8)] will-change-transform"
+                :style="{ transform: `scaleX(${Math.min(Math.max(visualProgress, 0), 100) / 100})` }"
               >
                 <!-- 进度条头部高光 -->
                 <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-white/80 blur-[2px]"></div>
@@ -129,10 +132,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, computed } from 'vue'
 import { gsap } from 'gsap'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ active: boolean }>()
+
+const RING_CIRCUMFERENCE = 289
+const MAX_PROCESS_PROGRESS = 95
 
 // DOM Refs for GSAP
 const bgLayer = ref<HTMLElement | null>(null)
@@ -145,10 +151,15 @@ const progressRing = ref<SVGElement | null>(null)
 
 // State
 const currentStep = ref("初始化分析引擎...")
-const targetProgress = ref(0) // 逻辑进度
-const visualProgress = ref(0) // 视觉显示进度 (用于平滑过渡)
-let processTimer: any
+const visualProgress = ref(0)
+const prefersReducedMotion = ref(false)
+
 let progressTween: gsap.core.Tween | null = null
+let settleTween: gsap.core.Tween | null = null
+let corePulseTween: gsap.core.Tween | null = null
+let enterTimeline: gsap.core.Timeline | null = null
+let leaveTimeline: gsap.core.Timeline | null = null
+let reducedMotionMediaQuery: MediaQueryList | null = null
 
 const steps = [
   "解析输入数据结构...",
@@ -158,99 +169,166 @@ const steps = [
   "完成分析报告..."
 ]
 
-// GSAP Animations
-const onEnter = (el: Element, done: () => void) => {
-  const tl = gsap.timeline({ onComplete: done })
-  
-  // 1. 背景层淡入 & 缩放 (增加沉浸感)
-  tl.fromTo(bgLayer.value, 
-    { opacity: 0, scale: 1.1 },
-    { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }
-  )
+const onReducedMotionChange = (event: MediaQueryListEvent) => {
+  prefersReducedMotion.value = event.matches
+}
 
-  // 2. 核心 HUD 弹性弹出
-  tl.fromTo([ringOuter.value, radarLayer.value],
-    { scale: 0.8, opacity: 0, rotation: -45 },
-    { scale: 1, opacity: 1, rotation: 0, duration: 1, ease: "back.out(1.7)", stagger: 0.1 },
-    "-=0.6"
-  )
+const clampProgress = (value: number) => Math.min(Math.max(value, 0), 100)
 
-  // 3. 中心图标 Pop 效果
-  tl.fromTo(coreIcon.value,
-    { scale: 0, opacity: 0 },
-    { scale: 1, opacity: 1, duration: 0.6, ease: "elastic.out(1, 0.6)" },
-    "-=0.8"
-  )
+const updateRingProgress = (value: number) => {
+  if (!progressRing.value) return
+  const clamped = clampProgress(value)
+  const offset = RING_CIRCUMFERENCE - (clamped / 100) * RING_CIRCUMFERENCE
+  progressRing.value.style.strokeDashoffset = offset.toString()
+}
 
-  // 4. 文字内容上浮
-  tl.fromTo(textContainer.value,
-    { y: 30, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" },
-    "-=0.4"
+const killProcessTweens = () => {
+  progressTween?.kill()
+  settleTween?.kill()
+  corePulseTween?.kill()
+  progressTween = null
+  settleTween = null
+  corePulseTween = null
+}
+
+const killTransitionTimelines = () => {
+  enterTimeline?.kill()
+  leaveTimeline?.kill()
+  enterTimeline = null
+  leaveTimeline = null
+}
+
+const pulseCoreIcon = () => {
+  if (prefersReducedMotion.value || !coreIcon.value) return
+  corePulseTween?.kill()
+  corePulseTween = gsap.fromTo(
+    coreIcon.value,
+    { scale: 1.04 },
+    { scale: 1, duration: 0.22, ease: 'power2.out' }
   )
 }
 
-const onLeave = (el: Element, done: () => void) => {
-  const tl = gsap.timeline({ onComplete: done })
-  
-  // 快速收起动画
-  tl.to(contentContainer.value, { scale: 0.95, opacity: 0, duration: 0.3, ease: "power2.in" })
-  tl.to(bgLayer.value, { opacity: 0, duration: 0.3 }, "-=0.2")
+// GSAP Animations
+const onEnter = (_el: Element, done: () => void) => {
+  killTransitionTimelines()
+  const isReduced = prefersReducedMotion.value
+
+  enterTimeline = gsap.timeline({ onComplete: done })
+  enterTimeline
+    .fromTo(
+      bgLayer.value,
+      { opacity: 0, scale: isReduced ? 1 : 1.05 },
+      { opacity: 1, scale: 1, duration: isReduced ? 0.12 : 0.7, ease: isReduced ? 'none' : 'power2.out' }
+    )
+    .fromTo(
+      [ringOuter.value, radarLayer.value],
+      { scale: isReduced ? 1 : 0.88, opacity: 0, rotation: isReduced ? 0 : -24 },
+      { scale: 1, opacity: 1, rotation: 0, duration: isReduced ? 0.14 : 0.8, ease: isReduced ? 'none' : 'expo.out', stagger: isReduced ? 0 : 0.08 },
+      '-=0.45'
+    )
+    .fromTo(
+      coreIcon.value,
+      { scale: isReduced ? 1 : 0.84, opacity: 0 },
+      { scale: 1, opacity: 1, duration: isReduced ? 0.14 : 0.5, ease: isReduced ? 'none' : 'power3.out' },
+      '-=0.5'
+    )
+    .fromTo(
+      textContainer.value,
+      { y: isReduced ? 0 : 18, opacity: 0 },
+      { y: 0, opacity: 1, duration: isReduced ? 0.14 : 0.45, ease: isReduced ? 'none' : 'power2.out' },
+      '-=0.28'
+    )
+}
+
+const onLeave = (_el: Element, done: () => void) => {
+  killTransitionTimelines()
+  const isReduced = prefersReducedMotion.value
+
+  leaveTimeline = gsap.timeline({ onComplete: done })
+  leaveTimeline
+    .to(contentContainer.value, { scale: isReduced ? 1 : 0.97, opacity: 0, duration: isReduced ? 0.12 : 0.28, ease: isReduced ? 'none' : 'power2.in' })
+    .to(bgLayer.value, { opacity: 0, duration: isReduced ? 0.12 : 0.24, ease: isReduced ? 'none' : 'power1.in' }, '-=0.16')
 }
 
 // Logic
 const startProcess = () => {
-  targetProgress.value = 0
+  killProcessTweens()
   visualProgress.value = 0
   currentStep.value = steps[0]
-  
-  // 使用 GSAP Tween 这里的数值，确保丝滑
-  if (progressTween) progressTween.kill()
-  
-  // 模拟分段进度
-  const duration = 8 // seconds
+  updateRingProgress(0)
+
   progressTween = gsap.to(visualProgress, {
-    value: 95,
-    duration: duration,
-    ease: "power1.inOut", // 模拟一开始慢，中间快，最后慢
+    value: MAX_PROCESS_PROGRESS,
+    duration: prefersReducedMotion.value ? 3.2 : 8,
+    ease: prefersReducedMotion.value ? 'none' : 'sine.inOut',
     onUpdate: () => {
-      // 这里的逻辑保持不变，用于触发 Step 变更
-      const p = visualProgress.value
-      const stepIndex = Math.floor((p / 100) * steps.length)
-      if(steps[stepIndex] && currentStep.value !== steps[stepIndex]) {
+      const progressValue = clampProgress(visualProgress.value)
+      const stepIndex = Math.min(
+        steps.length - 1,
+        Math.floor((progressValue / 100) * steps.length)
+      )
+
+      if (steps[stepIndex] && currentStep.value !== steps[stepIndex]) {
         currentStep.value = steps[stepIndex]
-        // Step 变更时的微交互：核心图标轻微震动
-        gsap.fromTo(coreIcon.value, { scale: 1.05 }, { scale: 1, duration: 0.2, ease: "power1.out" })
+        pulseCoreIcon()
       }
-      
-      // 更新环形进度条的 dashoffset
-      // 289 是圆周长 (2 * PI * 46)
-      if (progressRing.value) {
-        const offset = 289 - (p / 100) * 289
-        progressRing.value.style.strokeDashoffset = offset.toString()
-      }
+
+      updateRingProgress(progressValue)
     }
   })
 }
 
-watch(() => props.active, (val) => {
-  if(val) {
+const finishProcess = () => {
+  progressTween?.kill()
+  progressTween = null
+  settleTween?.kill()
+
+  if (prefersReducedMotion.value) {
+    visualProgress.value = 100
+    updateRingProgress(100)
+    return
+  }
+
+  settleTween = gsap.to(visualProgress, {
+    value: 100,
+    duration: 0.45,
+    ease: 'power2.out',
+    onUpdate: () => {
+      updateRingProgress(visualProgress.value)
+    }
+  })
+}
+
+watch(() => props.active, (active) => {
+  if (active) {
     startProcess()
   } else {
-    // 完成态
-    if (progressTween) progressTween.kill()
-    gsap.to(visualProgress, {
-      value: 100,
-      duration: 0.5,
-      onUpdate: () => {
-         if (progressRing.value) progressRing.value.style.strokeDashoffset = "0"
-      }
-    })
+    finishProcess()
+  }
+})
+
+onMounted(() => {
+  if (typeof window === 'undefined' || !window.matchMedia) return
+  reducedMotionMediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  prefersReducedMotion.value = reducedMotionMediaQuery.matches
+
+  if (typeof reducedMotionMediaQuery.addEventListener === 'function') {
+    reducedMotionMediaQuery.addEventListener('change', onReducedMotionChange)
+  } else {
+    reducedMotionMediaQuery.addListener(onReducedMotionChange)
   }
 })
 
 onUnmounted(() => {
-  if (progressTween) progressTween.kill()
+  killProcessTweens()
+  killTransitionTimelines()
+
+  if (!reducedMotionMediaQuery) return
+  if (typeof reducedMotionMediaQuery.removeEventListener === 'function') {
+    reducedMotionMediaQuery.removeEventListener('change', onReducedMotionChange)
+  } else {
+    reducedMotionMediaQuery.removeListener(onReducedMotionChange)
+  }
 })
 </script>
 
@@ -269,10 +347,10 @@ onUnmounted(() => {
   animation: pan 20s linear infinite alternate;
 }
 .animate-breathe {
-  animation: breathe 4s ease-in-out infinite;
+  animation: breathe 4.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 .animate-scan {
-  animation: scan 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: scan 2.4s cubic-bezier(0.32, 0, 0.67, 0) infinite;
 }
 
 @keyframes spin {
@@ -283,8 +361,8 @@ onUnmounted(() => {
   to { background-position: 100% 100%; }
 }
 @keyframes breathe {
-  0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.1); }
+  0%, 100% { opacity: 0.18; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.07); }
 }
 @keyframes scan {
   0% { transform: translateY(-100%); }
@@ -294,10 +372,10 @@ onUnmounted(() => {
 /* 视觉特效 */
 .bg-radial-gradient {
   /* 使用深色品牌色调的渐变，而非纯黑 */
-  background: radial-gradient(circle at center, transparent 0%, rgba(var(--primary-h),var(--primary-s),var(--primary-l), 0.15) 120%);
+  background: radial-gradient(circle at center, transparent 0%, hsla(var(--primary-h),var(--primary-s),var(--primary-l), 0.15) 120%);
 }
 .bg-conic-gradient {
-  background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(var(--primary-h),var(--primary-s),var(--primary-l), 0.1) 60deg, transparent 120deg);
+  background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, hsla(var(--primary-h),var(--primary-s),var(--primary-l), 0.1) 60deg, transparent 120deg);
 }
 .perspective-1000 {
   perspective: 1000px;
@@ -306,7 +384,10 @@ onUnmounted(() => {
 /* 文本切换过渡 */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 .slide-fade-enter-from {
   opacity: 0;
@@ -315,5 +396,25 @@ onUnmounted(() => {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow-reverse,
+  .animate-spin-medium,
+  .animate-spin-slow,
+  .animate-pan-background,
+  .animate-breathe,
+  .animate-scan {
+    animation: none !important;
+  }
+
+  .step-dot-pulse {
+    animation: none !important;
+  }
+
+  .slide-fade-enter-active,
+  .slide-fade-leave-active {
+    transition-duration: 1ms;
+  }
 }
 </style>

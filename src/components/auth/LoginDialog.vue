@@ -4,14 +4,14 @@
       <!-- 遮罩层 -->
       <TransitionChild
         as="template"
-        enter="ease-out duration-300"
+        enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-250"
         enter-from="opacity-0"
         enter-to="opacity-100"
-        leave="ease-in duration-200"
+        leave="ease-in duration-180"
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+        <div class="fixed inset-0 app-modal-backdrop" />
       </TransitionChild>
 
       <!-- 弹窗容器 -->
@@ -19,19 +19,18 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <TransitionChild
             as="template"
-            enter="ease-out duration-300"
+            enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-280"
             enter-from="opacity-0 scale-95 translate-y-4"
             enter-to="opacity-100 scale-100 translate-y-0"
-            leave="ease-in duration-200"
+            leave="ease-in duration-180"
             leave-from="opacity-100 scale-100 translate-y-0"
             leave-to="opacity-0 scale-95 translate-y-4"
           >
             <DialogPanel
               class="w-full max-w-sm transform overflow-hidden rounded-2xl
-                     bg-white dark:bg-gray-900
-                     border border-gray-200/60 dark:border-gray-700/40
+                     app-modal-panel app-modal-panel--interactive
                      shadow-xl shadow-black/10 dark:shadow-black/30
-                     transition-all"
+                     transition-all max-h-[min(92dvh,640px)] overflow-y-auto"
             >
               <!-- 头部 -->
               <div class="px-6 pt-6 pb-2">
@@ -40,9 +39,11 @@
                     登录
                   </DialogTitle>
                   <button
+                    type="button"
                     @click="handleClose"
                     class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-                           hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150"
+                           hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150
+                           app-modal-close-btn"
                   >
                     <X class="w-4 h-4" />
                   </button>
@@ -130,8 +131,9 @@
                       type="button"
                       @click="showPassword = !showPassword"
                       class="absolute inset-y-0 right-0 pr-3 flex items-center
-                             text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      tabindex="-1"
+                             text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
+                             focus-visible:outline-none focus-visible:ring-2
+                             focus-visible:ring-blue-500/40 rounded-md"
                     >
                       <EyeOff v-if="showPassword" class="w-4 h-4" />
                       <Eye v-else class="w-4 h-4" />
@@ -180,9 +182,7 @@ const props = defineProps<{
   isOpen: boolean
 }>()
 
-const emit = defineEmits<{
-  (e: 'success'): void
-}>()
+const emit = defineEmits<(e: 'success') => void>()
 
 const username = ref('')
 const password = ref('')

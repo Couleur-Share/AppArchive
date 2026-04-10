@@ -13,7 +13,7 @@
 
     <main class="w-full relative z-30">
       <div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-8 mb-6 sm:mb-12">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5 mb-6 sm:mb-9">
           <nav class="flex-1 min-w-0" aria-label="软件分类">
             <CategoryFilter
               v-model="activeCategory"
@@ -26,55 +26,43 @@
           </nav>
 
           <!-- 布局切换按钮 -->
-          <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div class="top-actions-bar flex items-center gap-1.5 shrink-0 rounded-xl border border-gray-200/70 bg-white/70 p-1.5 shadow-[0_10px_26px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm dark:border-gray-600/[0.45] dark:bg-gray-800/[0.62]">
             <button
               v-if="shouldHideNewArrivalRadar"
               @click="handleExpandNewArrivalRadar"
-              class="inline-flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center
-                     bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
-                     border border-gray-200 dark:border-gray-800
-                     text-gray-600 dark:text-gray-300
-                     shadow-sm hover:shadow-md
-                     transition-all duration-200"
+              class="top-action-btn inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
               title="打开新增筛选"
               aria-label="打开新增筛选"
             >
-              <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
+              <Sparkles class="h-5 w-5" />
             </button>
 
             <!-- 移动端隐藏切换按钮，默认使用列表模式 -->
             <button
               @click="toggleViewMode"
-              class="hidden sm:flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center 
-                     bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
-                     border border-gray-200 dark:border-gray-800 
-                     text-gray-600 dark:text-gray-300 
-                     shadow-sm hover:shadow-md
-                     transition-all duration-200"
-              title="切换布局"
+              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
+              :title="viewMode === 'grid' ? '切换为列表布局' : '切换为网格布局'"
+              :aria-label="viewMode === 'grid' ? '切换为列表布局' : '切换为网格布局'"
+              :aria-pressed="viewMode === 'grid'"
             >
-              <LayoutGrid v-if="viewMode === 'grid'" class="w-4 h-4 sm:w-5 sm:h-5" />
-              <List v-else class="w-4 h-4 sm:w-5 sm:h-5" />
+              <LayoutGrid v-if="viewMode === 'grid'" class="h-5 w-5" />
+              <List v-else class="h-5 w-5" />
             </button>
 
             <button
               v-if="canEditSoftware"
               @click="showAddDialog = true"
-              class="hidden sm:flex w-9 h-9 sm:w-11 sm:h-11 rounded-xl items-center justify-center 
-                     bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800
-                     border border-gray-200 dark:border-gray-800 
-                     text-gray-600 dark:text-gray-300 
-                     shadow-sm hover:shadow-md
-                     transition-all duration-200"
+              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
               title="添加软件"
+              aria-label="添加软件"
             >
-              <Plus class="h-4 w-4 sm:h-5 sm:w-5" />
+              <Plus class="h-5 w-5" />
             </button>
           </div>
         </div>
 
         <Transition name="new-arrival-panel">
-          <div v-if="!shouldHideNewArrivalRadar" class="mb-3 sm:mb-8">
+          <div v-if="!shouldHideNewArrivalRadar" class="mb-4 sm:mb-7">
             <NewArrivalRadar
               :mode="newArrivalMode"
               :only-new="showNewOnly"
@@ -110,14 +98,14 @@
       </div>
 
       <!-- 分页组件 -->
-      <div class="mt-6 sm:mt-8 mb-8 sm:mb-12 flex justify-center px-4">
+      <div class="mt-7 sm:mt-9 mb-9 sm:mb-12 flex justify-center px-4">
         <BlurFade :delay="0.06" :offset="6" direction="up" inView>
-        <nav class="inline-flex items-center gap-1 sm:gap-2 bg-white/60 dark:bg-gray-800/80 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/30" v-gsap="'fade'">
+        <nav class="pagination-shell inline-flex items-center gap-1.5 sm:gap-2 bg-white/65 dark:bg-gray-800/[0.68] px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-2xl shadow-lg border border-gray-200/70 dark:border-gray-600/[0.45]" v-gsap="'fade'">
           <!-- 上一页按钮 -->
           <button
             @click="onPageChange(currentPage - 1)"
             :disabled="currentPage === 0"
-            class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="currentPage === 0 ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'"
           >
             <svg
@@ -141,11 +129,11 @@
               <button
                 v-if="shouldShowPageButton(page)"
                 @click="onPageChange(page - 1)"
-                class="min-w-[2.5rem] h-10 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center"
+                class="pagination-page-btn min-w-[2.5rem] h-10 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center"
                 :class="[
                   currentPage === page - 1
-                    ? 'bg-emerald-500 text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'pagination-page-btn--active'
+                    : 'pagination-page-btn--idle'
                 ]"
               >
                 <span>{{ page }}</span>
@@ -168,7 +156,7 @@
           <button
             @click="onPageChange(currentPage + 1)"
             :disabled="currentPage >= Math.ceil(totalItems / pageSize) - 1"
-            class="p-2 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="
               currentPage >= Math.ceil(totalItems / pageSize) - 1
                 ? 'text-gray-400'
@@ -1236,11 +1224,115 @@ const isEllipsis = (page: number) => {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* 避免特定素的过渡效果 */
 img,
-button,
 .transition-none {
   transition: none !important;
+}
+
+button {
+  transition:
+    color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+
+.top-actions-bar {
+  --top-action-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.top-actions-bar,
+.pagination-shell {
+  --ui-focus-ring:
+    0 0 0 2px rgb(255 255 255 / 0.42),
+    0 0 0 5px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.45);
+  --ui-accent-shadow: 0 10px 18px -12px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.95);
+  --ui-hover-shadow: 0 10px 16px -12px rgb(15 23 42 / 0.45);
+  --ui-hover-brightness: 1.03;
+  --ui-hover-surface-light: rgb(255 255 255 / 0.92);
+  --ui-hover-surface-dark: rgb(55 65 81 / 0.72);
+}
+
+.top-action-btn {
+  transition:
+    transform 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.top-action-btn > svg {
+  transition: transform 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .top-action-btn:hover > svg {
+    transform: scale(1.05);
+  }
+
+  .top-action-btn:not(:disabled):hover,
+  .pagination-nav-btn:not(:disabled):hover,
+  .pagination-page-btn--idle:hover {
+    background-color: var(--ui-hover-surface-light);
+    box-shadow: var(--ui-hover-shadow);
+    filter: brightness(var(--ui-hover-brightness));
+  }
+
+  .dark .top-action-btn:not(:disabled):hover,
+  .dark .pagination-nav-btn:not(:disabled):hover,
+  .dark .pagination-page-btn--idle:hover {
+    background-color: var(--ui-hover-surface-dark);
+  }
+
+  .pagination-page-btn--active:hover {
+    filter: brightness(var(--ui-hover-brightness));
+  }
+}
+
+.top-action-btn:active > svg {
+  transform: scale(0.94);
+}
+
+.top-action-btn:focus-visible,
+.pagination-nav-btn:focus-visible,
+.pagination-page-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.pagination-nav-btn {
+  transition:
+    color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.pagination-page-btn {
+  transition:
+    color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 160ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.pagination-page-btn--active {
+  background-color: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+  color: hsl(0 0% 100%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.25),
+    var(--ui-accent-shadow);
+}
+
+.pagination-page-btn--idle {
+  color: rgb(75 85 99);
+  background-color: transparent;
+}
+
+.dark .pagination-page-btn--idle {
+  color: rgb(209 213 219);
 }
 
 /* 只针对图标链接的样式 */
@@ -1294,6 +1386,24 @@ button,
 @media (prefers-reduced-motion: reduce) {
   .animate__animated {
     animation: none !important;
+  }
+
+  .top-action-btn,
+  .top-action-btn > svg,
+  .pagination-nav-btn,
+  .pagination-page-btn {
+    transition: none !important;
+  }
+
+  .top-action-btn:active,
+  .top-action-btn:active > svg {
+    transform: none !important;
+  }
+
+  .top-action-btn:focus-visible,
+  .pagination-nav-btn:focus-visible,
+  .pagination-page-btn:focus-visible {
+    box-shadow: none !important;
   }
 }
 

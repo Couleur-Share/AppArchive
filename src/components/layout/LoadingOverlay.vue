@@ -5,7 +5,7 @@
       class="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden"
     >
       <!-- 背景遮罩 (适配深色/浅色模式) -->
-      <div class="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl transition-colors duration-300"></div>
+      <div class="absolute inset-0 app-modal-backdrop transition-colors duration-300"></div>
 
       <!-- 动态背景光晕 -->
       <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-30">
@@ -14,7 +14,7 @@
       </div>
 
       <!-- 主要内容 -->
-      <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6 z-10">
+      <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6 py-8 z-10 rounded-3xl app-modal-panel app-modal-panel--interactive">
         
         <!-- 核心动画区域 -->
         <div class="relative w-32 h-32 mb-10 flex items-center justify-center">

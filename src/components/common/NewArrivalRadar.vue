@@ -26,11 +26,11 @@
         </div>
 
         <div class="inline-flex items-center self-start gap-2 shrink-0">
-          <div
-            class="inline-flex items-center rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 gap-1.5 sm:gap-2 border"
-            :class="newCount > 0
-              ? 'border-emerald-200/80 dark:border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-500/10'
-              : 'border-gray-200/80 dark:border-gray-600/70 bg-white/70 dark:bg-gray-900/50'"
+          <TagBadge
+            size="sm"
+            strong
+            :variant="newCount > 0 ? 'success' : 'neutral'"
+            class="h-7 sm:h-8 rounded-lg sm:rounded-xl px-2.5 sm:px-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs"
           >
             <span class="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
               <span v-if="newCount > 0" class="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70 animate-ping motion-reduce:hidden" />
@@ -39,13 +39,10 @@
                 :class="newCount > 0 ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-500'"
               />
             </span>
-            <span
-              class="text-[11px] sm:text-xs font-semibold"
-              :class="newCount > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-600 dark:text-gray-300'"
-            >
+            <span>
               {{ newCount }} 个新增
             </span>
-          </div>
+          </TagBadge>
 
           <button
             v-if="canCollapse"
@@ -108,6 +105,7 @@
 <script setup lang="ts">
 import { ChevronsUp } from 'lucide-vue-next'
 import { computed } from 'vue'
+import TagBadge from './TagBadge.vue'
 
 type NewArrivalMode = '7d' | '30d'
 

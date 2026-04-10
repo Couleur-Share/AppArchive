@@ -9,7 +9,7 @@
       sizeClass,
       variantClass,
       block ? 'w-full' : '',
-      (isDisabled && tag === 'a') ? 'opacity-70 cursor-not-allowed pointer-events-none' : '',
+      (isDisabled && tag === 'a') ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
     ]"
   >
     <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<{
   rel: 'noopener noreferrer'
 })
 
-const baseClass = 'inline-flex items-center justify-center gap-2 rounded-lg text-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white/60 dark:ring-offset-gray-900/60'
+const baseClass = 'inline-flex items-center justify-center gap-2 rounded-lg text-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-150 ease-out focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100'
 
 const sizeClass = computed(() => {
   if (props.size === 'xs') return 'px-2.5 py-1 text-xs'
@@ -62,15 +62,15 @@ const isDisabled = computed(() => props.disabled || props.loading)
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 shadow-lg shadow-blue-500/20'
+      return 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 focus-visible:ring-blue-500/70'
     case 'danger':
-      return 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 shadow-lg shadow-red-500/20'
+      return 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/30 focus-visible:ring-red-500/70'
     case 'ghost':
-      return 'bg-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+      return 'bg-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-gray-400/70'
     case 'link':
-      return 'bg-transparent text-blue-600 dark:text-blue-300 hover:underline'
+      return 'bg-transparent text-blue-600 dark:text-blue-300 hover:underline focus-visible:ring-blue-400/70'
     default:
-      return 'border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200'
+      return 'border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 focus-visible:ring-gray-400/70'
   }
 })
 </script>

@@ -2,6 +2,9 @@
   <div
     v-if="active"
     class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
   >
     <!-- 背景遮罩 (适配深色/浅色模式) -->
     <div class="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl transition-colors duration-300"></div>
@@ -133,7 +136,7 @@
       <!-- 底部进度条 -->
       <div class="w-full mt-10 max-w-md relative px-4">
         <div class="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-          <div ref="progressBar" class="h-full bg-primary w-0 shadow-[0_0_10px_rgba(var(--primary),0.3)] relative">
+          <div ref="progressBar" class="h-full bg-primary w-full origin-left scale-x-0 shadow-[0_0_10px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.32)] relative will-change-transform">
             <div class="absolute right-0 top-0 bottom-0 w-2 bg-white/30 blur-[2px]"></div>
           </div>
         </div>
@@ -152,7 +155,7 @@
 
 <script setup lang="ts">
 import { gsap } from 'gsap'
-import { nextTick, ref, watch, onUnmounted } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 // TextPlugin 已在 plugins/gsap.ts 中全局注册，无需重复注册
 
@@ -168,6 +171,7 @@ const currentMessage = ref("初始化...")
 const progress = ref(0)
 const overlayContainer = ref<HTMLElement | null>(null)
 const animationContainer = ref<HTMLElement | null>(null)
+const prefersReducedMotion = ref(false)
 
 const leftPathRef = ref<SVGPathElement | null>(null)
 const rightPathRef = ref<SVGPathElement | null>(null)
@@ -177,8 +181,11 @@ const lightningState = ref<{ left: { main: string, branch: string }, right: { ma
 })
 
 let ctx: gsap.Context | null = null
-let messageInterval: any = null
+let messageInterval: ReturnType<typeof setInterval> | null = null
 let resizeObserver: ResizeObserver | null = null
+let progressTween: gsap.core.Tween | null = null
+let lightningTween: gsap.core.Tween | null = null
+let reducedMotionMediaQuery: MediaQueryList | null = null
 
 const messages = [
   "正在解析软件架构...",
@@ -188,6 +195,45 @@ const messages = [
   "正在生成最终见解..."
 ]
 
+const onReducedMotionChange = (event: MediaQueryListEvent) => {
+  prefersReducedMotion.value = event.matches
+}
+
+const clearMessageInterval = () => {
+  if (messageInterval) {
+    clearInterval(messageInterval)
+    messageInterval = null
+  }
+}
+
+const clearTweens = () => {
+  progressTween?.kill()
+  lightningTween?.kill()
+  progressTween = null
+  lightningTween = null
+}
+
+const clearResizeObserver = () => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+}
+
+const resetLightningState = () => {
+  lightningState.value = {
+    left: { main: '', branch: '' },
+    right: { main: '', branch: '' }
+  }
+}
+
+const stopAnimations = () => {
+  clearMessageInterval()
+  clearTweens()
+  clearResizeObserver()
+  ctx?.revert()
+  ctx = null
+  resetLightningState()
+}
+
 const updatePaths = () => {
   if (!leftNode.value || !rightNode.value || !centerNode.value || !leftPathRef.value || !rightPathRef.value || !animationContainer.value) return
 
@@ -196,10 +242,10 @@ const updatePaths = () => {
   const getRelativePos = (el: HTMLElement, anchor: 'right' | 'left' | 'center') => {
     let x = el.offsetLeft
     let y = el.offsetTop + el.offsetHeight / 2
-    
+
     if (anchor === 'right') x += el.offsetWidth
     if (anchor === 'center') x += el.offsetWidth / 2
-    
+
     return { x, y }
   }
 
@@ -221,22 +267,22 @@ const updatePaths = () => {
   rightPathRef.value.setAttribute('d', rightD)
 }
 
-const generateBolt = (pathEl: SVGPathElement, progress: number) => {
+const generateBolt = (pathEl: SVGPathElement, progressValue: number) => {
   if (!pathEl) return { main: '', branch: '' }
   const totalLen = pathEl.getTotalLength()
   const boltLen = 80 // 闪电长度
-  
+
   // 计算当前显示范围
-  const end = progress * (totalLen + boltLen)
+  const end = progressValue * (totalLen + boltLen)
   const start = Math.max(0, end - boltLen)
   const actualEnd = Math.min(totalLen, end)
-  
+
   if (start >= totalLen || end <= 0) return { main: '', branch: '' }
-  
+
   // 生成主路径点
   const segments = 8
   let d = `M ${pathEl.getPointAtLength(start).x} ${pathEl.getPointAtLength(start).y}`
-  
+
   for (let i = 1; i <= segments; i++) {
     const t = i / segments
     const currentLen = start + (actualEnd - start) * t
@@ -244,85 +290,84 @@ const generateBolt = (pathEl: SVGPathElement, progress: number) => {
     const jitter = (Math.random() - 0.5) * 15 // 增加抖动幅度
     d += ` L ${point.x} ${point.y + jitter}`
   }
-  
+
   // 生成分支 (随机出现)
   let branchD = ''
   if (Math.random() > 0.6) {
-     const branchStartLen = start + (actualEnd - start) * 0.5
-     const branchStartPoint = pathEl.getPointAtLength(branchStartLen)
-     const bx = branchStartPoint.x + (Math.random() - 0.5) * 30
-     const by = branchStartPoint.y + (Math.random() - 0.5) * 30
-     branchD = `M ${branchStartPoint.x} ${branchStartPoint.y} L ${bx} ${by}`
+    const branchStartLen = start + (actualEnd - start) * 0.5
+    const branchStartPoint = pathEl.getPointAtLength(branchStartLen)
+    const bx = branchStartPoint.x + (Math.random() - 0.5) * 30
+    const by = branchStartPoint.y + (Math.random() - 0.5) * 30
+    branchD = `M ${branchStartPoint.x} ${branchStartPoint.y} L ${bx} ${by}`
   }
-  
+
   return { main: d, branch: branchD }
 }
 
 const startAnimations = async () => {
+  stopAnimations()
   await nextTick()
-  
+
   // 重置状态
   progress.value = 0
   currentMessage.value = "初始化..."
-  
+
   ctx = gsap.context(() => {
+    const isReducedMotion = prefersReducedMotion.value
+
     // 0. 初始化状态
-    gsap.set([leftNode.value, rightNode.value], { 
-      x: (i) => i === 0 ? -50 : 50, 
+    gsap.set([leftNode.value, rightNode.value], {
+      x: (i) => i === 0 ? -50 : 50,
       opacity: 0,
       scale: 0.9
     })
     gsap.set(centerNode.value, { scale: 0, rotation: -180, opacity: 0 })
     gsap.set([titleText.value, subTitle.value], { y: 20, opacity: 0 })
-    gsap.set(progressBar.value, { width: '0%' })
+    gsap.set(progressBar.value, { scaleX: 0, transformOrigin: 'left center' })
 
     const tl = gsap.timeline()
 
     // 1. 核心入场
-    tl.to(centerNode.value, { 
-      scale: 1, 
-      rotation: 0, 
-      opacity: 1, 
-      duration: 1, 
-      ease: 'elastic.out(1, 0.6)' 
-    })
-    
-    // 2. 两侧卡片入场
-    .to([leftNode.value, rightNode.value], { 
-      x: 0, 
-      opacity: 1, 
+    tl.to(centerNode.value, {
       scale: 1,
-      duration: 0.8, 
-      stagger: 0.2,
-      ease: 'power3.out' 
-    }, '-=0.6')
-
-    // 3. 文字入场
-    .to([titleText.value, subTitle.value], {
-      y: 0,
+      rotation: 0,
       opacity: 1,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power2.out'
-    }, '-=0.4')
+      duration: isReducedMotion ? 0.1 : 0.85,
+      ease: isReducedMotion ? 'none' : 'expo.out'
+    })
+
+    // 2. 两侧卡片入场
+      .to([leftNode.value, rightNode.value], {
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        duration: isReducedMotion ? 0.1 : 0.7,
+        stagger: 0.18,
+        ease: isReducedMotion ? 'none' : 'power3.out'
+      }, '-=0.55')
+
+      // 3. 文字入场
+      .to([titleText.value, subTitle.value], {
+        y: 0,
+        opacity: 1,
+        duration: isReducedMotion ? 0.1 : 0.55,
+        stagger: 0.1,
+        ease: isReducedMotion ? 'none' : 'power2.out'
+      }, '-=0.35')
 
     // 4. 进度条动画
-    gsap.to(progressBar.value, {
-      width: '100%',
-      duration: 5,
-      ease: 'power1.inOut',
+    progressTween = gsap.to(progressBar.value, {
+      scaleX: 1,
+      duration: isReducedMotion ? 0.35 : 5,
+      ease: isReducedMotion ? 'none' : 'sine.inOut',
       onUpdate: function() {
         progress.value = Math.round(this.progress() * 100)
       }
     })
 
     // 5. 闪电动画循环
-    const lightningProgress = { value: 0 }
-    
-    // 初始化路径
     updatePaths()
-    
-    // 监听尺寸变化
+
     if (animationContainer.value) {
       resizeObserver = new ResizeObserver(() => {
         updatePaths()
@@ -330,20 +375,24 @@ const startAnimations = async () => {
       resizeObserver.observe(animationContainer.value)
     }
 
-    gsap.to(lightningProgress, {
-      value: 1,
-      duration: 2,
-      repeat: -1,
-      ease: "none",
-      onUpdate: () => {
-        if (leftPathRef.value && rightPathRef.value) {
-          // 每次更新都确保路径是最新的 (防止快速 resize 时错位)
-          // updatePaths() // 过于频繁，改为 ResizeObserver 触发
-          lightningState.value.left = generateBolt(leftPathRef.value, lightningProgress.value)
-          lightningState.value.right = generateBolt(rightPathRef.value, lightningProgress.value)
+    if (!isReducedMotion) {
+      const lightningProgress = { value: 0 }
+      lightningTween = gsap.to(lightningProgress, {
+        value: 1,
+        duration: 2.1,
+        repeat: -1,
+        ease: "none",
+        onUpdate: () => {
+          if (leftPathRef.value && rightPathRef.value) {
+            lightningState.value.left = generateBolt(leftPathRef.value, lightningProgress.value)
+            lightningState.value.right = generateBolt(rightPathRef.value, lightningProgress.value)
+          }
         }
-      }
-    })
+      })
+    } else if (leftPathRef.value && rightPathRef.value) {
+      lightningState.value.left = generateBolt(leftPathRef.value, 0.55)
+      lightningState.value.right = generateBolt(rightPathRef.value, 0.55)
+    }
 
     // 6. 消息循环
     let msgIndex = 0
@@ -351,39 +400,53 @@ const startAnimations = async () => {
       if (msgIndex < messages.length) {
         currentMessage.value = messages[msgIndex]
         msgIndex++
+      } else {
+        clearMessageInterval()
       }
-    }, 1000)
-
-  })
+    }, isReducedMotion ? 1200 : 1000)
+  }, overlayContainer)
 }
 
 watch(
   () => props.active,
-  (v) => {
-    if (v) {
+  (value) => {
+    if (value) {
       startAnimations()
     } else {
-      ctx?.revert()
-      if (messageInterval) clearInterval(messageInterval)
-      resizeObserver?.disconnect()
+      stopAnimations()
     }
   },
   { immediate: true }
 )
 
+onMounted(() => {
+  if (typeof window === 'undefined' || !window.matchMedia) return
+  reducedMotionMediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  prefersReducedMotion.value = reducedMotionMediaQuery.matches
+  if (typeof reducedMotionMediaQuery.addEventListener === 'function') {
+    reducedMotionMediaQuery.addEventListener('change', onReducedMotionChange)
+  } else {
+    reducedMotionMediaQuery.addListener(onReducedMotionChange)
+  }
+})
+
 onUnmounted(() => {
-  ctx?.revert()
-  if (messageInterval) clearInterval(messageInterval)
-  resizeObserver?.disconnect()
+  stopAnimations()
+  if (!reducedMotionMediaQuery) return
+  if (typeof reducedMotionMediaQuery.removeEventListener === 'function') {
+    reducedMotionMediaQuery.removeEventListener('change', onReducedMotionChange)
+  } else {
+    reducedMotionMediaQuery.removeListener(onReducedMotionChange)
+  }
 })
 </script>
 
 <style scoped>
 .animate-pulse-slow {
-  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse 4.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 .animate-pulse-fast {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 .animate-spin-slow {
   animation: spin 8s linear infinite;
@@ -392,7 +455,7 @@ onUnmounted(() => {
   animation: spin 6s linear infinite reverse;
 }
 .animate-scan-fast {
-  animation: scan 2s linear infinite;
+  animation: scan 2.2s cubic-bezier(0.32, 0, 0.67, 0) infinite;
 }
 
 @keyframes spin {
@@ -407,7 +470,10 @@ onUnmounted(() => {
 
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 
 .slide-up-enter-from {
@@ -418,5 +484,20 @@ onUnmounted(() => {
 .slide-up-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow,
+  .animate-pulse-fast,
+  .animate-spin-slow,
+  .animate-reverse-spin,
+  .animate-scan-fast {
+    animation: none !important;
+  }
+
+  .slide-up-enter-active,
+  .slide-up-leave-active {
+    transition-duration: 1ms;
+  }
 }
 </style>

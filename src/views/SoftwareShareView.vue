@@ -78,29 +78,33 @@
             {{ software.name }}
           </h1>
           <div class="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+            <TagBadge size="sm" variant="neutral" strong>
               {{ software.category || '未分类' }}
-            </span>
-            <span
-              class="px-2.5 py-1 rounded-md text-xs font-semibold ring-1 ring-inset"
-              :class="licenseClass"
+            </TagBadge>
+            <TagBadge
+              size="sm"
+              strong
+              :variant="getLicenseVariant(software.license)"
             >
               {{ software.license || '未知' }}
-            </span>
-            <span
+            </TagBadge>
+            <TagBadge
               v-if="software.systems && software.systems.length"
-              class="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex items-center gap-1"
+              size="sm"
+              variant="neutral"
             >
               <Monitor class="w-3.5 h-3.5" />
               {{ software.systems.join(' · ') }}
-            </span>
-            <span
+            </TagBadge>
+            <TagBadge
               v-if="hasWarnings"
-              class="px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800/50 inline-flex items-center gap-1"
+              size="sm"
+              variant="danger"
+              strong
             >
               <AlertCircle class="w-3.5 h-3.5" />
               安全警示
-            </span>
+            </TagBadge>
           </div>
           <!-- 操作按钮 -->
           <div class="mt-5 flex flex-wrap items-center justify-center sm:justify-start gap-3">
@@ -216,16 +220,18 @@
 
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import {
   AlertCircle, ArrowRight, CheckCircle2, ExternalLink,
   Home, Link2, Monitor, Moon, Sun, XCircle
 } from 'lucide-vue-next'
-import { softwareService } from '../services/software'
-import { getIconUrl } from '../services/localIconCache'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import TagBadge from '../components/common/TagBadge.vue'
 import { useTheme } from '../composables/useTheme'
+import { getIconUrl } from '../services/localIconCache'
+import { softwareService } from '../services/software'
 import type { Software } from '../types'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 
 const route = useRoute()
 const { isDark, toggleTheme } = useTheme()
@@ -252,16 +258,6 @@ useHead({
       }),
     },
   ],
-})
-
-const licenseClass = computed(() => {
-  switch (software.value?.license) {
-    case '免费': return 'bg-emerald-50 text-emerald-600 ring-emerald-500/20 dark:bg-emerald-900/20 dark:text-emerald-400 dark:ring-emerald-400/20'
-    case '收费': return 'bg-blue-50 text-blue-600 ring-blue-500/20 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-400/20'
-    case '开源': return 'bg-amber-50 text-amber-600 ring-amber-500/20 dark:bg-amber-900/20 dark:text-amber-400 dark:ring-amber-400/20'
-    case '已购': return 'bg-purple-50 text-purple-600 ring-purple-500/20 dark:bg-purple-900/20 dark:text-purple-400 dark:ring-purple-400/20'
-    default: return 'bg-gray-50 text-gray-600 ring-gray-500/20 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-400/20'
-  }
 })
 
 const hasProsOrCons = computed(() =>

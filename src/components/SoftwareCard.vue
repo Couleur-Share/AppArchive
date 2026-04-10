@@ -82,18 +82,17 @@
           </div>
           
           <div class="flex flex-wrap gap-2 mt-2">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200/50 dark:border-gray-700/50">
+            <TagBadge size="xs" variant="neutral" strong class="uppercase tracking-wider">
               {{ software.category }}
-            </span>
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
-                  :class="{
-                    'bg-emerald-50 text-emerald-600 border border-emerald-100': software.license === '免费',
-                    'bg-blue-50 text-blue-600 border border-blue-100': software.license === '收费',
-                    'bg-amber-50 text-amber-600 border border-amber-100': software.license === '开源',
-                    'bg-purple-50 text-purple-600 border border-purple-100': software.license === '已购'
-                  }">
+            </TagBadge>
+            <TagBadge
+              size="xs"
+              strong
+              class="uppercase tracking-wider"
+              :variant="getLicenseVariant(software.license)"
+            >
               {{ software.license }}
-            </span>
+            </TagBadge>
           </div>
         </div>
       </div>
@@ -127,7 +126,9 @@ import { computed, onMounted, ref } from 'vue'
 import { isSignedIn } from '../lib/auth'
 import { getErrorPlaceholder, getIconUrl, preloadIcon } from '../services/localIconCache'
 import type { Software } from '../types'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
+import TagBadge from './common/TagBadge.vue'
 import SystemIcon from './SystemIcon.vue'
 
 const props = defineProps<{

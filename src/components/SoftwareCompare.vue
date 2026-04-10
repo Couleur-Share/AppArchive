@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog as="div" class="relative z-50" @close="close">
+    <Dialog as="div" class="relative z-50" :initialFocus="closeButtonRef" @close="close">
       <TransitionChild
         as="template"
         enter="duration-300 ease-out"
@@ -10,7 +10,7 @@
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-md" />
+        <div class="fixed inset-0 app-modal-backdrop" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
@@ -27,9 +27,9 @@
           >
             <DialogPanel 
               class="relative transform overflow-hidden rounded-2xl 
-                     bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl 
+                     app-modal-panel app-modal-panel--interactive
                      text-left shadow-2xl transition-all
-                     w-[900px] max-h-[85vh] border border-gray-200/50 dark:border-gray-700/50"
+                     w-[min(900px,94vw)] max-h-[min(88dvh,920px)] border border-gray-200/50 dark:border-gray-700/50"
             >
               <!-- 标题栏 -->
               <div class="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50">
@@ -38,10 +38,12 @@
                   {{ software.category }} 软件深度对比
                 </DialogTitle>
                 <button
+                  ref="closeButtonRef"
+                  type="button"
                   @click="close"
                   class="p-2 rounded-lg transition-colors duration-200 
                          text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 
-                         hover:text-gray-900 dark:hover:text-white"
+                         hover:text-gray-900 dark:hover:text-white app-modal-close-btn"
                 >
                   <X class="h-5 w-5" />
                 </button>
@@ -72,9 +74,9 @@
                       </div>
                       <div>
                         <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight mb-1">{{ sw.name }}</h4>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        <TagBadge size="xs" :variant="getLicenseVariant(sw.license)">
                           {{ sw.license }}
-                        </span>
+                        </TagBadge>
                       </div>
                     </div>
                     
@@ -120,11 +122,13 @@
 
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { Check, X, Minus, ThumbsUp, ThumbsDown } from 'lucide-vue-next'
-import { ref, watch, nextTick } from 'vue'
 import { gsap } from 'gsap'
+import { Check, Minus, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next'
+import { nextTick, ref, watch } from 'vue'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software } from '../types'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
+import TagBadge from './common/TagBadge.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -137,10 +141,28 @@ const emit = defineEmits<{
 }>()
 
 const cardContainer = ref<HTMLElement | null>(null)
+const closeButtonRef = ref<HTMLElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
 
 const close = () => {
   emit('update:isOpen', false)
 }
+
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (open) {
+      previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      await nextTick()
+      closeButtonRef.value?.focus()
+      return
+    }
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
+  }
+)
 
 // 弹窗打开且 Transition 完成后触发
 const onAfterEnter = () => {
@@ -157,7 +179,7 @@ const onAfterEnter = () => {
     y: 0,
     duration: 0.6,
     stagger: 0.15, // 每个卡片间隔 0.15s
-    ease: 'back.out(1.2)', // 轻微回弹效果
+    ease: 'power3.out', // 平滑减速，避免回弹造成晃动
     clearProps: 'all' // 动画结束后清除 inline style，避免干扰 hover 效果
   })
 }

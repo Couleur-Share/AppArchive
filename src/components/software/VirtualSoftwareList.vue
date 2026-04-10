@@ -55,18 +55,21 @@
                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">
                    {{ item.name }}
                  </h3>
-                 <div class="mt-2 flex items-center gap-2">
-                   <span class="text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                     {{ item.category || '未分类' }}
-                   </span>
-                   <span
-                     v-if="isNewItem(item)"
-                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-fuchsia-100/80 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-200 border border-fuchsia-200/80 dark:border-fuchsia-700/60"
-                   >
-                     <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
-                     New
-                   </span>
-                 </div>
+                <div class="mt-2 flex items-center gap-2">
+                  <TagBadge size="xs" variant="neutral" class="uppercase tracking-wider">
+                    {{ item.category || '未分类' }}
+                  </TagBadge>
+                  <TagBadge
+                    v-if="isNewItem(item)"
+                    size="xs"
+                    variant="fuchsia"
+                    strong
+                    class="uppercase tracking-wider"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                    New
+                  </TagBadge>
+                </div>
                </div>
                <Menu as="div" class="relative">
                  <MenuButton @click.stop class="p-1.5 rounded-lg hover:bg-gray-100/60 dark:hover:bg-gray-700/60 transition-all duration-200 opacity-0 group-hover:opacity-100 text-gray-500 dark:text-gray-400 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
@@ -110,9 +113,9 @@
              <!-- 底部区域 -->
              <div class="flex items-center mt-4 pt-4 border-t border-gray-200/30 dark:border-gray-700/30">
                <div class="flex items-center gap-2 flex-1 min-w-0">
-                 <span class="px-2 py-1 rounded-lg text-xs shrink-0" :class="getLicenseClass(item.license)">
+                <TagBadge size="sm" strong class="shrink-0" :variant="getLicenseVariant(item.license)">
                    {{ getLicenseLabel(item.license) }}
-                 </span>
+                </TagBadge>
                  <div class="flex items-center gap-1">
                    <template v-for="system in item.systems || []" :key="system">
                      <div class="flex items-center justify-center w-6 h-6 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 shrink-0" :title="system">
@@ -159,16 +162,19 @@
               <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
                 {{ item.name }}
               </h3>
-              <span class="text-xs px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600/30">
+              <TagBadge size="xs" variant="neutral" class="shrink-0">
                 {{ item.category || '未分类' }}
-              </span>
-              <span
+              </TagBadge>
+              <TagBadge
                 v-if="isNewItem(item)"
-                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-fuchsia-100/80 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-200 border border-fuchsia-200/80 dark:border-fuchsia-700/60"
+                size="xs"
+                variant="fuchsia"
+                strong
+                class="uppercase tracking-wider"
               >
                 <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
                 New
-              </span>
+              </TagBadge>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 w-full pr-4">
               {{ getDescription(item.description) }}
@@ -185,9 +191,14 @@
             </div>
 
             <!-- License 标签 (固定宽度以保证对齐) -->
-            <span class="w-12 flex justify-center items-center text-xs h-6 rounded border box-border" :class="getLicenseBorderClass(item.license)">
+            <TagBadge
+              size="sm"
+              strong
+              class="w-14 justify-center box-border shrink-0"
+              :variant="getLicenseVariant(item.license)"
+            >
               {{ getLicenseLabel(item.license) }}
-            </span>
+            </TagBadge>
             
             <!-- 操作按钮组 (CSS 动画控制) - 移动端隐藏 -->
             <div class="action-buttons hidden sm:flex items-center justify-end gap-1" @click.stop>
@@ -228,10 +239,12 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
+import { computed } from 'vue'
 import { isSignedIn } from '../../lib/auth'
 import { getIconUrl } from '../../services/localIconCache'
 import type { SoftwareListItem } from '../../types'
-import { computed } from 'vue'
+import { getLicenseTagVariant as getLicenseVariant } from '../../utils/license'
+import TagBadge from '../common/TagBadge.vue'
 import SystemIcon from '../SystemIcon.vue'
 
 const props = defineProps<{
@@ -274,36 +287,6 @@ const isNewItem = (item: SoftwareListItem) => {
   const createdAt = Date.parse(item.created_at)
   if (Number.isNaN(createdAt)) return false
   return createdAt >= newSinceTimestamp.value
-}
-
-const getLicenseClass = (license?: string) => {
-  switch (license) {
-    case '免费':
-      return 'bg-cyan-100/70 dark:bg-cyan-900/70 text-cyan-700 dark:text-cyan-200'
-    case '收费':
-      return 'bg-blue-100/50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
-    case '开源':
-      return 'bg-green-100/50 dark:bg-green-900/50 text-green-700 dark:text-green-300'
-    case '已购':
-      return 'bg-purple-100/50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-    default:
-      return 'bg-gray-100/70 dark:bg-gray-700/50 text-gray-500 dark:text-gray-300'
-  }
-}
-
-const getLicenseBorderClass = (license?: string) => {
-  switch (license) {
-    case '免费':
-      return 'border-cyan-200 text-cyan-700 dark:text-cyan-300 dark:border-cyan-800'
-    case '收费':
-      return 'border-blue-200 text-blue-700 dark:text-blue-300 dark:border-blue-800'
-    case '开源':
-      return 'border-green-200 text-green-700 dark:text-green-300 dark:border-green-800'
-    case '已购':
-      return 'border-purple-200 text-purple-700 dark:text-purple-300 dark:border-purple-800'
-    default:
-      return 'border-gray-200 text-gray-500 dark:text-gray-400 dark:border-gray-700'
-  }
 }
 
 const openWebsite = (website: string) => {

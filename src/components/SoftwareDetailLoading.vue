@@ -1,10 +1,10 @@
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
     <div
-      class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      class="absolute inset-0 app-modal-backdrop"
       @click="handleClose"
     ></div>
-    <div class="relative w-[92vw] sm:w-[90vw] sm:max-w-[640px] rounded-lg bg-white dark:bg-[#171f2e] shadow-2xl ring-1 ring-gray-900/5">
+    <div class="relative w-[92vw] sm:w-[90vw] sm:max-w-[640px] rounded-xl app-modal-panel app-modal-panel--interactive shadow-2xl ring-1 ring-gray-900/5">
       <div class="p-6 sm:p-8">
         <div class="flex items-center gap-4">
           <div class="h-7 w-7 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"></div>

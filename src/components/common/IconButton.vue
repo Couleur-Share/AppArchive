@@ -9,7 +9,7 @@
       baseClass,
       sizeClass,
       variantClass,
-      (isDisabled && tag === 'a') ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
+      (isDisabled && tag === 'a') ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
     ]"
   >
     <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />
@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<{
   variant: 'default'
 })
 
-const baseClass = 'rounded-lg transition-colors duration-100 focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white/60 dark:ring-offset-gray-900/60'
+const baseClass = 'rounded-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-100 ease-out focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 active:scale-[0.92] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100'
 
 const sizeClass = computed(() => {
   if (props.size === 'xs') return 'p-1 text-xs'
@@ -62,11 +62,11 @@ const isDisabled = computed(() => props.disabled || props.loading)
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-300'
+      return 'hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-300 focus-visible:ring-blue-400/70'
     case 'danger':
-      return 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400'
+      return 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 focus-visible:ring-red-400/70'
     default:
-      return 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+      return 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus-visible:ring-gray-400/70'
   }
 })
 </script>

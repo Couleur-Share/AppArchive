@@ -50,7 +50,14 @@
           </select>
           <div class="flex items-center">
             <span class="text-xs text-gray-600 dark:text-gray-400">类型预览：</span>
-            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs" :class="getSecretKindClass(localSecrets[idx].kind)">{{ getSecretKindLabel(localSecrets[idx].kind) }}</span>
+            <TagBadge
+              size="xs"
+              radius="full"
+              class="ml-2"
+              :variant="getSecretKindVariant(localSecrets[idx].kind)"
+            >
+              {{ getSecretKindLabel(localSecrets[idx].kind) }}
+            </TagBadge>
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
@@ -75,9 +82,10 @@
 <script setup lang="ts">
 import { AlertCircle } from 'lucide-vue-next'
 import { nextTick, ref, watch } from 'vue'
+import TagBadge from '@/components/common/TagBadge.vue'
 import type { DownloadLink, SecretItem } from '@/types'
 import { copyToClipboard } from '@/utils/clipboard'
-import { getSecretKindClass, getSecretKindLabel } from '@/utils/secret'
+import { getSecretKindLabel } from '@/utils/secret'
 
 const props = defineProps<{
   downloadLinks: DownloadLink[] | undefined
@@ -210,6 +218,19 @@ const clearSecretValue = (idx: number) => {
   target.value = null
   emit('update:secrets', [...localSecrets.value])
   emit('validate')
+}
+
+const getSecretKindVariant = (kind?: string) => {
+  switch (kind) {
+    case 'license':
+      return 'primary'
+    case 'account':
+      return 'warning'
+    case 'config':
+      return 'info'
+    default:
+      return 'neutral'
+  }
 }
 </script>
 

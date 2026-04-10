@@ -5,9 +5,16 @@
       class="relative z-50" 
       @close="handleDetailClose"
       :open="isOpen"
+      :initialFocus="initialFocusRef"
     >
-      <!-- 使用一个视觉不可见但可聚焦的元素作为初始焦点，避免 focus trap 问题 -->
-      <div ref="initialFocusRef" tabindex="0" class="fixed top-0 left-0 w-px h-px opacity-0 overflow-hidden outline-none" aria-hidden="true" />
+      <button
+        ref="initialFocusRef"
+        type="button"
+        class="sr-only"
+        @click="handleDetailClose"
+      >
+        关闭详情弹窗
+      </button>
       
       <TransitionChild
         as="template"
@@ -18,7 +25,7 @@
         leave-from="opacity-100"
         leave-to="opacity-0"
       >
-        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+        <div class="fixed inset-0 app-modal-backdrop" />
       </TransitionChild>
 
       <div class="fixed inset-0 overflow-y-auto">
@@ -34,7 +41,6 @@
           >
             <DialogPanel 
               ref="dialogPanelRef"
-              :initialFocus="initialFocusRef"
               :class="isOpen ? '!opacity-100 !translate-y-0 !sm:scale-100' : ''"
               @click.stop
               @mousedown.stop
@@ -45,9 +51,9 @@
               @touchmove="handleTouchMove"
               @touchend="handleTouchEnd"
               class="relative transform overflow-hidden 
-                     bg-white dark:bg-[#171f2e] 
+                     app-modal-panel app-modal-panel--interactive
                      text-left shadow-2xl ring-1 ring-gray-900/5
-                     w-screen sm:w-[90vw] sm:max-w-[1000px] h-[95vh] sm:h-[85vh]
+                     w-screen sm:w-[90vw] sm:max-w-[1000px] h-[96dvh] sm:h-[min(88dvh,920px)]
                      rounded-t-lg sm:rounded-lg
                      flex flex-col will-change-transform"
             >
@@ -81,8 +87,9 @@
                         <div class="hidden sm:flex items-center gap-2">
                            <Tooltip content="关闭 (Esc)">
                             <button
+                              type="button"
                               @click="handleDetailCloseLogged"
-                              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+                              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors app-modal-close-btn"
                             >
                               <X class="w-6 h-6" />
                             </button>
@@ -121,17 +128,17 @@
                             <Bot class="w-4 h-4 text-gray-400 shrink-0" />
                             <span v-if="!analysisModelTag" class="text-gray-400 dark:text-gray-500">未记录</span>
                             <template v-else>
-                              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-500/30">
+                              <TagBadge size="xs" variant="primary">
                                 {{ analysisModelTag }}
-                              </span>
-                              <span v-if="tavilyIssueLabel" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-500/30">
+                              </TagBadge>
+                              <TagBadge v-if="tavilyIssueLabel" size="xs" variant="warning">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                                 {{ tavilyIssueLabel }}
-                              </span>
-                              <span v-if="hasWarnings" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-500/30">
+                              </TagBadge>
+                              <TagBadge v-if="hasWarnings" size="xs" variant="danger">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                                 安全警示
-                              </span>
+                              </TagBadge>
                               <span v-if="analysisTimeLabel" class="text-xs text-gray-400 dark:text-gray-500">
                                 {{ analysisTimeLabel }}
                               </span>
@@ -143,15 +150,15 @@
                       <div class="mt-5 flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
                          <div class="flex flex-wrap items-center justify-center gap-2">
                             <!-- 授权标签 -->
-                            <span class="px-3 py-1 rounded-md text-xs font-semibold ring-1 ring-inset bg-gray-50 text-gray-700 ring-gray-600/20 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700">
+                            <TagBadge size="sm" variant="neutral" strong>
                               {{ licenseLabel }}
-                            </span>
+                            </TagBadge>
                             
                             <!-- 系统标签 -->
-                            <div class="flex items-center gap-1 px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300">
+                            <TagBadge size="sm" variant="neutral">
                                 <Monitor class="w-3.5 h-3.5" />
                                 <span>{{ (software.systems || []).slice(0, 3).join(' · ') }}</span>
-                            </div>
+                            </TagBadge>
                          </div>
 
                          <!-- 主要操作按钮 -->
@@ -192,8 +199,9 @@
                             
                             <!-- 移动端关闭按钮 (放在操作栏右侧) -->
                             <button
+                                type="button"
                                 @click="handleDetailCloseLogged"
-                                class="sm:hidden p-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                                class="sm:hidden p-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 app-modal-close-btn"
                             >
                                 <X class="w-5 h-5" />
                             </button>
@@ -463,12 +471,14 @@
                                    <div class="space-y-3 text-sm">
                                         <div class="flex justify-between py-1 border-b border-gray-100 dark:border-gray-700">
                                             <span class="text-gray-500">授权</span>
-                                            <span class="font-medium">{{ sw.license || '未知' }}</span>
+                                            <TagBadge size="xs" strong :variant="getLicenseVariant(sw.license)">
+                                              {{ sw.license || '未知' }}
+                                            </TagBadge>
                                         </div>
                                         <div class="space-y-1">
                                             <div class="text-gray-500 text-xs">支持系统</div>
                                             <div class="flex flex-wrap gap-1">
-                                                <span v-for="s in (sw.systems || [])" :key="s" class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">{{ s }}</span>
+                                                <TagBadge v-for="s in (sw.systems || [])" :key="s" size="xs" variant="neutral">{{ s }}</TagBadge>
                                             </div>
                                         </div>
                                    </div>
@@ -501,7 +511,7 @@
                                         <div class="space-y-1">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-bold text-gray-900 dark:text-white">{{ getProviderLabel(link.provider) }}</span>
-                                                <span v-if="link.versionLabel" class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">{{ link.versionLabel }}</span>
+                                                <TagBadge v-if="link.versionLabel" size="xs" variant="neutral">{{ link.versionLabel }}</TagBadge>
                                             </div>
                                             <div class="text-xs text-gray-500 font-mono break-all">{{ link.url }}</div>
                                             <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400 mt-2">
@@ -534,7 +544,7 @@
                                 <div v-for="sec in software.secrets" :key="sec.id" class="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 dark:bg-gray-900/10 border border-gray-100 dark:border-gray-700/50">
                                     <div>
                                         <div class="flex items-center gap-2 mb-1">
-                                            <span class="text-xs font-bold uppercase px-1.5 py-0.5 rounded text-gray-700 bg-gray-100 dark:text-gray-400 dark:bg-gray-700/40">{{ getSecretKindLabel(sec.kind) }}</span>
+                                            <TagBadge size="xs" variant="neutral" strong class="uppercase">{{ getSecretKindLabel(sec.kind) }}</TagBadge>
                                             <span class="font-medium text-gray-900 dark:text-white">{{ sec.label }}</span>
                                         </div>
                                         <div class="text-xs text-gray-500">{{ sec.notes || '点击复制查看明文' }}</div>
@@ -619,28 +629,51 @@
 
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { 
-    CheckCircle2, ChevronLeft, ChevronRight, Copy, Edit, ExternalLink, 
-    FileSearch, GitBranch, Plus, X, XCircle, Share2, Star, DownloadCloud, 
-    FolderOpen, Monitor, ChevronDown, Tag, FileText, Lightbulb, HelpCircle, History, Link, Link2, Bot
+import {
+  Bot,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  DownloadCloud,
+  Edit,
+  ExternalLink,
+  FileSearch,
+  FileText,
+  FolderOpen,
+  GitBranch,
+  HelpCircle,
+  History,
+  Lightbulb,
+  Link,
+  Link2,
+  Monitor,
+  Plus,
+  Share2,
+  Star,
+  Tag,
+  X,
+  XCircle
 } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
-import { getIconUrl } from '../services/localIconCache'
+import { isSignedIn } from '../lib/auth'
 import { buildApiUrl } from '../services/apiBase'
+import { comparisonService } from '../services/comparison'
+import { githubService } from '../services/github'
+import { getIconUrl } from '../services/localIconCache'
+import { softwareService } from '../services/software'
 import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../types'
+import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
-import { isSignedIn } from '../lib/auth'
-import { githubService } from '../services/github'
-import SystemIcon from './SystemIcon.vue'
-import Toast from './Toast.vue'
+import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
+import SystemIcon from './SystemIcon.vue'
 import GitHubReleases from './software/GitHubReleases.vue'
-
-import { softwareService } from '../services/software'
-import { comparisonService } from '../services/comparison'
+import Toast from './Toast.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -650,6 +683,7 @@ const props = defineProps<{
 
 const software = ref<Software | SoftwareListItem>(props.software)
 const isLoadingDetails = ref(false)
+const previousFocusedElement = ref<HTMLElement | null>(null)
 
 // 监听 props.software 变化，重新获取详情
 watch(() => props.software, async (newSoftware) => {
@@ -674,7 +708,15 @@ watch(() => props.software, async (newSoftware) => {
 // 监听 isOpen 变化，打开时获取详情
 watch(() => props.isOpen, async (isOpen) => {
   if (isOpen && props.software) {
+    previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
     await fetchFullDetails(props.software.id)
+    await nextTick()
+    initialFocusRef.value?.focus()
+  } else {
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
   }
 })
 
@@ -790,7 +832,7 @@ const analysisTimeLabel = computed(() => {
 // Number formatter
 const formatNumber = (num: number) => {
     if (num >= 10000) {
-        return (num / 10000).toFixed(1) + 'w'
+        return `${(num / 10000).toFixed(1)}w`
     }
     return num.toString()
 }
@@ -994,7 +1036,7 @@ const groupedArticles = computed(() => {
     if (groups[type]) {
       groups[type].items.push(article)
     } else {
-      groups['other'].items.push(article)
+      groups.other.items.push(article)
     }
   })
   
@@ -1057,12 +1099,12 @@ const afterLeave = () => {
 
 </script>
 
-<style scoped>
-.markdown-content :deep(h1), .markdown-content :deep(h2), .markdown-content :deep(h3) { @apply font-bold text-gray-900 dark:text-white my-3; }
-.markdown-content :deep(p) { @apply my-2 leading-relaxed text-gray-700 dark:text-gray-300; }
-.markdown-content :deep(ul) { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
-.markdown-content :deep(li) { @apply my-1; }
-.markdown-content :deep(a) { @apply text-blue-500 hover:underline; }
+<style>
+.markdown-content h1, .markdown-content h2, .markdown-content h3 { @apply font-bold text-gray-900 dark:text-white my-3; }
+.markdown-content p { @apply my-2 leading-relaxed text-gray-700 dark:text-gray-300; }
+.markdown-content ul { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
+.markdown-content li { @apply my-1; }
+.markdown-content a { @apply text-blue-500 hover:underline; }
 
 .scroll-mask {
   scrollbar-width: none;

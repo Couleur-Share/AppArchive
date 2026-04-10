@@ -11,10 +11,16 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div v-if="isOpen" class="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true">
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-[100] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="comparison-manager-title"
+      >
         <!-- 遮罩层 -->
         <div 
-          class="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+          class="fixed inset-0 app-modal-backdrop" 
           aria-hidden="true" 
           @click="closeDialog"
         ></div>
@@ -30,8 +36,10 @@
             leave-to-class="opacity-0 scale-95"
             appear
           >
-            <div 
-              class="relative w-full max-w-6xl h-[85vh] transform overflow-hidden rounded-lg bg-white dark:bg-[#171f2e] shadow-2xl transition-all flex flex-col ring-1 ring-gray-900/5 z-10"
+            <div
+              ref="dialogPanelRef"
+              tabindex="-1"
+              class="relative w-full max-w-6xl h-[min(88dvh,980px)] transform overflow-hidden rounded-2xl app-modal-panel app-modal-panel--interactive transition-all flex flex-col ring-1 ring-gray-900/5 z-10"
               @click.stop
             >
               <!-- 顶部标题栏 -->
@@ -41,7 +49,7 @@
                     <LayoutDashboard class="w-6 h-6" />
                   </div>
                   <div>
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                  <h3 id="comparison-manager-title" class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
                     管理软件对比
                   </h3>
                   <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -53,6 +61,7 @@
                 <div class="flex items-center gap-3">
                   <!-- AI 分析按钮 -->
                   <button
+                    type="button"
                     @click="startAIAnalysis"
                     class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm border"
                     :class="[
@@ -71,6 +80,7 @@
                   <!-- 导出/分享按钮组 -->
                   <Tooltip content="导出为图片">
                     <button
+                        type="button"
                         @click="exportAsImage"
                         class="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
                     >
@@ -80,8 +90,10 @@
 
                   <Tooltip content="关闭 (Esc)">
                     <button
-                        @click="$emit('update:isOpen', false)"
-                        class="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
+                        type="button"
+                        @click="closeDialog"
+                        class="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors app-modal-close-btn"
+                        aria-label="关闭对比管理弹窗"
                     >
                         <X class="w-5 h-5" />
                     </button>
@@ -98,6 +110,7 @@
                         <div class="relative">
                             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input 
+                                ref="searchInputRef"
                                 v-model="searchQuery"
                                 type="text" 
                                 placeholder="搜索添加软件..." 
@@ -139,6 +152,7 @@
                                <img :src="getIconUrl(comp.target.icon)" class="w-5 h-5 rounded-md bg-white object-cover" />
                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-[120px] truncate">{{ comp.target.name }}</span>
                                <button 
+                                   type="button"
                                    @click="removeComparison(comp.id)"
                                    class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex-shrink-0"
                                >
@@ -152,6 +166,7 @@
                              </div>
                              
                              <button
+                                type="button"
                                 v-if="selectedComparisons.length > 0"
                                 @click="clearAllComparisons"
                                 class="ml-auto flex-shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors px-2"
@@ -181,25 +196,21 @@
 </template>
 
 <script setup lang="ts">
-import { Transition } from 'vue'
 import DOMPurify from 'dompurify'
-import { 
-    LayoutDashboard, X, Sparkles, Search, Loader2, ArrowLeft, Download
-} from 'lucide-vue-next'
+// @ts-expect-error: html-to-image 类型声明缺失
+import { toPng } from 'html-to-image'
+import { ArrowLeft, Download, LayoutDashboard, Loader2, Search, Sparkles, X } from 'lucide-vue-next'
 import MarkdownIt from 'markdown-it'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, Transition, watch } from 'vue'
 import { useComparisonManager } from '../composables/useComparisonManager'
 import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software, SoftwareListItem } from '../types'
 import logger from '../utils/logger'
 import ComparisonAIOverlay from './ComparisonAIOverlay.vue'
+import Tooltip from './common/Tooltip.vue'
 import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
 import ComparisonEditor from './comparison/ComparisonEditor.vue'
-import Tooltip from './common/Tooltip.vue'
-
-// @ts-expect-error: html-to-image 类型声明缺失
-import { toPng } from 'html-to-image'
 
 // Markdown 配置
 let md: MarkdownIt | null = null
@@ -260,6 +271,71 @@ const {
 
 // 搜索过滤
 const searchQuery = ref('')
+const dialogPanelRef = ref<HTMLElement | null>(null)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
+
+const focusableSelectors = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled]):not([type="hidden"])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ')
+
+const getFocusableElements = () => {
+  if (!dialogPanelRef.value) return [] as HTMLElement[]
+  return Array.from(dialogPanelRef.value.querySelectorAll<HTMLElement>(focusableSelectors))
+    .filter((el) => !el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null)
+}
+
+const focusInitialElement = () => {
+  if (searchInputRef.value && !searchInputRef.value.disabled) {
+    searchInputRef.value.focus()
+    return
+  }
+  const first = getFocusableElements()[0]
+  first?.focus()
+}
+
+const trapTabKey = (event: KeyboardEvent) => {
+  if (event.key !== 'Tab') return
+  const focusable = getFocusableElements()
+  if (focusable.length === 0) {
+    event.preventDefault()
+    dialogPanelRef.value?.focus()
+    return
+  }
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  const active = document.activeElement as HTMLElement | null
+
+  if (event.shiftKey) {
+    if (!active || active === first || !dialogPanelRef.value?.contains(active)) {
+      event.preventDefault()
+      last.focus()
+    }
+    return
+  }
+
+  if (active === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+const handleWindowKeydown = (event: KeyboardEvent) => {
+  if (!props.isOpen) return
+  if (event.key === 'Escape') {
+    if (isAnalyzing.value || isSaving.value) return
+    event.preventDefault()
+    closeDialog()
+    return
+  }
+  trapTabKey(event)
+}
 const filteredSoftware = computed(() => {
     let items = comparableSoftware.value || []
     if (searchQuery.value) {
@@ -300,14 +376,27 @@ onMounted(async () => {
 
 watch(() => props.isOpen, async (newValue) => {
   if (newValue && props.software?.id) {
+    previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    window.removeEventListener('keydown', handleWindowKeydown)
+    window.addEventListener('keydown', handleWindowKeydown)
     try { await initLoad() } catch (error) { logger.error('监听加载失败:', error); showToast('加载数据失败，请重试', 'error') }
+    await nextTick()
+    focusInitialElement()
   } else {
+    window.removeEventListener('keydown', handleWindowKeydown)
     flushDebouncedSave()
     searchQuery.value = '' // 重置搜索
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
   }
 })
 
-onBeforeUnmount(() => { flushDebouncedSave() })
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWindowKeydown)
+  flushDebouncedSave()
+})
 
 const formattedSummary = computed(() => {
   if (!summary.value) return ''

@@ -4,11 +4,12 @@
       as="div" 
       class="relative z-50" 
       :open="isOpen"
+      :initialFocus="closeButtonRef"
       @close="$emit('update:isOpen', false)"
     >
       <div class="fixed inset-0">
         <TransitionChild as="div">
-          <div class="fixed inset-0 bg-black/50"
+          <div class="fixed inset-0 app-modal-backdrop"
                v-gsap="{ duration: 0.18, to: { duration: 0.18, ease: 'power1.out' } }" />
         </TransitionChild>
       </div>
@@ -17,10 +18,10 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <TransitionChild as="div">
             <DialogPanel
-             class="relative transform overflow-hidden rounded-lg 
-                    bg-white dark:bg-gray-800 
-                     text-left shadow-level3 will-change-transform will-change-opacity
-                     w-[800px] h-[600px] flex flex-col"
+             class="relative transform overflow-hidden rounded-2xl
+                    app-modal-panel app-modal-panel--interactive
+                    text-left shadow-level3 will-change-transform will-change-opacity
+                    w-[min(960px,94vw)] h-[min(86dvh,760px)] flex flex-col"
               v-gsap="{ y: 12, duration: 0.28, ease: 'power2.out', to: { y: 0, duration: 0.28, ease: 'power2.out' } }"
             >
               <!-- 两栏布局 -->
@@ -37,10 +38,11 @@
                   <!-- 导航项 -->
                   <div class="flex-1 p-4 space-y-2">
                     <button
+                      type="button"
                       v-for="tab in tabs"
                       :key="tab.id"
                       @click="activeTab = tab.id"
-                      class="w-full text-left px-4 py-2 rounded-lg transition-colors duration-100"
+                      class="w-full text-left px-4 py-2 rounded-lg transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40"
                       :class="[
                         activeTab === tab.id
                           ? 'bg-gray-900 dark:bg-gray-700 text-white'
@@ -80,12 +82,14 @@
                       {{ currentTab?.label }}
                     </h4>
                     <button
+                      ref="closeButtonRef"
+                      type="button"
                       @click="$emit('update:isOpen', false)"
                       class="p-2 rounded-lg transition-all duration-200 
                              text-gray-600 dark:text-gray-400
                              hover:bg-gray-100 dark:hover:bg-gray-700 
                              hover:text-gray-900 dark:hover:text-white
-                             focus:outline-none focus:ring-2 focus:ring-gray-500/50"
+                             focus:outline-none focus:ring-2 focus:ring-gray-500/50 app-modal-close-btn"
                       title="关闭"
                       aria-label="关闭"
                     >
@@ -341,7 +345,9 @@
                             </button>
                           </div>
                           <p v-if="aiExistingConfig && !aiForm.api_key" class="text-xs text-gray-500 dark:text-gray-400">
-                            当前密钥: {{ aiExistingConfig.api_key_masked }}（留空则保持不变）
+                            当前密钥: {{ aiExistingConfig.api_key_masked }}
+                            <span v-if="canKeepExistingApiKey">（留空则保持不变）</span>
+                            <span v-else class="text-amber-500">（已切换供应商或 API 地址，需输入新 Key）</span>
                           </p>
                         </div>
 
@@ -451,11 +457,11 @@
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ArrowDown, ArrowUp, Camera, Eye, EyeOff, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
-import { isSignedIn, updateProfile, user } from '../lib/auth'
-import { uploadService } from '../services/upload'
-import { aiConfigService, searchConfigService, type AIConfig, type AIProvider, type SearchConfig } from '../services/aiConfig'
+import { computed, nextTick, ref, watch } from 'vue'
 import { SYSTEMS } from '@/types/constants'
+import { isSignedIn, updateProfile, user } from '../lib/auth'
+import { type AIConfig, type AIProvider, aiConfigService, type SearchConfig, searchConfigService } from '../services/aiConfig'
+import { uploadService } from '../services/upload'
 import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{
@@ -521,6 +527,8 @@ const sortSettings = ref<SortSettings>({
 
 // 视图设置
 const viewMode = ref<'grid' | 'list'>(props.initialViewMode || 'grid')
+const closeButtonRef = ref<HTMLElement | null>(null)
+const previousFocusedElement = ref<HTMLElement | null>(null)
 
 // ===== 账户设置状态 =====
 const editDisplayName = ref('')
@@ -649,14 +657,27 @@ watch(() => props.initialViewMode, (newMode) => {
 
 
 // 对话框打开时初始化
-watch(() => props.isOpen, (open) => {
-  if (open && user.value) {
-    editDisplayName.value = user.value.displayName || ''
-    editAvatar.value = user.value.avatar || ''
-    profileMessage.value = ''
-    profileError.value = false
+watch(
+  () => props.isOpen,
+  async (open) => {
+    if (open) {
+      previousFocusedElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      if (user.value) {
+        editDisplayName.value = user.value.displayName || ''
+        editAvatar.value = user.value.avatar || ''
+        profileMessage.value = ''
+        profileError.value = false
+      }
+      await nextTick()
+      closeButtonRef.value?.focus()
+      return
+    }
+    const restoreTarget = previousFocusedElement.value
+    if (restoreTarget) {
+      nextTick(() => restoreTarget.focus())
+    }
   }
-})
+)
 
 // 切到 AI Tab 时加载配置（懒加载）
 watch(activeTab, (tab) => {
@@ -708,7 +729,7 @@ const tavilyForm = ref({
 
 const canTestAI = computed(() => {
   const f = aiForm.value
-  const hasKey = Boolean(f.api_key || aiExistingConfig.value?.api_key_masked)
+  const hasKey = Boolean(f.api_key)
   const hasModel = f.model === '__custom__' ? Boolean(aiCustomModel.value) : Boolean(f.model)
   const hasBase = Boolean(f.api_base)
   return f.provider && hasKey && hasModel && hasBase
@@ -737,10 +758,21 @@ const resolveModel = () => {
   return aiForm.value.model
 }
 
+const isProviderOrBaseChanged = () => {
+  if (!aiExistingConfig.value) return false
+  const currentBase = (aiForm.value.api_base || '').trim()
+  const existingBase = (aiExistingConfig.value.api_base || '').trim()
+  return aiExistingConfig.value.provider !== aiForm.value.provider || existingBase !== currentBase
+}
+
+const canKeepExistingApiKey = computed(() => {
+  return Boolean(aiExistingConfig.value) && !isProviderOrBaseChanged()
+})
+
 const buildAIPayload = () => ({
   provider: aiForm.value.provider,
   api_base: aiForm.value.api_base,
-  api_key: aiForm.value.api_key,
+  api_key: aiForm.value.api_key.trim(),
   model: resolveModel(),
 })
 
@@ -850,11 +882,12 @@ const saveAISettings = async () => {
   isProfileSaving.value = true
   try {
     const payload = buildAIPayload()
-    if (!payload.api_key && !aiExistingConfig.value) {
-      throw new Error('API Key 不能为空')
-    }
-    if (!payload.api_key && aiExistingConfig.value) {
-      throw new Error('请输入 API Key（出于安全考虑，已保存的密钥不会回显）')
+    const mustProvideApiKey = !aiExistingConfig.value || isProviderOrBaseChanged()
+    if (!payload.api_key && mustProvideApiKey) {
+      const reason = aiExistingConfig.value
+        ? '切换供应商或 API 地址时，请输入新的 API Key'
+        : 'API Key 不能为空'
+      throw new Error(reason)
     }
     await aiConfigService.saveConfig(payload)
 
