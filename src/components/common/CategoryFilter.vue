@@ -452,7 +452,6 @@ onBeforeUnmount(() => {
   transform: translateX(0);
   opacity: 0;
   background: var(--home-tab-indicator-bg);
-  border: 1px solid var(--home-tab-indicator-border);
   box-shadow: var(--ui-indicator-shadow);
   will-change: transform, width;
   transition:
@@ -464,12 +463,7 @@ onBeforeUnmount(() => {
 }
 
 .tab-indicator::before {
-  content: '';
-  position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 36%);
-  pointer-events: none;
+  content: none;
 }
 
 .tab-indicator::after {
