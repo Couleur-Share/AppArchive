@@ -1,9 +1,9 @@
 <template>
   <section
-    class="relative overflow-hidden rounded-2xl border border-white/30 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl shadow-lg"
+    class="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white/[0.76] shadow-[0_22px_50px_-36px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-slate-700/45 dark:bg-[#081220]/[0.86]"
   >
-    <div class="pointer-events-none absolute -top-20 -right-16 h-44 w-44 rounded-full bg-gradient-to-br from-sky-400/16 via-indigo-300/12 to-cyan-200/8 dark:from-sky-400/24 dark:via-blue-500/18 dark:to-cyan-400/12 blur-3xl" />
-    <div class="pointer-events-none absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-gradient-to-tr from-cyan-300/14 via-blue-300/10 to-indigo-200/6 dark:from-cyan-500/18 dark:via-indigo-500/14 dark:to-blue-400/10 blur-3xl" />
+    <div class="pointer-events-none absolute -top-20 -right-16 h-44 w-44 rounded-full bg-gradient-to-br from-emerald-400/20 via-emerald-300/12 to-slate-200/4 dark:from-emerald-400/24 dark:via-emerald-500/14 dark:to-slate-300/6 blur-3xl" />
+    <div class="pointer-events-none absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-gradient-to-tr from-emerald-300/18 via-teal-300/10 to-slate-200/4 dark:from-emerald-500/18 dark:via-teal-400/12 dark:to-slate-300/6 blur-3xl" />
 
     <div class="relative px-3 py-3 sm:px-5 sm:py-5 space-y-3 sm:space-y-4">
       <div class="flex items-start justify-between gap-2 sm:gap-3">
@@ -11,16 +11,16 @@
           <p class="hidden sm:block text-[10px] sm:text-xs uppercase tracking-[0.18em] font-semibold text-emerald-600/90 dark:text-emerald-300/90">
             New Radar
           </p>
-          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight sm:hidden">
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-tight sm:hidden">
             {{ compactHeaderText }}
           </h2>
-          <h2 class="hidden sm:block text-base font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+          <h2 class="hidden sm:block text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">
             {{ headerText }}
           </h2>
-          <p class="text-[11px] text-gray-600 dark:text-gray-300 truncate sm:hidden">
+          <p class="text-[11px] text-slate-600 dark:text-slate-300 truncate sm:hidden">
             {{ compactHintText }}
           </p>
-          <p class="hidden sm:block text-xs text-gray-600 dark:text-gray-300">
+          <p class="hidden sm:block text-xs text-slate-600 dark:text-slate-300">
             {{ hintText }}
           </p>
         </div>
@@ -48,11 +48,11 @@
             v-if="canCollapse"
             type="button"
             class="inline-flex w-7 h-7 sm:w-8 sm:h-8 items-center justify-center rounded-lg
-                   bg-white/80 dark:bg-gray-900/70
-                   border border-gray-200/80 dark:border-gray-600/70
-                   text-gray-500 dark:text-gray-400
-                   hover:text-gray-700 dark:hover:text-gray-200
-                   hover:bg-white dark:hover:bg-gray-800
+                   bg-white/80 dark:bg-slate-900/80
+                   border border-slate-200/80 dark:border-slate-700/70
+                   text-slate-500 dark:text-slate-400
+                   hover:text-slate-700 dark:hover:text-slate-200
+                   hover:bg-white dark:hover:bg-slate-800
                    transition-all duration-200"
             title="收起新增面板"
             aria-label="收起新增面板"
@@ -70,18 +70,18 @@
           type="button"
           class="px-2.5 sm:px-3 py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-sm font-medium transition-all duration-200 border shrink-0"
           :class="mode === item.value
-            ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 border-gray-900 dark:border-white shadow-sm'
-            : 'bg-white/60 dark:bg-gray-900/50 border-gray-200/80 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:text-emerald-600 dark:hover:text-emerald-300'"
+            ? 'bg-emerald-500 text-emerald-950 border-emerald-400 shadow-[0_16px_32px_-24px_rgba(0,220,130,0.8)]'
+            : 'bg-white/60 dark:bg-slate-900/50 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:text-emerald-700 dark:hover:text-emerald-300'"
           @click="$emit('update:mode', item.value)"
         >
           {{ item.label }}
         </button>
       </div>
 
-      <div class="pt-1.5 sm:pt-2 border-t border-white/40 dark:border-gray-700/50">
+      <div class="pt-1.5 sm:pt-2 border-t border-white/40 dark:border-slate-700/50">
         <button
           type="button"
-          class="group inline-flex items-center gap-2 text-[11px] sm:text-sm font-medium text-gray-700 dark:text-gray-200"
+          class="group inline-flex items-center gap-2 text-[11px] sm:text-sm font-medium text-slate-700 dark:text-slate-200"
           role="switch"
           :aria-checked="onlyNew"
           @click="$emit('update:onlyNew', !onlyNew)"

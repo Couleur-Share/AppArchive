@@ -18,13 +18,13 @@
         <!-- 图标容器 -->
         <div class="absolute -top-2 left-6 z-10 pointer-events-none">
           <div class="w-16 h-16 rounded-full overflow-hidden 
-                      bg-white/80 dark:bg-gray-800/80
+                      bg-white/85 dark:bg-slate-900/85
                       backdrop-blur-md backdrop-saturate-150
-                      ring-2 ring-white/80 dark:ring-gray-700/50
-                      shadow-lg shadow-black/5 dark:shadow-black/20
-                      group-hover:ring-3 group-hover:ring-white/90 dark:group-hover:ring-gray-600/60
-                      group-hover:shadow-2xl group-hover:shadow-black/10 dark:group-hover:shadow-black/30
-                      group-hover:scale-110 group-hover:bg-white/95 dark:group-hover:bg-gray-800/95
+                      ring-2 ring-white/85 dark:ring-slate-700/55
+                      shadow-[0_18px_32px_-24px_rgba(15,23,42,0.5)]
+                      group-hover:ring-3 group-hover:ring-white/95 dark:group-hover:ring-emerald-400/18
+                      group-hover:shadow-[0_24px_44px_-28px_rgba(0,220,130,0.28)]
+                      group-hover:scale-110 group-hover:bg-white/95 dark:group-hover:bg-slate-900/95
                       transition-all duration-500 ease-out transform-gpu">
             <img
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
@@ -40,11 +40,12 @@
         <!-- 卡片主体 -->
         <div
           class="relative overflow-hidden rounded-lg
-                 bg-white/60 dark:bg-gray-800/70 p-6 
-                 hover:bg-white/70 dark:hover:bg-gray-800/80 
-                 border border-white/30 dark:border-gray-700/50 
+                 bg-white/[0.78] dark:bg-[#081220]/[0.86] p-6 
+                 hover:bg-white/[0.92] dark:hover:bg-[#0b1a2e]/[0.94] 
+                 border border-slate-200/60 dark:border-slate-700/45 
+                 hover:border-emerald-400/30 dark:hover:border-emerald-400/22
                  backdrop-blur transition-colors duration-100
-                 hover:shadow-level2 cursor-pointer
+                 hover:shadow-[0_26px_56px_-36px_rgba(15,23,42,0.52)] cursor-pointer
                  min-h-[280px] flex flex-col z-[1]"
           @click="handleItemClick(item, 'grid')"
         >
@@ -52,7 +53,7 @@
              <!-- 顶部区域 -->
              <div class="flex items-start justify-between pt-2 gap-3">
                <div class="min-w-0">
-                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1">
+                 <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-50 line-clamp-1">
                    {{ item.name }}
                  </h3>
                 <div class="mt-2 flex items-center gap-2">
@@ -62,30 +63,30 @@
                   <TagBadge
                     v-if="isNewItem(item)"
                     size="xs"
-                    variant="fuchsia"
+                    variant="success"
                     strong
                     class="uppercase tracking-wider"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     New
                   </TagBadge>
                 </div>
                </div>
                <Menu as="div" class="relative">
-                 <MenuButton @click.stop class="p-1.5 rounded-lg hover:bg-gray-100/60 dark:hover:bg-gray-700/60 transition-all duration-200 opacity-0 group-hover:opacity-100 text-gray-500 dark:text-gray-400 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
+                 <MenuButton @click.stop class="p-1.5 rounded-lg hover:bg-slate-100/80 dark:hover:bg-slate-800/70 transition-all duration-200 opacity-0 group-hover:opacity-100 text-slate-500 dark:text-slate-400 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
                    <MoreVertical class="w-4 h-4" />
                  </MenuButton>
                  <transition enter-active-class="transition duration-150 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-100 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-                   <MenuItems @click.stop class="absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg bg-white/95 dark:bg-gray-800/95 backdrop-blur-md shadow-xl ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-50 overflow-hidden">
+                   <MenuItems @click.stop class="absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xl ring-1 ring-slate-200/50 dark:ring-white/10 focus:outline-none z-50 overflow-hidden">
                      <div class="py-1">
                        <MenuItem v-if="item.website" v-slot="{ active }">
-                         <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50' : '', 'text-gray-700 dark:text-gray-300 w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                         <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-slate-50 dark:bg-slate-800/70 text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <ArrowUpRight class="w-3.5 h-3.5" /> <span>访问官网</span>
                          </button>
                        </MenuItem>
-                       <div v-if="item.website && canEdit" class="my-0.5 h-px bg-gray-200/60 dark:bg-gray-700/60"></div>
+                       <div v-if="item.website && canEdit" class="my-0.5 h-px bg-slate-200/60 dark:bg-slate-700/60"></div>
                        <MenuItem v-if="canEdit" v-slot="{ active }">
-                         <button @click.stop="$emit('edit', item)" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50' : '', 'text-gray-700 dark:text-gray-300 w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                         <button @click.stop="$emit('edit', item)" :class="[active ? 'bg-slate-50 dark:bg-slate-800/70 text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <Edit class="w-3.5 h-3.5" /> <span>编辑</span>
                          </button>
                        </MenuItem>
@@ -102,23 +103,23 @@
 
              <!-- 描述文本 -->
              <div class="relative flex-grow mt-4">
-               <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4">
+               <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
                  {{ getDescription(item.description) }}
                </p>
-               <div v-if="(item.description || '').length > 120" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-md shadow-sm whitespace-nowrap pointer-events-none">
+               <div v-if="(item.description || '').length > 120" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/75 backdrop-blur-sm rounded-md shadow-sm whitespace-nowrap pointer-events-none">
                  点击查看完整内容
                </div>
              </div>
 
              <!-- 底部区域 -->
-             <div class="flex items-center mt-4 pt-4 border-t border-gray-200/30 dark:border-gray-700/30">
+             <div class="flex items-center mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/35">
                <div class="flex items-center gap-2 flex-1 min-w-0">
                 <TagBadge size="sm" strong class="shrink-0" :variant="getLicenseVariant(item.license)">
                    {{ getLicenseLabel(item.license) }}
                 </TagBadge>
                  <div class="flex items-center gap-1">
                    <template v-for="system in item.systems || []" :key="system">
-                     <div class="flex items-center justify-center w-6 h-6 rounded-lg bg-gray-100/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400 shrink-0" :title="system">
+                     <div class="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-50/45 dark:bg-emerald-500/10 text-slate-600 dark:text-slate-400 shrink-0" :title="system">
                        <SystemIcon :system="system" class="w-4 h-4" />
                      </div>
                    </template>
@@ -136,17 +137,18 @@
       <template v-else>
         <div 
           class="relative flex items-center gap-4 p-3 rounded-xl
-                 bg-white/60 dark:bg-gray-800/70 
-                 hover:bg-white/80 dark:hover:bg-gray-700/80
-                 border border-white/30 dark:border-gray-700/50
+                 bg-white/[0.76] dark:bg-[#081220]/[0.84] 
+                 hover:bg-white/[0.92] dark:hover:bg-[#0b1a2e]/[0.92]
+                 border border-slate-200/60 dark:border-slate-700/45
+                 hover:border-emerald-400/30 dark:hover:border-emerald-400/22
                  backdrop-blur transition-all duration-200
-                 hover:shadow-md cursor-pointer"
+                 hover:shadow-[0_22px_48px_-34px_rgba(15,23,42,0.44)] cursor-pointer"
           @click="handleItemClick(item, 'list')"
           @mouseenter="handleMouseEnter"
           @mouseleave="handleMouseLeave"
         >
           <!-- 1. 左侧：小图标 -->
-          <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-white/50 dark:bg-gray-800 ring-1 ring-black/5">
+          <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-white/60 dark:bg-slate-900/85 ring-1 ring-slate-200/60 dark:ring-slate-700/55">
             <img
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
@@ -159,7 +161,7 @@
           <!-- 2. 中间：信息区 -->
           <div class="flex-1 min-w-0 flex flex-col justify-center">
             <div class="flex items-center gap-2 mb-1 min-w-0">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
+              <h3 class="text-base font-semibold text-slate-900 dark:text-slate-50 truncate">
                 {{ item.name }}
               </h3>
               <TagBadge size="xs" variant="neutral" class="shrink-0">
@@ -168,15 +170,15 @@
               <TagBadge
                 v-if="isNewItem(item)"
                 size="xs"
-                variant="fuchsia"
+                variant="success"
                 strong
                 class="uppercase tracking-wider"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-pulse" />
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 New
               </TagBadge>
             </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 w-full pr-4">
+            <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1 w-full pr-4">
               {{ getDescription(item.description) }}
             </p>
           </div>
@@ -184,9 +186,9 @@
           <!-- 3. 右侧：状态与操作 -->
           <div class="flex items-center shrink-0 pl-4">
             <!-- 系统图标 (仅在大屏幕显示，固定宽度以保证对齐) -->
-            <div class="hidden sm:flex items-center justify-end gap-1 w-20 mr-4 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+            <div class="hidden sm:flex items-center justify-end gap-1 w-20 mr-4 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
                <template v-for="system in item.systems || []" :key="system">
-                 <SystemIcon :system="system" class="w-4 h-4 text-gray-500" />
+                 <SystemIcon :system="system" class="w-4 h-4 text-slate-500 dark:text-slate-400" />
                </template>
             </div>
 
@@ -205,7 +207,7 @@
               <button 
                 v-if="item.website"
                 @click="openWebsite(item.website)"
-                class="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-gray-400 hover:text-blue-600 rounded-lg transition-colors shrink-0"
+                class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/12 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-lg transition-colors shrink-0"
                 title="访问官网"
               >
                 <ArrowUpRight class="w-4 h-4" />
@@ -214,7 +216,7 @@
               <template v-if="canEdit">
                 <button 
                   @click="$emit('edit', item)"
-                  class="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-gray-400 hover:text-green-600 rounded-lg transition-colors shrink-0"
+                  class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/12 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-lg transition-colors shrink-0"
                   title="编辑"
                 >
                   <Edit class="w-4 h-4" />

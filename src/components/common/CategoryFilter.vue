@@ -1,10 +1,10 @@
 <template>
   <!-- 外层容器：负责边框、背景、圆角和阴影，不受遮罩影响 -->
-  <div class="relative w-full box-border overflow-hidden rounded-xl border border-gray-200/70 bg-white/70 shadow-[0_10px_26px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm dark:border-gray-600/[0.45] dark:bg-gray-800/[0.62]">
+  <div class="category-filter-shell relative w-full box-border overflow-hidden rounded-xl border backdrop-blur-sm">
     <div
       ref="scrollEl"
       :class="[
-        'relative w-full flex items-center gap-1.5 sm:gap-2 overflow-x-auto p-1.5 pe-16 sm:pe-[4.5rem] no-scrollbar',
+        'tab-scroll relative w-full flex items-center gap-1.5 sm:gap-2 overflow-x-auto p-1.5 pe-16 sm:pe-[4.5rem] no-scrollbar',
         { 'scroll-mask': hasOverflow }
       ]"
       :style="scrollStyle"
@@ -34,9 +34,7 @@
             :data-checked="checked ? 'true' : 'false'"
             class="tab-item relative inline-flex h-11 sm:h-10 items-center rounded-lg px-3.5 sm:px-4 font-semibold whitespace-nowrap cursor-pointer text-center select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50 dark:focus-visible:ring-offset-gray-900 active:scale-[0.98]"
             :class="[
-              checked
-                ? 'text-slate-950'
-                : 'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white hover:bg-white/[0.9] dark:hover:bg-gray-700/[0.68]',
+              checked ? 'tab-item--active' : 'tab-item--inactive',
             ]"
             :style="showAnimationLocal ? { animationDelay: `${(animationDelayBase + idx * animationStagger) * 1000}ms` } : undefined"
           >
@@ -48,9 +46,7 @@
                 "
                 :class="[
                   'ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-md text-[0.7rem] font-bold tab-badge',
-                  checked
-                    ? 'bg-white/[0.56] text-slate-900 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.32)]'
-                    : 'bg-gray-100/90 text-gray-700 dark:bg-gray-700/[0.85] dark:text-gray-200',
+                  checked ? 'tab-badge--active' : 'tab-badge--inactive',
                 ]"
               >
                 {{ categoryCounts[catKey(cat)] }}
@@ -373,11 +369,21 @@ onBeforeUnmount(() => {
 :where(.tab-item, .tab-badge, .tab-indicator, .nav-btn) {
   --tab-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ui-focus-ring:
-    0 0 0 2px rgb(255 255 255 / 0.42),
-    0 0 0 5px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.45);
-  --ui-accent-shadow: 0 10px 18px -12px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.95);
-  --ui-hover-shadow: 0 10px 16px -12px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.78);
+    0 0 0 2px rgb(255 255 255 / 0.22),
+    0 0 0 5px rgb(0 220 130 / 0.22);
+  --ui-accent-shadow: var(--home-tab-indicator-shadow);
+  --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;
+}
+
+.category-filter-shell {
+  background: var(--home-surface);
+  border-color: var(--home-border);
+  box-shadow: var(--home-shadow-strong);
+}
+
+.tab-scroll {
+  color: var(--home-text);
 }
 
 .nav-btn {
@@ -390,17 +396,10 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  color: hsl(0 0% 100%);
-  background:
-    linear-gradient(
-      135deg,
-      hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 6%)),
-      hsl(var(--primary-h) var(--primary-s) var(--primary-l))
-    );
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.2),
-    var(--ui-accent-shadow);
-  border: 1px solid hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.38);
+  color: var(--home-nav-btn-color);
+  background: var(--home-nav-btn-bg);
+  box-shadow: var(--ui-accent-shadow);
+  border: 1px solid var(--home-accent-border);
   backdrop-filter: blur(8px);
   transition:
     transform 180ms var(--tab-motion-ease),
@@ -450,6 +449,8 @@ onBeforeUnmount(() => {
   width: 0;
   transform: translateX(0);
   opacity: 0;
+  background: var(--home-tab-indicator-bg);
+  border: 1px solid var(--home-tab-indicator-border);
   box-shadow: var(--ui-accent-shadow);
   will-change: transform, width;
   transition:
@@ -481,8 +482,13 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
-.tab-item[data-checked='true'] {
+.tab-item--active {
+  color: var(--home-text-strong);
   text-shadow: 0 1px 0 rgb(255 255 255 / 0.18);
+}
+
+.tab-item--inactive {
+  color: var(--home-text-muted);
 }
 
 @keyframes tabFadeIn {
@@ -504,13 +510,23 @@ onBeforeUnmount(() => {
     box-shadow 180ms var(--tab-motion-ease);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .tab-item[data-checked='false']:hover {
-    box-shadow: inset 0 0 0 1px rgb(148 163 184 / 0.22);
-  }
+.tab-badge--active {
+  background: color-mix(in srgb, var(--theme-primary-500) 12%, var(--home-surface-strong));
+  color: color-mix(in srgb, var(--home-text-strong) 72%, var(--theme-primary-600));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
 
-  .dark .tab-item[data-checked='false']:hover {
-    box-shadow: inset 0 0 0 1px rgb(148 163 184 / 0.28);
+.tab-badge--inactive {
+  background: color-mix(in srgb, var(--home-surface-soft) 92%, transparent);
+  color: var(--home-text-muted);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-border) 72%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tab-item--inactive:hover {
+    color: var(--home-text-strong);
+    background: var(--home-tab-hover);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-border-strong) 82%, transparent);
   }
 }
 

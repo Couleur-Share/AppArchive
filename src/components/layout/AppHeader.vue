@@ -1,5 +1,5 @@
 <template>
-  <nav class="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-950/70 backdrop-blur-xl transition-all duration-300">
+  <nav class="app-header-shell sticky top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300">
     <div class="container mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
       <!-- Logo部分 -->
       <div class="flex items-center">
@@ -24,9 +24,9 @@
         <!-- 搜索按钮 - 移动端显示图标按钮 -->
         <button
           @click="toggleMobileSearch"
-          class="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-100"
+          class="app-header-icon-btn sm:hidden p-2 rounded-lg"
         >
-          <Search class="h-5 w-5 text-gray-700 dark:text-gray-300" />
+          <Search class="h-5 w-5" />
         </button>
 
         <!-- 按钮组：主题/刷新/设置（组内更紧凑） -->
@@ -40,18 +40,18 @@
           <!-- 刷新按钮 - 移动端隐藏 -->
           <button
             @click="handleRefresh"
-            class="hidden sm:block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-100 focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white/60 dark:ring-offset-gray-900/60"
+            class="app-header-icon-btn hidden sm:block px-3 py-2 rounded-lg focus:outline-none"
             :class="{ 'animate-spin': isLoading }"
           >
-            <RotateCcw class="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <RotateCcw class="h-5 w-5" />
           </button>
 
           <!-- 设置按钮 - 移动端隐藏 -->
           <button
             @click="$emit('settings')"
-            class="hidden sm:block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-100 focus:outline-none focus-visible:ring-2 ring-offset-2 ring-offset-white/60 dark:ring-offset-gray-900/60"
+            class="app-header-icon-btn hidden sm:block px-3 py-2 rounded-lg focus:outline-none"
           >
-            <Settings class="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <Settings class="h-5 w-5" />
           </button>
         </div>
 
@@ -71,7 +71,7 @@
     <!-- 移动端搜索栏 - 展开时显示 -->
     <div 
       v-if="showMobileSearch" 
-      class="sm:hidden px-3 pb-3 border-t border-gray-200/50 dark:border-gray-800/50"
+      class="app-header-mobile-panel sm:hidden px-3 pb-3 border-t"
     >
       <div class="relative mt-2">
         <input
@@ -79,19 +79,19 @@
           v-model="searchTerm"
           type="text"
           placeholder="搜索软件..."
-          class="w-full px-4 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-gray-800 border border-transparent focus:bg-white dark:focus:bg-gray-900 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
+          class="app-header-search-input w-full px-4 py-2.5 rounded-xl text-sm transition-all duration-200"
           @keyup.enter="closeMobileSearch"
         />
         <button
           v-if="searchTerm"
           @click="clearSearch"
-          class="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          class="app-header-search-clear absolute right-10 top-1/2 -translate-y-1/2"
         >
           <XCircle class="h-4 w-4" />
         </button>
         <button
           @click="closeMobileSearch"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          class="app-header-search-clear absolute right-3 top-1/2 -translate-y-1/2"
         >
           <X class="h-4 w-4" />
         </button>
@@ -171,3 +171,79 @@ const handleSignOut = () => {
   showToast('已退出登录', 'success')
 }
 </script> 
+
+<style scoped>
+.app-header-shell {
+  position: sticky;
+  border-color: var(--home-border);
+  background: color-mix(in srgb, var(--home-surface) 92%, transparent);
+  box-shadow:
+    0 18px 40px -36px rgb(15 23 42 / 0.42),
+    inset 0 1px 0 rgb(255 255 255 / 0.16);
+}
+
+.app-header-shell::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background:
+    linear-gradient(90deg, transparent, rgb(0 220 130 / 0.22) 18%, rgb(0 220 130 / 0.42) 50%, transparent);
+}
+
+.app-header-icon-btn {
+  color: var(--home-text);
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    color 150ms var(--ease),
+    background-color 150ms var(--ease),
+    border-color 150ms var(--ease),
+    box-shadow 150ms var(--ease);
+}
+
+.app-header-icon-btn:hover {
+  color: var(--home-text-strong);
+  background: var(--home-surface-hover);
+  border-color: var(--home-border);
+  box-shadow: 0 14px 28px -24px rgb(15 23 42 / 0.38);
+}
+
+.app-header-icon-btn:focus-visible {
+  border-color: var(--home-accent-border);
+  box-shadow: 0 0 0 4px rgb(0 220 130 / 0.12);
+}
+
+.app-header-mobile-panel {
+  border-color: var(--home-border);
+}
+
+.app-header-search-input {
+  color: var(--home-text);
+  background: var(--home-surface-soft);
+  border: 1px solid color-mix(in srgb, var(--home-border) 82%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+
+.app-header-search-input::placeholder {
+  color: var(--home-text-muted);
+}
+
+.app-header-search-input:focus {
+  outline: none;
+  background: var(--home-surface-strong);
+  border-color: var(--home-accent-border);
+  box-shadow:
+    0 0 0 4px rgb(0 220 130 / 0.1),
+    0 18px 30px -24px rgb(15 23 42 / 0.32);
+}
+
+.app-header-search-clear {
+  color: var(--home-text-muted);
+  transition: color 150ms var(--ease);
+}
+
+.app-header-search-clear:hover {
+  color: var(--home-text-strong);
+}
+</style>

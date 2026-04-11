@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen transition-colors duration-300 font-sans">
+  <div class="app-home min-h-screen transition-colors duration-300 font-sans">
     <AppHeader
       :is-signed-in="isSignedIn"
       :user="user"
@@ -1204,16 +1204,16 @@ const isEllipsis = (page: number) => {
     border-color 0.3s ease;
   background-color: var(--gradient-light-start);
   min-height: 100vh;
-  /* Nuxt-like Bright Background */
-  --gradient-light-start: #f0f2f5; 
-  --gradient-light-end: #f1f5f9;   
-  --gradient-light-accent1: rgba(16, 185, 129, 0.08); 
-  --gradient-light-accent2: rgba(59, 130, 246, 0.06); 
-  
+
+  --gradient-light-start: #f0f2f5;
+  --gradient-light-end: #f1f5f9;
+  --gradient-light-accent1: rgba(16, 185, 129, 0.08);
+  --gradient-light-accent2: rgba(59, 130, 246, 0.06);
+
   --gradient-dark-start: #020618;
   --gradient-dark-end: #020618;
-  --gradient-dark-accent1: rgba(0, 220, 130, 0.08); 
-  --gradient-dark-accent2: rgba(56, 189, 248, 0.04); 
+  --gradient-dark-accent1: rgba(0, 220, 130, 0.08);
+  --gradient-dark-accent2: rgba(56, 189, 248, 0.04);
 }
 
 :root.dark {
@@ -1245,13 +1245,21 @@ button {
 .top-actions-bar,
 .pagination-shell {
   --ui-focus-ring:
-    0 0 0 2px rgb(255 255 255 / 0.42),
-    0 0 0 5px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.45);
-  --ui-accent-shadow: 0 10px 18px -12px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.95);
-  --ui-hover-shadow: 0 10px 16px -12px rgb(15 23 42 / 0.45);
+    0 0 0 2px rgb(255 255 255 / 0.22),
+    0 0 0 5px rgb(0 220 130 / 0.22);
+  --ui-accent-shadow: var(--home-accent-shadow);
+  --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;
-  --ui-hover-surface-light: rgb(255 255 255 / 0.92);
-  --ui-hover-surface-dark: rgb(55 65 81 / 0.72);
+  --ui-hover-surface-light: var(--home-surface-hover);
+  --ui-hover-surface-dark: var(--home-surface-hover);
+  background: var(--home-surface);
+  border-color: var(--home-border);
+  box-shadow: var(--home-shadow-strong);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.app-home {
+  color: var(--home-text);
 }
 
 .top-action-btn {
@@ -1261,6 +1269,12 @@ button {
     background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     border-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  background: var(--home-surface-strong);
+  border-color: var(--home-border);
+  color: var(--home-text);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 12px 24px -22px rgb(15 23 42 / 0.28);
 }
 
 .top-action-btn > svg {
@@ -1308,6 +1322,8 @@ button {
     background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     transform 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  background: transparent;
+  color: var(--home-text-muted) !important;
 }
 
 .pagination-page-btn {
@@ -1316,23 +1332,24 @@ button {
     background-color 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     box-shadow 180ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1)),
     transform 160ms var(--top-action-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  border: 1px solid transparent;
 }
 
 .pagination-page-btn--active {
-  background-color: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
-  color: hsl(0 0% 100%);
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.25),
-    var(--ui-accent-shadow);
+  background: var(--home-nav-btn-bg);
+  color: var(--home-nav-btn-color);
+  border-color: var(--home-accent-border);
+  box-shadow: var(--ui-accent-shadow);
 }
 
 .pagination-page-btn--idle {
-  color: rgb(75 85 99);
+  color: var(--home-text);
   background-color: transparent;
 }
 
-.dark .pagination-page-btn--idle {
-  color: rgb(209 213 219);
+.pagination-nav-btn:disabled {
+  color: var(--home-text-subtle) !important;
+  opacity: 0.42;
 }
 
 /* 只针对图标链接的样式 */
