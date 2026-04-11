@@ -45,8 +45,7 @@
       </button>
 
       <!-- 错误提示 -->
-      <div v-if="errorMessage" class="absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full whitespace-nowrap px-3 py-1.5 rounded-lg text-xs bg-red-500 text-white shadow-level2 flex items-center gap-1.5">
-        <AlertCircle class="w-3.5 h-3.5" />
+      <div v-if="errorMessage" class="absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full whitespace-nowrap px-3 py-1.5 rounded-lg text-xs bg-red-500 text-white shadow-level2 text-center">
         {{ errorMessage }}
       </div>
     </div>
@@ -82,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, ImageIcon, Info, Loader2, Upload, X } from 'lucide-vue-next'
+import { ImageIcon, Info, Loader2, Upload, X } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{

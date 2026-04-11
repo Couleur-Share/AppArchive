@@ -128,8 +128,8 @@
                     <Loader2 class="w-4 h-4 text-blue-500 animate-spin" />
                   </div>
                 </div>
-                <p v-if="errors.name" class="text-xs text-red-500 flex items-center gap-1 animate-in slide-in-from-top-1">
-                  <AlertCircle class="w-3 h-3" /> {{ errors.name }}
+                <p v-if="errors.name" class="text-xs text-red-500 animate-in slide-in-from-top-1">
+                  {{ errors.name }}
                 </p>
               </div>
 

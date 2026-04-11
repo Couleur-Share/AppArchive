@@ -14,8 +14,7 @@
         placeholder="粘贴链接，如 https://pan.baidu.com/s/xxxx 或官方直链"
         class="w-full mb-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100"
       />
-      <div v-if="fieldErrors[`download_links.${idx}.url`]" :id="`dl-url-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500 flex items-center gap-1">
-        <AlertCircle class="w-3.5 h-3.5" />
+      <div v-if="fieldErrors[`download_links.${idx}.url`]" :id="`dl-url-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500">
         <span>{{ fieldErrors[`download_links.${idx}.url`] }}</span>
       </div>
       <!-- 提取码/密码/版本说明 -->
@@ -64,8 +63,7 @@
           <input v-model="(localSecrets[idx] as any).value" :disabled="disabled" placeholder="值（新增必填；已有项留空=不修改）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
           <input v-model="localSecrets[idx].expiresAt" :disabled="disabled" type="date" placeholder="到期时间（可选）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
         </div>
-        <div v-if="fieldErrors[`secrets.${idx}.value`]" :id="`sec-val-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500 flex items-center gap-1">
-          <AlertCircle class="w-3.5 h-3.5" />
+        <div v-if="fieldErrors[`secrets.${idx}.value`]" :id="`sec-val-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500">
           <span>{{ fieldErrors[`secrets.${idx}.value`] }}</span>
         </div>
         <input v-model="localSecrets[idx].notes" :disabled="disabled" placeholder="备注（可选）" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 mb-2" />
@@ -80,7 +78,6 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle } from 'lucide-vue-next'
 import { nextTick, ref, watch } from 'vue'
 import TagBadge from '@/components/common/TagBadge.vue'
 import type { DownloadLink, SecretItem } from '@/types'
