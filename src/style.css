@@ -27,11 +27,11 @@
 	--theme-primary-700: #059669;
 
 	/* Homepage palette */
-	--app-bg-start: oklch(0.982 0.006 190);
-	--app-bg-end: oklch(0.958 0.012 220);
-	--app-bg-accent1: rgb(0 220 130 / 0.1);
-	--app-bg-accent2: rgb(15 23 42 / 0.055);
-	--app-bg-accent3: rgb(0 220 130 / 0.045);
+	--app-bg-start: oklch(0.985 0.004 255);
+	--app-bg-end: oklch(0.952 0.012 248);
+	--app-bg-accent1: rgb(191 219 254 / 0.18);
+	--app-bg-accent2: rgb(148 163 184 / 0.09);
+	--app-bg-accent3: rgb(219 234 254 / 0.22);
 
 	--home-surface: rgb(255 255 255 / 0.74);
 	--home-surface-strong: rgb(255 255 255 / 0.88);
@@ -117,11 +117,11 @@
 
 .dark:root {
 	--primary-l: 46%;
-	--app-bg-start: oklch(0.2 0.03 246);
-	--app-bg-end: oklch(0.145 0.028 240);
-	--app-bg-accent1: rgb(0 220 130 / 0.16);
-	--app-bg-accent2: rgb(15 23 42 / 0.42);
-	--app-bg-accent3: rgb(148 163 184 / 0.08);
+	--app-bg-start: oklch(0.14 0.018 252);
+	--app-bg-end: oklch(0.08 0.012 252);
+	--app-bg-accent1: rgb(0 220 130 / 0.14);
+	--app-bg-accent2: rgb(45 212 191 / 0.06);
+	--app-bg-accent3: rgb(255 255 255 / 0.02);
 
 	--home-surface: rgb(8 18 32 / 0.82);
 	--home-surface-strong: rgb(5 13 24 / 0.92);

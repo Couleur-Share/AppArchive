@@ -1,428 +1,361 @@
 <template>
-  <div
-    v-if="active"
-    class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-    role="status"
-    aria-live="polite"
-    aria-busy="true"
-  >
-    <!-- 背景遮罩 (适配深色/浅色模式) -->
-    <div class="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl transition-colors duration-300"></div>
+  <Transition :css="false" @enter="onEnter" @leave="onLeave">
+    <div
+      v-if="active"
+      class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden px-6 py-10"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div ref="backdropLayer" class="absolute inset-0">
+        <div class="absolute inset-0 bg-white/[0.82] dark:bg-slate-950/[0.84] backdrop-blur-[12px]"></div>
+        <div class="comparison-overlay-grid absolute inset-0"></div>
+        <div class="comparison-overlay-glow absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full"></div>
+      </div>
 
-    <!-- 动态背景光晕 (使用系统主色) -->
-    <div ref="ambientGlow" class="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-30">
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s"></div>
-    </div>
-
-    <!-- 主要内容 -->
-    <div ref="overlayContainer" class="relative flex flex-col items-center justify-center w-full max-w-3xl px-6 z-10">
-      
-      <!-- 核心对比动画区域 -->
-      <div ref="animationContainer" class="relative w-full h-64 mb-12 flex items-center justify-center">
-        
-        <!-- 左侧数据源卡片 -->
-        <div ref="leftNode" class="absolute left-4 md:left-20 flex flex-col items-center gap-4 group">
-          <div class="w-24 h-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-lg ring-1 ring-gray-100 dark:ring-gray-800 transition-all duration-300">
-             <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-             </div>
-             <!-- 扫描光效 -->
-             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent -translate-y-full animate-scan-fast"></div>
-          </div>
-          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 tracking-wide">数据源 A</div>
-        </div>
-
-        <!-- 右侧数据源卡片 -->
-        <div ref="rightNode" class="absolute right-4 md:right-20 flex flex-col items-center gap-4 group">
-          <div class="w-24 h-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-lg ring-1 ring-gray-100 dark:ring-gray-800 transition-all duration-300">
-             <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-             </div>
-             <!-- 扫描光效 -->
-             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent -translate-y-full animate-scan-fast" style="animation-delay: 0.3s"></div>
-          </div>
-          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 tracking-wide">数据源 B</div>
-        </div>
-
-        <!-- 中间 AI 核心 -->
-        <div ref="centerNode" class="relative z-20">
-          <!-- 发光背景 -->
-          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/20 rounded-full blur-3xl animate-pulse-fast"></div>
-          
-          <!-- 旋转环 -->
-          <div class="relative w-32 h-32 flex items-center justify-center">
-             <!-- 外环 1 -->
-             <div class="absolute inset-0 rounded-full border border-primary/30 border-t-primary border-r-transparent animate-spin-slow"></div>
-             <!-- 外环 2 -->
-             <div class="absolute inset-2 rounded-full border border-primary/30 border-b-primary border-l-transparent animate-reverse-spin"></div>
-             
-             <!-- 核心球体 -->
-            <div class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl flex items-center justify-center relative overflow-hidden">
-               <svg class="w-8 h-8 text-primary animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      <div ref="panelRef" class="relative z-10 w-full max-w-5xl">
+        <div class="comparison-panel overflow-hidden rounded-[32px] border border-white/60 bg-white/[0.84] shadow-[0_36px_120px_-60px_rgba(15,23,42,0.6)] backdrop-blur-2xl dark:border-white/[0.08] dark:bg-slate-950/[0.88] dark:shadow-[0_40px_120px_-56px_rgba(2,6,23,0.95)]">
+          <div class="flex items-center justify-between gap-4 border-b border-slate-900/[0.06] px-6 py-4 dark:border-white/[0.08]">
+            <div class="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.32em] text-slate-500 dark:text-slate-400">
+              <span class="comparison-panel-dot h-2 w-2 rounded-full"></span>
+              Comparison Analysis
             </div>
-         </div>
-       </div>
+            <div class="rounded-full border border-slate-900/[0.08] bg-white/70 px-3 py-1 text-[11px] font-medium text-slate-600 dark:border-white/10 dark:bg-slate-900/[0.88] dark:text-slate-300">
+              {{ Math.round(visualProgress) }}%
+            </div>
+          </div>
 
-        <!-- 连接线 (SVG) -->
-        <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-          <defs>
-            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="rgba(var(--primary-h), var(--primary-s), var(--primary-l), 0)" />
-              <stop offset="50%" stop-color="rgba(var(--primary-h), var(--primary-s), var(--primary-l), 0.3)" />
-              <stop offset="100%" stop-color="rgba(var(--primary-h), var(--primary-s), var(--primary-l), 0.8)" />
-            </linearGradient>
-            <linearGradient id="lineGradientCorrected" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0)" />
-              <stop offset="50%" stop-color="hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.3)" />
-              <stop offset="100%" stop-color="hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.8)" />
-            </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
+          <div class="grid gap-8 px-6 py-7 lg:px-8 lg:py-8">
+            <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_72px_minmax(260px,320px)_72px_minmax(0,1fr)] md:items-center">
+              <div ref="leftNodeRef" class="comparison-node md:justify-self-end">
+                <div class="comparison-node-card rounded-2xl border border-slate-900/[0.08] bg-white/[0.72] p-4 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.03] dark:shadow-[0_18px_40px_-30px_rgba(2,6,23,0.72)]">
+                  <div class="flex items-center gap-3">
+                    <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 7.5h16M7.5 4v16M8 15l2.5-2.5 2 2L16 11" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 01</p>
+                      <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">校验上下文与结构</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <!-- 左侧流光 (隐形路径，仅用于计算) -->
-          <path ref="leftPathRef" class="path-left" d="" stroke="none" fill="none" />
-          
-          <!-- 动态闪电 (左侧) -->
-          <g filter="url(#glow)">
-            <path :d="lightningState.left.main" class="stroke-primary fill-none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-            <path :d="lightningState.left.branch" class="stroke-primary/70 fill-none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
-          </g>
+              <div class="comparison-flow hidden md:block">
+                <span class="comparison-flow-dot"></span>
+              </div>
 
-          <!-- 右侧流光 (隐形路径，仅用于计算) -->
-          <path ref="rightPathRef" class="path-right" d="" stroke="none" fill="none" />
-          
-          <!-- 动态闪电 (右侧) -->
-          <g filter="url(#glow)">
-             <path :d="lightningState.right.main" class="stroke-primary fill-none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-             <path :d="lightningState.right.branch" class="stroke-primary/70 fill-none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
-          </g>
+              <div
+                ref="centerNodeRef"
+                class="comparison-center rounded-[28px] border border-primary/[0.18] bg-primary/[0.06] p-6 shadow-[0_24px_60px_-38px_rgba(15,23,42,0.34)] dark:border-primary/20 dark:bg-primary/[0.07] dark:shadow-[0_24px_62px_-40px_rgba(2,6,23,0.82)]"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="relative flex h-14 w-14 items-center justify-center rounded-[22px] border border-primary/20 bg-white/[0.78] dark:border-white/[0.08] dark:bg-slate-900/[0.92]">
+                      <div class="comparison-core-aura absolute inset-0 rounded-[inherit]"></div>
+                      <svg class="relative z-10 h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 6h8m-7 6h6m-8 6h10M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">汇总中</p>
+                      <h3 class="mt-1 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                        构建对比结论
+                      </h3>
+                    </div>
+                  </div>
 
-        </svg>
-      </div>
+                  <div class="rounded-full border border-slate-900/[0.08] bg-white/[0.72] px-3 py-1 text-[11px] font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+                    主流程
+                  </div>
+                </div>
 
-      <!-- 状态文字 -->
-      <div class="text-center w-full space-y-6">
-        <div class="flex flex-col items-center">
-          <h3 
-            ref="titleText"
-            class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2"
-          >
-            智能分析中
-          </h3>
-          <p ref="subTitle" class="text-gray-500 dark:text-gray-400 text-sm md:text-base font-light">
-            正在进行多维数据深度对比...
-          </p>
-        </div>
-        
-        <!-- 动态处理文本 -->
-        <div class="h-8 flex items-center justify-center overflow-hidden">
-           <div class="relative">
-             <transition name="slide-up" mode="out-in">
-                <p :key="currentMessage" class="text-primary font-mono text-sm">
-                  > {{ currentMessage }}
+                <div class="mt-6 space-y-3">
+                  <div class="flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    <span>Difference Map</span>
+                    <span>{{ Math.round(visualProgress) }}%</span>
+                  </div>
+                  <div class="h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/[0.08]">
+                    <div
+                      class="comparison-progress h-full rounded-full"
+                      :style="{ transform: `scaleX(${Math.min(Math.max(visualProgress, 0), 100) / 100})` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comparison-flow comparison-flow--reverse hidden md:block">
+                <span class="comparison-flow-dot comparison-flow-dot--reverse"></span>
+              </div>
+
+              <div ref="rightNodeRef" class="comparison-node md:justify-self-start">
+                <div class="comparison-node-card rounded-2xl border border-slate-900/[0.08] bg-white/[0.72] p-4 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.03] dark:shadow-[0_18px_40px_-30px_rgba(2,6,23,0.72)]">
+                  <div class="flex items-center gap-3">
+                    <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M6 7h12M6 12h8m-8 5h12" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 02</p>
+                      <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">归纳关键差异维度</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div ref="textBlockRef" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
+              <div class="space-y-3 text-center lg:text-left">
+                <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                  Comparison Analysis
                 </p>
-             </transition>
-           </div>
-        </div>
-      </div>
+                <h4 class="text-[1.75rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                  正在整理多软件对比结论
+                </h4>
+                <div class="relative h-6 overflow-hidden">
+                  <TransitionGroup name="comparison-status">
+                    <p
+                      v-if="currentMessage"
+                      :key="currentMessage"
+                      class="absolute inset-x-0 text-sm text-slate-600 dark:text-slate-300 lg:inset-x-auto"
+                    >
+                      {{ currentMessage }}
+                    </p>
+                  </TransitionGroup>
+                </div>
+                <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  会先归纳候选软件的共同点与关键差异，再生成推荐和最终总结。
+                </p>
+              </div>
 
-      <!-- 底部进度条 -->
-      <div class="w-full mt-10 max-w-md relative px-4">
-        <div class="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-          <div ref="progressBar" class="h-full bg-primary w-full origin-left scale-x-0 shadow-[0_0_10px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.32)] relative will-change-transform">
-            <div class="absolute right-0 top-0 bottom-0 w-2 bg-white/30 blur-[2px]"></div>
+              <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+                <div
+                  v-for="phase in phaseItems"
+                  :key="phase.label"
+                  class="rounded-2xl border px-3 py-2 text-left transition-colors duration-200"
+                  :class="phase.current
+                    ? 'border-primary/[0.28] bg-primary/10 text-[hsl(var(--primary-h)_70%_24%)] dark:border-primary/[0.34] dark:bg-primary/[0.16] dark:text-[hsl(var(--primary-h)_72%_80%)]'
+                    : phase.active
+                      ? 'border-slate-900/10 bg-slate-900/[0.03] text-slate-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200'
+                      : 'border-slate-900/[0.06] bg-white/[0.55] text-slate-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-slate-500'"
+                >
+                  <p class="text-[11px] font-medium uppercase tracking-[0.18em]">Stage {{ phase.index }}</p>
+                  <p class="mt-1 text-sm font-medium tracking-tight">{{ phase.label }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <!-- 步骤指示器 -->
-        <div class="flex justify-between mt-4 text-xs text-gray-400 dark:text-gray-500 font-medium">
-           <span :class="{ 'text-primary transition-colors duration-300': progress > 10 }">解析数据</span>
-           <span :class="{ 'text-primary transition-colors duration-300': progress > 50 }">提取特征</span>
-           <span :class="{ 'text-primary transition-colors duration-300': progress > 85 }">生成报告</span>
-        </div>
       </div>
-
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
 import { gsap } from 'gsap'
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-
-// TextPlugin 已在 plugins/gsap.ts 中全局注册，无需重复注册
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{ active: boolean }>()
 
-const leftNode = ref<HTMLElement | null>(null)
-const rightNode = ref<HTMLElement | null>(null)
-const centerNode = ref<HTMLElement | null>(null)
-const titleText = ref<HTMLElement | null>(null)
-const subTitle = ref<HTMLElement | null>(null)
-const progressBar = ref<HTMLElement | null>(null)
-const currentMessage = ref("初始化...")
-const progress = ref(0)
-const overlayContainer = ref<HTMLElement | null>(null)
-const animationContainer = ref<HTMLElement | null>(null)
+const MAX_PROCESS_PROGRESS = 96
+
+const backdropLayer = ref<HTMLElement | null>(null)
+const panelRef = ref<HTMLElement | null>(null)
+const leftNodeRef = ref<HTMLElement | null>(null)
+const centerNodeRef = ref<HTMLElement | null>(null)
+const rightNodeRef = ref<HTMLElement | null>(null)
+const textBlockRef = ref<HTMLElement | null>(null)
+
+const currentMessage = ref('正在校验候选软件集合...')
+const visualProgress = ref(0)
 const prefersReducedMotion = ref(false)
 
-const leftPathRef = ref<SVGPathElement | null>(null)
-const rightPathRef = ref<SVGPathElement | null>(null)
-const lightningState = ref<{ left: { main: string, branch: string }, right: { main: string, branch: string } }>({
-  left: { main: '', branch: '' },
-  right: { main: '', branch: '' }
+const steps = [
+  '正在校验候选软件集合...',
+  '正在归纳共同能力与边界...',
+  '正在提炼关键差异与适配场景...',
+  '正在整理推荐结论与总结...'
+]
+
+const phases = ['校验候选', '归纳差异', '形成建议']
+
+const currentPhaseIndex = computed(() => {
+  if (visualProgress.value >= 70) return 2
+  if (visualProgress.value >= 32) return 1
+  return 0
 })
 
-let ctx: gsap.Context | null = null
-let messageInterval: ReturnType<typeof setInterval> | null = null
-let resizeObserver: ResizeObserver | null = null
+const phaseItems = computed(() =>
+  phases.map((label, index) => ({
+    label,
+    index: index + 1,
+    active: index <= currentPhaseIndex.value,
+    current: index === currentPhaseIndex.value
+  }))
+)
+
 let progressTween: gsap.core.Tween | null = null
-let lightningTween: gsap.core.Tween | null = null
+let settleTween: gsap.core.Tween | null = null
+let pulseTween: gsap.core.Tween | null = null
+let enterTimeline: gsap.core.Timeline | null = null
+let leaveTimeline: gsap.core.Timeline | null = null
 let reducedMotionMediaQuery: MediaQueryList | null = null
 
-const messages = [
-  "正在解析软件架构...",
-  "正在对比功能特性...",
-  "正在分析性能指标...",
-  "正在综合优缺点...",
-  "正在生成最终见解..."
-]
+const clampProgress = (value: number) => Math.min(Math.max(value, 0), 100)
 
 const onReducedMotionChange = (event: MediaQueryListEvent) => {
   prefersReducedMotion.value = event.matches
 }
 
-const clearMessageInterval = () => {
-  if (messageInterval) {
-    clearInterval(messageInterval)
-    messageInterval = null
-  }
-}
-
-const clearTweens = () => {
+const killProcessTweens = () => {
   progressTween?.kill()
-  lightningTween?.kill()
+  settleTween?.kill()
+  pulseTween?.kill()
   progressTween = null
-  lightningTween = null
+  settleTween = null
+  pulseTween = null
 }
 
-const clearResizeObserver = () => {
-  resizeObserver?.disconnect()
-  resizeObserver = null
+const killTransitionTimelines = () => {
+  enterTimeline?.kill()
+  leaveTimeline?.kill()
+  enterTimeline = null
+  leaveTimeline = null
 }
 
-const resetLightningState = () => {
-  lightningState.value = {
-    left: { main: '', branch: '' },
-    right: { main: '', branch: '' }
-  }
+const pulseCenterCard = () => {
+  if (prefersReducedMotion.value || !centerNodeRef.value) return
+  pulseTween?.kill()
+  pulseTween = gsap.fromTo(
+    centerNodeRef.value,
+    { scale: 1.02 },
+    { scale: 1, duration: 0.22, ease: 'power2.out' }
+  )
 }
 
-const stopAnimations = () => {
-  clearMessageInterval()
-  clearTweens()
-  clearResizeObserver()
-  ctx?.revert()
-  ctx = null
-  resetLightningState()
+const startProcess = () => {
+  killProcessTweens()
+  visualProgress.value = 0
+  currentMessage.value = steps[0]
+
+  progressTween = gsap.to(visualProgress, {
+    value: MAX_PROCESS_PROGRESS,
+    duration: prefersReducedMotion.value ? 3.2 : 7.2,
+    ease: prefersReducedMotion.value ? 'none' : 'sine.inOut',
+    onUpdate: () => {
+      const progressValue = clampProgress(visualProgress.value)
+      const stepIndex = Math.min(
+        steps.length - 1,
+        Math.floor((progressValue / MAX_PROCESS_PROGRESS) * steps.length)
+      )
+
+      if (steps[stepIndex] && currentMessage.value !== steps[stepIndex]) {
+        currentMessage.value = steps[stepIndex]
+        pulseCenterCard()
+      }
+    }
+  })
 }
 
-const updatePaths = () => {
-  if (!leftNode.value || !rightNode.value || !centerNode.value || !leftPathRef.value || !rightPathRef.value || !animationContainer.value) return
+const finishProcess = () => {
+  progressTween?.kill()
+  progressTween = null
+  settleTween?.kill()
 
-  // 使用 offsetLeft/Top 获取不受 transform 影响的布局坐标
-  // 且坐标系直接相对于 animationContainer (父级/OffsetParent)
-  const getRelativePos = (el: HTMLElement, anchor: 'right' | 'left' | 'center') => {
-    let x = el.offsetLeft
-    let y = el.offsetTop + el.offsetHeight / 2
-
-    if (anchor === 'right') x += el.offsetWidth
-    if (anchor === 'center') x += el.offsetWidth / 2
-
-    return { x, y }
-  }
-
-  const leftPos = getRelativePos(leftNode.value, 'right')
-  const rightPos = getRelativePos(rightNode.value, 'left')
-  const centerPos = getRelativePos(centerNode.value, 'center')
-
-  // 更新左侧路径 (起点: 左卡片右侧 -> 终点: 中心左侧)
-  // 使用二次贝塞尔曲线，控制点在两者之间略微偏下，产生弧度
-  const leftControlX = (leftPos.x + centerPos.x) / 2
-  const leftControlY = leftPos.y // 保持水平或者微调
-  const leftD = `M ${leftPos.x} ${leftPos.y} C ${leftControlX} ${leftControlY}, ${leftControlX} ${centerPos.y}, ${centerPos.x - 40} ${centerPos.y}`
-  leftPathRef.value.setAttribute('d', leftD)
-
-  // 更新右侧路径 (起点: 右卡片左侧 -> 终点: 中心右侧)
-  const rightControlX = (rightPos.x + centerPos.x) / 2
-  const rightControlY = rightPos.y
-  const rightD = `M ${rightPos.x} ${rightPos.y} C ${rightControlX} ${rightControlY}, ${rightControlX} ${centerPos.y}, ${centerPos.x + 40} ${centerPos.y}`
-  rightPathRef.value.setAttribute('d', rightD)
-}
-
-const generateBolt = (pathEl: SVGPathElement, progressValue: number) => {
-  if (!pathEl) return { main: '', branch: '' }
-  const totalLen = pathEl.getTotalLength()
-  const boltLen = 80 // 闪电长度
-
-  // 计算当前显示范围
-  const end = progressValue * (totalLen + boltLen)
-  const start = Math.max(0, end - boltLen)
-  const actualEnd = Math.min(totalLen, end)
-
-  if (start >= totalLen || end <= 0) return { main: '', branch: '' }
-
-  // 生成主路径点
-  const segments = 8
-  let d = `M ${pathEl.getPointAtLength(start).x} ${pathEl.getPointAtLength(start).y}`
-
-  for (let i = 1; i <= segments; i++) {
-    const t = i / segments
-    const currentLen = start + (actualEnd - start) * t
-    const point = pathEl.getPointAtLength(currentLen)
-    const jitter = (Math.random() - 0.5) * 15 // 增加抖动幅度
-    d += ` L ${point.x} ${point.y + jitter}`
+  if (prefersReducedMotion.value) {
+    visualProgress.value = 100
+    return
   }
 
-  // 生成分支 (随机出现)
-  let branchD = ''
-  if (Math.random() > 0.6) {
-    const branchStartLen = start + (actualEnd - start) * 0.5
-    const branchStartPoint = pathEl.getPointAtLength(branchStartLen)
-    const bx = branchStartPoint.x + (Math.random() - 0.5) * 30
-    const by = branchStartPoint.y + (Math.random() - 0.5) * 30
-    branchD = `M ${branchStartPoint.x} ${branchStartPoint.y} L ${bx} ${by}`
-  }
-
-  return { main: d, branch: branchD }
+  settleTween = gsap.to(visualProgress, {
+    value: 100,
+    duration: 0.34,
+    ease: 'power2.out'
+  })
 }
 
-const startAnimations = async () => {
-  stopAnimations()
-  await nextTick()
+const onEnter = (_element: Element, done: () => void) => {
+  killTransitionTimelines()
+  const isReduced = prefersReducedMotion.value
 
-  // 重置状态
-  progress.value = 0
-  currentMessage.value = "初始化..."
-
-  ctx = gsap.context(() => {
-    const isReducedMotion = prefersReducedMotion.value
-
-    // 0. 初始化状态
-    gsap.set([leftNode.value, rightNode.value], {
-      x: (i) => i === 0 ? -50 : 50,
-      opacity: 0,
-      scale: 0.9
-    })
-    gsap.set(centerNode.value, { scale: 0, rotation: -180, opacity: 0 })
-    gsap.set([titleText.value, subTitle.value], { y: 20, opacity: 0 })
-    gsap.set(progressBar.value, { scaleX: 0, transformOrigin: 'left center' })
-
-    const tl = gsap.timeline()
-
-    // 1. 核心入场
-    tl.to(centerNode.value, {
-      scale: 1,
-      rotation: 0,
-      opacity: 1,
-      duration: isReducedMotion ? 0.1 : 0.85,
-      ease: isReducedMotion ? 'none' : 'expo.out'
-    })
-
-    // 2. 两侧卡片入场
-      .to([leftNode.value, rightNode.value], {
+  enterTimeline = gsap.timeline({ onComplete: done })
+  enterTimeline
+    .fromTo(
+      backdropLayer.value,
+      { opacity: 0 },
+      { opacity: 1, duration: isReduced ? 0.12 : 0.24, ease: isReduced ? 'none' : 'power1.out' }
+    )
+    .fromTo(
+      panelRef.value,
+      { y: isReduced ? 0 : 18, scale: isReduced ? 1 : 0.986, opacity: 0 },
+      { y: 0, scale: 1, opacity: 1, duration: isReduced ? 0.14 : 0.34, ease: isReduced ? 'none' : 'power2.out' },
+      '-=0.06'
+    )
+    .fromTo(
+      [leftNodeRef.value, rightNodeRef.value],
+      { x: (index) => (index === 0 ? -12 : 12), opacity: 0 },
+      {
         x: 0,
         opacity: 1,
-        scale: 1,
-        duration: isReducedMotion ? 0.1 : 0.7,
-        stagger: 0.18,
-        ease: isReducedMotion ? 'none' : 'power3.out'
-      }, '-=0.55')
-
-      // 3. 文字入场
-      .to([titleText.value, subTitle.value], {
+        duration: isReduced ? 0.14 : 0.28,
+        stagger: isReduced ? 0 : 0.05,
+        ease: isReduced ? 'none' : 'power2.out'
+      },
+      '-=0.18'
+    )
+    .fromTo(
+      [centerNodeRef.value, textBlockRef.value],
+      { y: isReduced ? 0 : 8, opacity: 0 },
+      {
         y: 0,
         opacity: 1,
-        duration: isReducedMotion ? 0.1 : 0.55,
-        stagger: 0.1,
-        ease: isReducedMotion ? 'none' : 'power2.out'
-      }, '-=0.35')
+        duration: isReduced ? 0.14 : 0.28,
+        stagger: isReduced ? 0 : 0.05,
+        ease: isReduced ? 'none' : 'power2.out'
+      },
+      '-=0.22'
+    )
+}
 
-    // 4. 进度条动画
-    progressTween = gsap.to(progressBar.value, {
-      scaleX: 1,
-      duration: isReducedMotion ? 0.35 : 5,
-      ease: isReducedMotion ? 'none' : 'sine.inOut',
-      onUpdate: function() {
-        progress.value = Math.round(this.progress() * 100)
-      }
+const onLeave = (_element: Element, done: () => void) => {
+  killTransitionTimelines()
+  const isReduced = prefersReducedMotion.value
+
+  leaveTimeline = gsap.timeline({ onComplete: done })
+  leaveTimeline
+    .to(panelRef.value, {
+      y: isReduced ? 0 : 10,
+      scale: isReduced ? 1 : 0.992,
+      opacity: 0,
+      duration: isReduced ? 0.12 : 0.2,
+      ease: isReduced ? 'none' : 'power1.in'
     })
-
-    // 5. 闪电动画循环
-    updatePaths()
-
-    if (animationContainer.value) {
-      resizeObserver = new ResizeObserver(() => {
-        updatePaths()
-      })
-      resizeObserver.observe(animationContainer.value)
-    }
-
-    if (!isReducedMotion) {
-      const lightningProgress = { value: 0 }
-      lightningTween = gsap.to(lightningProgress, {
-        value: 1,
-        duration: 2.1,
-        repeat: -1,
-        ease: "none",
-        onUpdate: () => {
-          if (leftPathRef.value && rightPathRef.value) {
-            lightningState.value.left = generateBolt(leftPathRef.value, lightningProgress.value)
-            lightningState.value.right = generateBolt(rightPathRef.value, lightningProgress.value)
-          }
-        }
-      })
-    } else if (leftPathRef.value && rightPathRef.value) {
-      lightningState.value.left = generateBolt(leftPathRef.value, 0.55)
-      lightningState.value.right = generateBolt(rightPathRef.value, 0.55)
-    }
-
-    // 6. 消息循环
-    let msgIndex = 0
-    messageInterval = setInterval(() => {
-      if (msgIndex < messages.length) {
-        currentMessage.value = messages[msgIndex]
-        msgIndex++
-      } else {
-        clearMessageInterval()
-      }
-    }, isReducedMotion ? 1200 : 1000)
-  }, overlayContainer)
+    .to(
+      backdropLayer.value,
+      { opacity: 0, duration: isReduced ? 0.1 : 0.18, ease: isReduced ? 'none' : 'power1.in' },
+      '-=0.12'
+    )
 }
 
 watch(
   () => props.active,
-  (value) => {
-    if (value) {
-      startAnimations()
+  (active) => {
+    if (active) {
+      startProcess()
     } else {
-      stopAnimations()
+      finishProcess()
     }
-  },
-  { immediate: true }
+  }
 )
 
 onMounted(() => {
   if (typeof window === 'undefined' || !window.matchMedia) return
   reducedMotionMediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
   prefersReducedMotion.value = reducedMotionMediaQuery.matches
+
   if (typeof reducedMotionMediaQuery.addEventListener === 'function') {
     reducedMotionMediaQuery.addEventListener('change', onReducedMotionChange)
   } else {
@@ -431,7 +364,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  stopAnimations()
+  killProcessTweens()
+  killTransitionTimelines()
+
   if (!reducedMotionMediaQuery) return
   if (typeof reducedMotionMediaQuery.removeEventListener === 'function') {
     reducedMotionMediaQuery.removeEventListener('change', onReducedMotionChange)
@@ -442,61 +377,202 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.animate-pulse-slow {
-  animation: pulse 4.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-.animate-pulse-fast {
-  animation: pulse 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-.animate-spin-slow {
-  animation: spin 8s linear infinite;
-}
-.animate-reverse-spin {
-  animation: spin 6s linear infinite reverse;
-}
-.animate-scan-fast {
-  animation: scan 2.2s cubic-bezier(0.32, 0, 0.67, 0) infinite;
+.comparison-overlay-grid {
+  background-image:
+    linear-gradient(rgb(15 23 42 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 23 42 / 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+  opacity: 0.42;
+  -webkit-mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.88) 24%, transparent 82%);
+  mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.88) 24%, transparent 82%);
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+:global(.dark) .comparison-overlay-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.055) 1px, transparent 1px);
 }
 
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(200%); }
+.comparison-overlay-glow {
+  background: radial-gradient(
+    circle at center,
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.14) 0%,
+    transparent 72%
+  );
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
+:global(.dark) .comparison-overlay-glow {
+  background: radial-gradient(
+    circle at center,
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.09) 0%,
+    transparent 72%
+  );
+}
+
+.comparison-panel {
+  position: relative;
+}
+
+.comparison-panel::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 48%);
+  content: '';
+}
+
+:global(.dark) .comparison-panel::before {
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.045), transparent 44%);
+}
+
+.comparison-panel-dot {
+  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.82);
+  box-shadow: 0 0 0 5px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.12);
+}
+
+.comparison-node {
+  display: flex;
+}
+
+.comparison-center {
+  position: relative;
+}
+
+.comparison-center::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.12),
+    transparent 62%
+  );
+  content: '';
+}
+
+.comparison-core-aura {
+  background: radial-gradient(
+    circle at center,
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.16) 0%,
+    transparent 72%
+  );
+  animation: comparison-core-breathe 4.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.comparison-progress {
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.28),
+    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.94)
+  );
+  box-shadow: 0 10px 24px -18px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.72);
+}
+
+.comparison-flow {
+  --flow-distance: 88px;
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgb(15 23 42 / 0.14), transparent);
+}
+
+:global(.dark) .comparison-flow {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.12), transparent);
+}
+
+.comparison-flow-dot {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+  box-shadow: 0 0 0 4px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.16);
+  animation: comparison-flow-forward 2.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  transform: translate(-16px, -50%);
+}
+
+.comparison-flow-dot--reverse {
+  animation-name: comparison-flow-reverse;
+}
+
+.comparison-status-enter-active,
+.comparison-status-leave-active {
   transition:
-    opacity 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
+    opacity 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 180ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.slide-up-enter-from {
+.comparison-status-enter-from {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(6px);
 }
 
-.slide-up-leave-to {
+.comparison-status-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-6px);
+}
+
+@keyframes comparison-flow-forward {
+  0% {
+    opacity: 0;
+    transform: translate(-16px, -50%);
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--flow-distance), -50%);
+  }
+}
+
+@keyframes comparison-flow-reverse {
+  0% {
+    opacity: 0;
+    transform: translate(var(--flow-distance), -50%);
+  }
+  18% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-16px, -50%);
+  }
+}
+
+@keyframes comparison-core-breathe {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.48;
+    transform: scale(1.04);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-slow,
-  .animate-pulse-fast,
-  .animate-spin-slow,
-  .animate-reverse-spin,
-  .animate-scan-fast {
+  .comparison-core-aura,
+  .comparison-flow-dot,
+  .comparison-flow-dot--reverse {
     animation: none !important;
   }
 
-  .slide-up-enter-active,
-  .slide-up-leave-active {
+  .comparison-status-enter-active,
+  .comparison-status-leave-active {
     transition-duration: 1ms;
   }
 }

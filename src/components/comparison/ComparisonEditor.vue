@@ -29,7 +29,7 @@
         <div class="text-xs font-medium transition-colors duration-300 flex items-center gap-1.5"
              :class="{
                'text-gray-400': !savingState,
-               'text-blue-500': savingState === 'saving',
+               'text-primary': savingState === 'saving',
                'text-green-500': savingState === 'saved',
                'text-red-500': savingState === 'error'
              }">
@@ -51,7 +51,7 @@
         <textarea
           v-model="modelValue"
           class="flex-1 w-full px-5 py-4 rounded-md border transition-all duration-200
-                 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                 focus:ring-2 focus:ring-primary/20 focus:border-primary
                  disabled:opacity-50 disabled:cursor-not-allowed
                  border-gray-200 dark:border-gray-700 
                  bg-white dark:bg-[#171f2e]
@@ -82,11 +82,11 @@
           @click="isEditMode = true"
           class="h-full flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700
                  bg-gray-50 dark:bg-[#171f2e]/30
-                 cursor-pointer hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50/30 dark:hover:bg-blue-900/10
+                 cursor-pointer hover:border-primary/30 dark:hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-primary/10
                  transition-all duration-200 group"
         >
-          <div class="w-16 h-16 rounded-full bg-white dark:bg-[#171f2e] shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-            <Edit3 class="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-[1.04] dark:bg-[#171f2e]">
+            <Edit3 class="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">暂无分析内容</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xs text-center">
@@ -166,7 +166,7 @@ const handlePreviewClick = (event: MouseEvent) => {
 .markdown-content :deep(p) { @apply my-2 leading-relaxed text-gray-700 dark:text-gray-300; }
 .markdown-content :deep(ul) { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
 .markdown-content :deep(li) { @apply my-1; }
-.markdown-content :deep(a) { @apply text-blue-500 hover:underline; }
+.markdown-content :deep(a) { @apply text-primary hover:opacity-80; }
 .markdown-content :deep(table) { @apply w-full my-4 border-collapse text-sm; }
 .markdown-content :deep(th) { @apply bg-gray-50 dark:bg-gray-800 font-semibold text-left px-4 py-3 border-b-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white; }
 .markdown-content :deep(td) { @apply px-4 py-3 border-b border-gray-200 dark:border-gray-700 align-top text-gray-700 dark:text-gray-300; }

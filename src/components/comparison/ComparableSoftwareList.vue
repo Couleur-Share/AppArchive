@@ -28,7 +28,7 @@
           >
           <div 
             v-if="isSelected(sw.id)"
-            class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-sm"
+            class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-primary dark:border-gray-800 shadow-sm"
           >
             <Check class="w-2.5 h-2.5 text-white stroke-[3]" />
           </div>

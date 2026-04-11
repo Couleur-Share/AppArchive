@@ -1202,7 +1202,7 @@ const isEllipsis = (page: number) => {
 :root {
   transition: background-color 0.3s ease, color 0.3s ease,
     border-color 0.3s ease;
-  background-color: var(--gradient-light-start);
+  background-color: var(--app-bg-start);
   min-height: 100vh;
 
   --gradient-light-start: #f0f2f5;
@@ -1217,7 +1217,7 @@ const isEllipsis = (page: number) => {
 }
 
 :root.dark {
-  background-color: #020618;
+  background-color: var(--app-bg-end);
 }
 
 * {
@@ -1266,6 +1266,29 @@ button {
 
 .app-home {
   color: var(--home-text);
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 0.78), transparent 24%),
+    radial-gradient(circle at 0% 34%, var(--app-bg-accent1), transparent 24%),
+    radial-gradient(circle at 100% 36%, var(--app-bg-accent3), transparent 24%),
+    radial-gradient(circle at 50% 100%, var(--app-bg-accent2), transparent 34%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.28), transparent 14%),
+    repeating-linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.18) 0 1px,
+      transparent 1px 8px
+    ),
+    linear-gradient(180deg, var(--app-bg-start), var(--app-bg-end));
+  background-repeat: no-repeat;
+}
+
+.dark .app-home {
+  background:
+    linear-gradient(180deg, rgb(0 220 130 / 0.045), transparent 14%),
+    radial-gradient(120% 42% at 50% -4%, var(--app-bg-accent1), transparent 36%),
+    radial-gradient(72% 26% at 50% 10%, var(--app-bg-accent2), transparent 42%),
+    radial-gradient(circle at 50% 0%, var(--app-bg-accent3), transparent 24%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.012), transparent 16%),
+    linear-gradient(180deg, var(--app-bg-start), var(--app-bg-end));
 }
 
 .top-action-btn {

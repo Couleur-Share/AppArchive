@@ -3,9 +3,9 @@
     <!-- 加载状态指示器 -->
     <div v-if="isLoading" 
          class="fixed inset-0 app-modal-backdrop flex items-center justify-center z-[60]">
-      <div class="flex flex-col items-center gap-4 p-6 bg-white/10 backdrop-blur-xl rounded-2xl">
+      <div class="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/20 p-6 backdrop-blur-xl dark:bg-white/5">
         <div class="animate-spin rounded-full h-12 w-12 border-4 
-                    border-blue-500/30 border-t-blue-500"></div>
+                    border-primary/20 border-t-primary"></div>
         <span class="text-sm text-white/90 font-medium">正在加载比较数据...</span>
       </div>
     </div>
@@ -35,12 +35,12 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <TransitionChild
             as="div"
-            enter="ease-[cubic-bezier(0.22,1,0.36,1)] duration-260"
-            enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enter="ease-[cubic-bezier(0.25,1,0.5,1)] duration-240"
+            enter-from="opacity-0 translate-y-2 sm:translate-y-0 sm:scale-[0.985]"
             enter-to="opacity-100 translate-y-0 sm:scale-100"
-            leave="ease-in duration-170"
+            leave="ease-[cubic-bezier(0.32,0,0.67,0)] duration-180"
             leave-from="opacity-100 translate-y-0 sm:scale-100"
-            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            leave-to="opacity-0 translate-y-1 sm:translate-y-0 sm:scale-[0.992]"
           >
             <DialogPanel 
               @click.stop
@@ -57,8 +57,7 @@
               <div class="flex items-center justify-between px-8 py-6 
                           border-b border-gray-200/50 dark:border-gray-600/30
                           bg-white/30 dark:bg-gray-800/50 backdrop-blur-sm">
-                <DialogTitle as="h3" class="text-2xl font-bold bg-gradient-to-r 
-                                    text-gray-900 dark:text-white">
+                <DialogTitle as="h3" class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                   软件对比分析
                 </DialogTitle>
                 <div class="flex items-center gap-2">
@@ -106,7 +105,7 @@
                               <span class="ml-auto inline-flex items-center">
                                 <span
                                   class="relative inline-flex items-center w-9 h-5 rounded-full transition-colors"
-                                  :class="viewMode==='full' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
+                                  :class="viewMode==='full' ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'"
                                   aria-hidden="true"
                                 >
                                   <span
@@ -144,20 +143,15 @@
                 <!-- 空状态 -->
                 <div v-if="!comparedSoftwares.length" 
                      class="flex flex-col items-center justify-center py-16 text-center">
-                  <div class="w-28 h-28 mb-8 rounded-full bg-gradient-to-br 
-                              from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 
-                              flex items-center justify-center animate-float">
+                  <div class="mb-8 flex h-24 w-24 items-center justify-center rounded-[28px] border border-primary/15 bg-primary/10 text-primary shadow-[0_24px_48px_-32px_rgba(15,23,42,0.28)] dark:bg-primary/12">
                     <div class="relative">
-                      <FileSearch class="w-14 h-14 text-blue-500 dark:text-blue-400" />
-                      <div class="absolute -top-1 -right-1 w-6 h-6 bg-blue-100 dark:bg-blue-800 
-                                  rounded-full flex items-center justify-center">
-                        <Plus class="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                      <FileSearch class="w-11 h-11" />
+                      <div class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border border-white/70 bg-white text-primary shadow-sm dark:border-slate-900 dark:bg-slate-900">
+                        <Plus class="w-4 h-4" />
                       </div>
                     </div>
                   </div>
-                  <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-3
-                             bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300
-                             bg-clip-text text-transparent">
+                  <h3 class="mb-3 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
                     暂无比较信息
                   </h3>
                   <p
@@ -169,10 +163,7 @@
                   <button
                     v-if="canEdit"
                     @click="$emit('edit')"
-                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 
-                           hover:from-blue-700 hover:to-blue-600
-                           text-white rounded-xl transition-all duration-300
-                           flex items-center gap-2 font-medium shadow-lg shadow-blue-500/20"
+                    class="flex items-center gap-2 rounded-xl border border-primary/35 bg-primary px-6 py-3 font-medium text-slate-950 transition-all duration-200 hover:brightness-[0.98] hover:shadow-md"
                   >
                     <Plus class="w-5 h-5" />
                     创建比较
@@ -206,8 +197,7 @@
                                   <button
                                     v-if="sw.website"
                                     @click="openWebsite(sw.website)"
-                                    class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 
-                                           dark:hover:text-blue-300 flex items-center gap-1 mt-1 icon-link"
+                                    class="mt-1 flex items-center gap-1 text-xs text-primary/90 transition-colors hover:text-primary icon-link"
                                   >
                                     <ExternalLink class="w-3 h-3 icon-link" />
                                     <span>访问官网</span>
@@ -255,7 +245,7 @@
                                 <template v-if="getVisiblePros(sw).length">
                                   <div v-for="(pro, index) in getVisiblePros(sw)" :key="index" 
                                      class="flex items-start gap-2 text-sm leading-relaxed">
-                                  <div class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 flex-shrink-0"></div>
+                                  <div class="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></div>
                                   <span class="text-gray-700 dark:text-gray-300">{{ pro }}</span>
                                   </div>
                                 </template>
@@ -298,10 +288,8 @@
                   </div>
 
                   <!-- 综合分析：与上方表格做“卡片一体化” -->
-                  <div class="px-6 pt-2 pb-6 bg-gradient-to-br from-blue-50/70 to-blue-100/70 
-                              dark:from-blue-900/20 dark:to-blue-800/20 
-                              rounded-b-xl border border-t-0 border-blue-100 dark:border-blue-800/30">
-                    <div class="prose prose-blue dark:prose-invert max-w-none">
+                  <div class="rounded-b-xl border border-t-0 border-primary/15 bg-primary/[0.06] px-6 pt-2 pb-6 dark:bg-primary/[0.08]">
+                    <div class="prose dark:prose-invert max-w-none">
                       <div v-html="renderedSummary" class="markdown-content"></div>
                     </div>
                   </div>
@@ -629,19 +617,6 @@ const saveSharePreviewImage = async () => {
   border-width: 4px;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0);
-  }
-  50% {
-    transform: translateY(-10px) rotate(5deg);
-  }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
 /* 添加Markdown样式 */
 .markdown-content {
   @apply text-gray-700 dark:text-gray-300;
@@ -674,7 +649,7 @@ const saveSharePreviewImage = async () => {
 }
 
 .markdown-content a {
-  @apply text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300;
+  @apply text-primary hover:opacity-80;
 }
 
 .markdown-content code {

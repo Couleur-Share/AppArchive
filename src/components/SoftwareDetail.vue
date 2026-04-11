@@ -32,12 +32,12 @@
         <div class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
           <TransitionChild
             as="template"
-            enter="ease-[cubic-bezier(0.19,1,0.22,1)] duration-500"
-            enter-from="opacity-0 translate-y-8 scale-95"
+            enter="ease-[cubic-bezier(0.25,1,0.5,1)] duration-320"
+            enter-from="opacity-0 translate-y-4 scale-[0.985]"
             enter-to="opacity-100 translate-y-0 scale-100"
-            leave="ease-in duration-200"
+            leave="ease-[cubic-bezier(0.32,0,0.67,0)] duration-180"
             leave-from="opacity-100 translate-y-0 scale-100"
-            leave-to="opacity-0 translate-y-8 scale-95"
+            leave-to="opacity-0 translate-y-2 scale-[0.992]"
           >
             <DialogPanel 
               ref="dialogPanelRef"
@@ -227,10 +227,10 @@
                         >
                         {{ tab.label }}
                         <Transition
-                          enter-active-class="transition duration-300 ease-[cubic-bezier(0.19,1,0.22,1)]"
+                          enter-active-class="transition duration-220 ease-[cubic-bezier(0.25,1,0.5,1)]"
                           enter-from-class="opacity-0 scale-x-0"
                           enter-to-class="opacity-100 scale-x-100"
-                          leave-active-class="transition duration-200 ease-in"
+                          leave-active-class="transition duration-160 ease-[cubic-bezier(0.32,0,0.67,0)]"
                           leave-from-class="opacity-100 scale-x-100"
                           leave-to-class="opacity-0 scale-x-0"
                         >
@@ -250,12 +250,12 @@
                 <!-- 内容页切换动画 -->
                 <Transition
                     mode="out-in"
-                    enter-active-class="transition duration-300 ease-[cubic-bezier(0.19,1,0.22,1)]"
-                    enter-from-class="opacity-0 translate-y-2 scale-[0.99]"
+                    enter-active-class="transition duration-240 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                    enter-from-class="opacity-0 translate-y-1.5 scale-[0.995]"
                     enter-to-class="opacity-100 translate-y-0 scale-100"
-                    leave-active-class="transition duration-150 ease-in"
+                    leave-active-class="transition duration-150 ease-[cubic-bezier(0.32,0,0.67,0)]"
                     leave-from-class="opacity-100 translate-y-0 scale-100"
-                    leave-to-class="opacity-0 translate-y-2 scale-[0.99]"
+                    leave-to-class="opacity-0 translate-y-1 scale-[0.997]"
                 >
                 <div v-if="activeTab === 'overview'" class="space-y-8 max-w-4xl mx-auto">
                   <!-- 产品描述 -->
@@ -422,7 +422,7 @@
                    <!-- 保留原有对比逻辑，优化样式 -->
                    <div v-if="isLoadingComparison" class="flex items-center justify-center py-24">
                         <div class="flex flex-col items-center gap-4">
-                            <div class="w-10 h-10 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                            <div class="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
                             <span class="text-gray-500 font-medium">正在分析对比数据...</span>
                         </div>
                    </div>

@@ -4,10 +4,10 @@
 
   <Teleport to="body">
     <Transition
-      enter-active-class="duration-300 ease-out"
+      enter-active-class="duration-240 ease-[cubic-bezier(0.25,1,0.5,1)]"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="duration-200 ease-in"
+      leave-active-class="duration-180 ease-[cubic-bezier(0.32,0,0.67,0)]"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -28,12 +28,12 @@
         <!-- 弹窗容器 -->
         <div class="flex min-h-full items-center justify-center p-4">
           <Transition
-            enter-active-class="duration-300 ease-out"
-            enter-from-class="opacity-0 scale-95"
-            enter-to-class="opacity-100 scale-100"
-            leave-active-class="duration-200 ease-in"
-            leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
+            enter-active-class="duration-260 ease-[cubic-bezier(0.25,1,0.5,1)]"
+            enter-from-class="opacity-0 translate-y-1.5 scale-[0.985]"
+            enter-to-class="opacity-100 translate-y-0 scale-100"
+            leave-active-class="duration-180 ease-[cubic-bezier(0.32,0,0.67,0)]"
+            leave-from-class="opacity-100 translate-y-0 scale-100"
+            leave-to-class="opacity-0 translate-y-1 scale-[0.992]"
             appear
           >
             <div
@@ -66,12 +66,12 @@
                     class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm border"
                     :class="[
                         isAnalyzing 
-                            ? 'bg-gray-100 text-gray-500 border-transparent cursor-wait'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:shadow-md active:scale-95'
+                            ? 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 cursor-wait'
+                            : 'bg-primary text-slate-950 border-primary/40 hover:brightness-[0.98] hover:shadow-md active:scale-[0.985]'
                     ]"
                     :disabled="isAnalyzing"
                   >
-                    <Sparkles class="w-4 h-4" :class="{'animate-spin': isAnalyzing}" />
+                    <Sparkles class="w-4 h-4" :class="{ 'opacity-70': isAnalyzing }" />
                     {{ isAnalyzing ? '正在分析...' : '智能分析' }}
                   </button>
 
@@ -114,7 +114,7 @@
                                 v-model="searchQuery"
                                 type="text" 
                                 placeholder="搜索添加软件..." 
-                                class="w-full pl-9 pr-4 py-2 rounded-md bg-gray-100 dark:bg-gray-800 border-none text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50"
+                                class="w-full pl-9 pr-4 py-2 rounded-md bg-gray-100 dark:bg-gray-800 border-none text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-primary/25"
                             >
                         </div>
                     </div>
@@ -122,7 +122,7 @@
                     <!-- 软件列表 -->
                     <div class="flex-1 overflow-hidden relative">
                          <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-[#171f2e]/50 z-10 backdrop-blur-[1px]">
-                            <Loader2 class="w-6 h-6 animate-spin text-blue-500" />
+                            <Loader2 class="w-6 h-6 animate-spin text-primary" />
                          </div>
                          <ComparableSoftwareList
                             :items="filteredSoftware"
