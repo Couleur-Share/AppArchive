@@ -48,14 +48,18 @@ defineEmits<(e: 'update:modelValue', value: boolean) => void>()
 }
 
 .theme-toggle-sun {
-  color: color-mix(in srgb, var(--theme-primary-600) 64%, var(--home-text-muted));
+  color: var(--theme-toggle-sun);
 }
 
 .theme-toggle-moon {
-  color: var(--home-text);
+  color: var(--theme-toggle-moon);
 }
 
-.dark .theme-toggle-moon {
-  color: var(--theme-primary-400);
+.theme-toggle-btn:hover .theme-toggle-sun {
+  color: var(--theme-toggle-sun-hover);
+}
+
+.theme-toggle-btn:hover .theme-toggle-moon {
+  color: var(--theme-toggle-moon-hover);
 }
 </style>

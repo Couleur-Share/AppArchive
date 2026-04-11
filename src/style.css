@@ -89,6 +89,10 @@
 		rgb(0 187 110 / 0.96)
 	);
 	--home-nav-btn-color: rgb(3 20 14);
+	--theme-toggle-sun: oklch(0.68 0.16 78);
+	--theme-toggle-sun-hover: oklch(0.62 0.18 74);
+	--theme-toggle-moon: oklch(0.54 0.05 245);
+	--theme-toggle-moon-hover: oklch(0.48 0.06 245);
 
 	--gray-100: hsl(0 0% 95%);
 	--gray-700: hsl(0 0% 40%);
@@ -172,6 +176,10 @@
 		rgb(0 174 104 / 0.94)
 	);
 	--home-nav-btn-color: rgb(3 20 14);
+	--theme-toggle-sun: oklch(0.78 0.13 82);
+	--theme-toggle-sun-hover: oklch(0.84 0.11 84);
+	--theme-toggle-moon: oklch(0.77 0.06 252);
+	--theme-toggle-moon-hover: oklch(0.84 0.05 252);
 }
 
 /* 自定义样式 */
