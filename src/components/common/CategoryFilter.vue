@@ -1,6 +1,6 @@
 <template>
   <!-- 外层容器：负责边框、背景、圆角和阴影，不受遮罩影响 -->
-  <div class="category-filter-shell relative w-full box-border overflow-hidden rounded-xl border backdrop-blur-sm">
+  <div class="category-filter-shell relative w-full box-border overflow-hidden rounded-xl border">
     <div
       ref="scrollEl"
       :class="[
@@ -12,7 +12,7 @@
       <!-- 优化的背景滑块 - 使用CSS transition替代GSAP -->
       <div
         ref="indicatorRef"
-        class="tab-indicator absolute top-1.5 bottom-1.5 rounded-lg bg-primary"
+        class="tab-indicator pointer-events-none absolute top-1.5 bottom-1.5 rounded-[11px]"
       ></div>
 
       <!-- Tabs -->
@@ -140,6 +140,7 @@ const animationDelayBase = computed(() => props.animationDelayBase ?? 0.06)
 const animationStagger = computed(() => props.animationStagger ?? 0.03)
 const showAnimationLocal = computed(() => props.showAnimation ?? true)
 const fadeWidth = computed(() => props.fadeWidth ?? 8)
+const indicatorInset = computed(() => props.indicatorPadding ?? 6)
 const scrollStyle = computed<Record<string, string>>(() => ({
   '--tab-fade-width': `${fadeWidth.value}px`,
   '--tab-mask-left': showPrev.value ? `${fadeWidth.value}px` : '0px',
@@ -202,8 +203,9 @@ const updateIndicator = (activeTab: HTMLElement, animate = true) => {
   const indicator = indicatorRef.value
   if (!indicator) return
   
-  const newWidth = activeTab.offsetWidth
-  const newLeft = activeTab.offsetLeft
+  const inset = Math.max(0, indicatorInset.value)
+  const newWidth = Math.max(0, activeTab.offsetWidth - inset * 2)
+  const newLeft = activeTab.offsetLeft + inset
   
   if (!animate || !indicatorInitialized) {
     // 初始化：禁用transition直接到位
@@ -371,19 +373,20 @@ onBeforeUnmount(() => {
   --ui-focus-ring:
     0 0 0 2px rgb(255 255 255 / 0.22),
     0 0 0 5px rgb(0 220 130 / 0.22);
-  --ui-accent-shadow: var(--home-tab-indicator-shadow);
+  --ui-indicator-shadow: var(--home-tab-indicator-shadow);
   --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;
 }
 
 .category-filter-shell {
-  background: var(--home-surface);
-  border-color: var(--home-border);
-  box-shadow: var(--home-shadow-strong);
+  background: var(--home-tab-rail-bg);
+  border-color: var(--home-tab-rail-border);
+  box-shadow: var(--home-tab-rail-shadow);
 }
 
 .tab-scroll {
   color: var(--home-text);
+  isolation: isolate;
 }
 
 .nav-btn {
@@ -398,9 +401,8 @@ onBeforeUnmount(() => {
   border-radius: 9999px;
   color: var(--home-nav-btn-color);
   background: var(--home-nav-btn-bg);
-  box-shadow: var(--ui-accent-shadow);
+  box-shadow: var(--home-accent-shadow);
   border: 1px solid var(--home-accent-border);
-  backdrop-filter: blur(8px);
   transition:
     transform 180ms var(--tab-motion-ease),
     box-shadow 180ms var(--tab-motion-ease),
@@ -451,22 +453,35 @@ onBeforeUnmount(() => {
   opacity: 0;
   background: var(--home-tab-indicator-bg);
   border: 1px solid var(--home-tab-indicator-border);
-  box-shadow: var(--ui-accent-shadow);
+  box-shadow: var(--ui-indicator-shadow);
   will-change: transform, width;
   transition:
-    transform 220ms var(--tab-motion-ease),
-    width 220ms var(--tab-motion-ease),
+    transform 240ms var(--tab-motion-ease),
+    width 240ms var(--tab-motion-ease),
     opacity 150ms var(--tab-motion-ease);
   contain: layout style;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.tab-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 36%);
+  pointer-events: none;
 }
 
 .tab-indicator::after {
   content: '';
   position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.02) 60%);
+  left: 14px;
+  right: 14px;
+  bottom: 5px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--home-tab-indicator-beam);
+  box-shadow: var(--home-tab-indicator-glow);
   pointer-events: none;
 }
 
@@ -480,15 +495,17 @@ onBeforeUnmount(() => {
   contain: layout style;
   animation: tabFadeIn 0.4s ease-out both;
   line-height: 1;
+  z-index: 1;
 }
 
 .tab-item--active {
-  color: var(--home-text-strong);
-  text-shadow: 0 1px 0 rgb(255 255 255 / 0.18);
+  color: var(--home-tab-active-text);
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .tab-item--inactive {
-  color: var(--home-text-muted);
+  color: color-mix(in srgb, var(--home-text) 78%, var(--home-text-subtle));
 }
 
 @keyframes tabFadeIn {
@@ -511,14 +528,14 @@ onBeforeUnmount(() => {
 }
 
 .tab-badge--active {
-  background: color-mix(in srgb, var(--theme-primary-500) 12%, var(--home-surface-strong));
-  color: color-mix(in srgb, var(--home-text-strong) 72%, var(--theme-primary-600));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+  background: var(--home-tab-badge-active-bg);
+  color: var(--home-tab-badge-active-text);
+  box-shadow: var(--home-tab-badge-active-shadow);
 }
 
 .tab-badge--inactive {
   background: color-mix(in srgb, var(--home-surface-soft) 92%, transparent);
-  color: var(--home-text-muted);
+  color: color-mix(in srgb, var(--home-text-muted) 90%, var(--home-text-subtle));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-border) 72%, transparent);
 }
 
@@ -527,6 +544,7 @@ onBeforeUnmount(() => {
     color: var(--home-text-strong);
     background: var(--home-tab-hover);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-border-strong) 82%, transparent);
+    transform: translateY(-1px);
   }
 }
 
