@@ -31,6 +31,7 @@ declare module 'vue' {
     GitHubReleases: typeof import('./src/components/software/GitHubReleases.vue')['default']
     IconButton: typeof import('./src/components/common/IconButton.vue')['default']
     IconUploader: typeof import('./src/components/IconUploader.vue')['default']
+    InlineToast: typeof import('./src/components/InlineToast.vue')['default']
     ISimpleIconsApple: typeof import('~icons/simple-icons/apple')['default']
     ISimpleIconsHarmonyos: typeof import('~icons/simple-icons/harmonyos')['default']
     ISimpleIconsLinux: typeof import('~icons/simple-icons/linux')['default']

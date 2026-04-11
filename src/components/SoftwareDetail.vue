@@ -609,7 +609,7 @@
     </Dialog>
   </TransitionRoot>
 
-  <Toast :show="showToast" message="操作成功" />
+  <InlineToast :show="showToast" message="操作成功" />
   
   <ShareCardPreview
     v-model:is-open="showSharePreview"
@@ -673,7 +673,7 @@ import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
 import SystemIcon from './SystemIcon.vue'
 import GitHubReleases from './software/GitHubReleases.vue'
-import Toast from './Toast.vue'
+import InlineToast from './InlineToast.vue'
 
 const props = defineProps<{
   isOpen: boolean

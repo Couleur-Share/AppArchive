@@ -26,4 +26,4 @@ defineProps<{
   show: boolean
   message: string
 }>()
-</script> 
+</script>
