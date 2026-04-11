@@ -26,11 +26,11 @@
           </nav>
 
           <!-- 布局切换按钮 -->
-          <div class="top-actions-bar flex items-center gap-1.5 shrink-0 rounded-xl border border-gray-200/70 bg-white/70 p-1.5 shadow-[0_10px_26px_-20px_rgba(15,23,42,0.55)] backdrop-blur-sm dark:border-gray-600/[0.45] dark:bg-gray-800/[0.62]">
+          <div class="top-actions-bar flex items-center gap-1.5 shrink-0 rounded-xl border p-1.5">
             <button
               v-if="shouldHideNewArrivalRadar"
               @click="handleExpandNewArrivalRadar"
-              class="top-action-btn inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
+              class="top-action-btn inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border active:scale-[0.97]"
               title="打开新增筛选"
               aria-label="打开新增筛选"
             >
@@ -40,7 +40,7 @@
             <!-- 移动端隐藏切换按钮，默认使用列表模式 -->
             <button
               @click="toggleViewMode"
-              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
+              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border active:scale-[0.97]"
               :title="viewMode === 'grid' ? '切换为列表布局' : '切换为网格布局'"
               :aria-label="viewMode === 'grid' ? '切换为列表布局' : '切换为网格布局'"
               :aria-pressed="viewMode === 'grid'"
@@ -52,7 +52,7 @@
             <button
               v-if="canEditSoftware"
               @click="showAddDialog = true"
-              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-gray-200/80 bg-white/[0.85] text-gray-700 shadow-sm hover:text-gray-900 active:scale-[0.97] dark:border-gray-600/70 dark:bg-gray-900/[0.76] dark:text-gray-200 dark:hover:text-white"
+              class="top-action-btn hidden sm:inline-flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg border active:scale-[0.97]"
               title="添加软件"
               aria-label="添加软件"
             >
@@ -1256,6 +1256,12 @@ button {
   border-color: var(--home-border);
   box-shadow: var(--home-shadow-strong);
   backdrop-filter: blur(18px) saturate(140%);
+}
+
+.top-actions-bar {
+  background: var(--home-tab-rail-bg);
+  border-color: var(--home-tab-rail-border);
+  box-shadow: var(--home-tab-rail-shadow);
 }
 
 .app-home {
