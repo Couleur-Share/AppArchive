@@ -177,9 +177,7 @@ const handleSignOut = () => {
   position: sticky;
   border-color: var(--home-border);
   background: color-mix(in srgb, var(--home-surface) 92%, transparent);
-  box-shadow:
-    0 18px 40px -36px rgb(15 23 42 / 0.42),
-    inset 0 1px 0 rgb(255 255 255 / 0.16);
+  box-shadow: 0 18px 40px -36px rgb(15 23 42 / 0.42);
 }
 
 .app-header-shell::after {
