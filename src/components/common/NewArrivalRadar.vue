@@ -26,7 +26,7 @@
           <TagBadge
             size="sm"
             strong
-            variant="neutral"
+            :variant="newCount > 0 ? 'success' : 'neutral'"
             class="h-7 sm:h-8 rounded-lg sm:rounded-xl px-2.5 sm:px-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs"
           >
             <span class="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
@@ -148,6 +148,7 @@ const compactHintText = computed(() => {
 <style scoped>
 .new-arrival-card {
   background:
+    radial-gradient(circle at 100% 0%, rgb(30 215 96 / 0.08), transparent 28%),
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--home-surface-strong) 94%, white) 0%,
@@ -162,6 +163,7 @@ const compactHintText = computed(() => {
 
 :global(.dark) .new-arrival-card {
   background:
+    radial-gradient(circle at 100% 0%, rgb(30 215 96 / 0.12), transparent 30%),
     linear-gradient(
       180deg,
       rgb(26 31 39 / 0.96) 0%,
@@ -200,8 +202,8 @@ const compactHintText = computed(() => {
 
 @media (hover: hover) and (pointer: fine) {
   .radar-pill--inactive:hover {
-    background: var(--home-surface-hover);
-    border-color: color-mix(in srgb, var(--home-border-strong) 72%, transparent);
+    background: color-mix(in srgb, var(--home-accent-soft) 78%, var(--home-surface-hover));
+    border-color: color-mix(in srgb, var(--home-accent-border) 82%, transparent);
   }
 }
 

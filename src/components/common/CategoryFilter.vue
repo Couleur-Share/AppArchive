@@ -423,8 +423,8 @@ onBeforeUnmount(() => {
     transform: translateY(-50%) scale(1.06);
     filter: brightness(var(--ui-hover-brightness));
     box-shadow:
-      0 0 0 1px rgb(255 255 255 / 0.22),
-      var(--ui-hover-shadow);
+      0 0 0 1px color-mix(in srgb, var(--home-accent-border) 82%, transparent),
+      var(--ui-accent-shadow);
   }
 
   .nav-btn-prev:hover svg {

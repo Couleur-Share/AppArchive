@@ -52,7 +52,7 @@
                   <TagBadge
                     v-if="isNewItem(item)"
                     size="xs"
-                    variant="neutral"
+                    variant="success"
                     strong
                     class="uppercase tracking-wider"
                   >
@@ -154,7 +154,7 @@
               <TagBadge
                 v-if="isNewItem(item)"
                 size="xs"
-                variant="neutral"
+                variant="success"
                 strong
                 class="uppercase tracking-wider"
               >

@@ -90,7 +90,7 @@
 	--home-card-bg: #f7f9fb;
 	--home-card-bg-hover: #f1f4f8;
 	--home-card-border: rgb(15 23 42 / 0.08);
-	--home-card-border-hover: rgb(71 85 105 / 0.18);
+	--home-card-border-hover: rgb(30 215 96 / 0.22);
 	--home-card-shadow: 0 24px 52px -38px rgb(15 23 42 / 0.16);
 	--home-card-shadow-hover: 0 28px 56px -36px rgb(15 23 42 / 0.22);
 	--home-card-divider: rgb(15 23 42 / 0.08);
@@ -105,44 +105,48 @@
 	--home-shadow: 0 24px 58px -38px rgb(15 23 42 / 0.18);
 	--home-shadow-strong:
 		0 24px 60px -34px rgb(15 23 42 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.6);
-	--home-accent-soft: rgb(100 116 139 / 0.12);
-	--home-accent-border: rgb(71 85 105 / 0.2);
-	--home-accent-shadow: 0 18px 42px -28px rgb(71 85 105 / 0.24);
+	--home-accent-soft: rgb(30 215 96 / 0.12);
+	--home-accent-border: rgb(29 185 84 / 0.26);
+	--home-accent-shadow: 0 18px 42px -28px rgb(30 215 96 / 0.3);
 	--home-focus-ring:
 		0 0 0 2px rgb(255 255 255 / 0.3),
-		0 0 0 5px rgb(100 116 139 / 0.16);
+		0 0 0 5px rgb(30 215 96 / 0.18);
 	--home-focus-ring-soft:
-		0 0 0 4px rgb(100 116 139 / 0.14),
+		0 0 0 4px rgb(30 215 96 / 0.14),
 		0 18px 30px -24px rgb(15 23 42 / 0.22);
 	--home-text-strong: rgb(17 24 39);
 	--home-text: rgb(51 65 85);
 	--home-text-muted: rgb(100 116 139);
 	--home-text-subtle: rgb(132 145 163);
 	--home-tab-active-text: rgb(17 24 39);
-	--home-tab-indicator-bg: transparent;
-	--home-tab-indicator-shadow: none;
+	--home-tab-indicator-bg: linear-gradient(
+		180deg,
+		rgb(30 215 96 / 0.08),
+		rgb(30 215 96 / 0.02)
+	);
+	--home-tab-indicator-shadow: inset 0 0 0 1px rgb(30 215 96 / 0.12);
 	--home-tab-indicator-beam: linear-gradient(
 		90deg,
 		transparent 0%,
-		rgb(100 116 139 / 0.08) 18%,
-		rgb(51 65 85 / 0.82) 50%,
-		rgb(100 116 139 / 0.08) 82%,
+		rgb(29 185 84 / 0.16) 18%,
+		rgb(30 215 96 / 0.92) 50%,
+		rgb(29 185 84 / 0.16) 82%,
 		transparent 100%
 	);
 	--home-tab-indicator-glow:
-		0 10px 18px -10px rgb(51 65 85 / 0.18), 0 0 0 1px rgb(100 116 139 / 0.06);
-	--home-tab-badge-active-bg: rgb(31 41 55);
-	--home-tab-badge-active-text: rgb(248 250 252);
+		0 10px 18px -10px rgb(30 215 96 / 0.34), 0 0 0 1px rgb(30 215 96 / 0.08);
+	--home-tab-badge-active-bg: #1ed760;
+	--home-tab-badge-active-text: rgb(18 18 18);
 	--home-tab-badge-active-shadow:
-		0 12px 20px -14px rgb(31 41 55 / 0.28), inset 0 1px 0
-		rgb(255 255 255 / 0.1);
-	--home-tab-hover: rgb(255 255 255 / 0.9);
+		0 12px 20px -14px rgb(30 215 96 / 0.34), inset 0 1px 0
+		rgb(255 255 255 / 0.18);
+	--home-tab-hover: rgb(30 215 96 / 0.08);
 	--home-nav-btn-bg: linear-gradient(
 		180deg,
 		rgb(255 255 255 / 0.96),
 		rgb(236 240 245 / 0.96)
 	);
-	--home-nav-btn-color: rgb(31 41 55);
+	--home-nav-btn-color: #169c46;
 	--theme-toggle-sun: oklch(0.78 0.08 84);
 	--theme-toggle-sun-hover: oklch(0.73 0.09 84);
 	--theme-toggle-moon: oklch(0.44 0.02 250);
@@ -233,7 +237,7 @@
 	--home-card-bg: #171c23;
 	--home-card-bg-hover: #1c222b;
 	--home-card-border: rgb(255 255 255 / 0.08);
-	--home-card-border-hover: rgb(148 163 184 / 0.18);
+	--home-card-border-hover: rgb(30 215 96 / 0.22);
 	--home-card-shadow:
 		0 18px 34px -28px rgb(0 0 0 / 0.66), inset 0 1px 0 rgb(255 255 255 / 0.03);
 	--home-card-shadow-hover:
@@ -250,43 +254,47 @@
 	--home-shadow: 0 32px 72px -42px rgb(0 0 0 / 0.9);
 	--home-shadow-strong:
 		0 32px 72px -40px rgb(0 0 0 / 0.94), inset 0 1px 0 rgb(255 255 255 / 0.05);
-	--home-accent-soft: rgb(148 163 184 / 0.14);
-	--home-accent-border: rgb(148 163 184 / 0.22);
-	--home-accent-shadow: 0 20px 44px -28px rgb(0 0 0 / 0.46);
+	--home-accent-soft: rgb(30 215 96 / 0.16);
+	--home-accent-border: rgb(30 215 96 / 0.28);
+	--home-accent-shadow: 0 20px 44px -28px rgb(30 215 96 / 0.24);
 	--home-focus-ring:
 		0 0 0 2px rgb(255 255 255 / 0.12),
-		0 0 0 5px rgb(148 163 184 / 0.18);
+		0 0 0 5px rgb(30 215 96 / 0.2);
 	--home-focus-ring-soft:
-		0 0 0 4px rgb(148 163 184 / 0.12),
+		0 0 0 4px rgb(30 215 96 / 0.14),
 		0 18px 30px -24px rgb(0 0 0 / 0.48);
 	--home-text-strong: rgb(248 250 252);
 	--home-text: rgb(226 232 240);
 	--home-text-muted: rgb(160 169 182);
 	--home-text-subtle: rgb(118 129 145);
 	--home-tab-active-text: rgb(248 250 252);
-	--home-tab-indicator-bg: transparent;
-	--home-tab-indicator-shadow: none;
+	--home-tab-indicator-bg: linear-gradient(
+		180deg,
+		rgb(30 215 96 / 0.1),
+		rgb(30 215 96 / 0.02)
+	);
+	--home-tab-indicator-shadow: inset 0 0 0 1px rgb(30 215 96 / 0.14);
 	--home-tab-indicator-beam: linear-gradient(
 		90deg,
 		transparent 0%,
-		rgb(148 163 184 / 0.08) 14%,
-		rgb(226 232 240 / 0.88) 50%,
-		rgb(148 163 184 / 0.08) 86%,
+		rgb(30 215 96 / 0.1) 14%,
+		rgb(30 215 96 / 0.98) 50%,
+		rgb(30 215 96 / 0.1) 86%,
 		transparent 100%
 	);
-	--home-tab-indicator-glow: 0 8px 16px -14px rgb(226 232 240 / 0.16);
-	--home-tab-badge-active-bg: rgb(229 234 240);
-	--home-tab-badge-active-text: rgb(17 24 39);
+	--home-tab-indicator-glow: 0 8px 16px -14px rgb(30 215 96 / 0.28);
+	--home-tab-badge-active-bg: #1ed760;
+	--home-tab-badge-active-text: rgb(18 18 18);
 	--home-tab-badge-active-shadow:
-		0 14px 24px -14px rgb(0 0 0 / 0.48), inset 0 1px 0
-		rgb(255 255 255 / 0.18);
-	--home-tab-hover: rgb(33 39 49 / 0.92);
+		0 14px 24px -14px rgb(30 215 96 / 0.42), inset 0 1px 0
+		rgb(255 255 255 / 0.14);
+	--home-tab-hover: rgb(30 215 96 / 0.08);
 	--home-nav-btn-bg: linear-gradient(
 		180deg,
 		rgb(31 37 46 / 0.96),
 		rgb(24 28 35 / 0.98)
 	);
-	--home-nav-btn-color: rgb(230 234 239);
+	--home-nav-btn-color: #1ed760;
 	--theme-toggle-sun: oklch(0.82 0.06 84);
 	--theme-toggle-sun-hover: oklch(0.86 0.05 84);
 	--theme-toggle-moon: oklch(0.82 0.02 220);
