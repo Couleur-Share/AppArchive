@@ -1,5 +1,5 @@
 <template>
-  <footer class="app-footer-shell mt-10">
+  <footer class="app-footer-shell mt-8">
     <div class="app-footer-inner container mx-auto px-6 py-6 text-center text-xs">
       <span>© {{ currentYear }} Couleur X. All rights reserved.</span>
       <span class="mx-2">|</span>

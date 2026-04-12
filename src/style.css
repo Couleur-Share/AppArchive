@@ -57,20 +57,20 @@
 		transparent
 	);
 	--app-footer-bg:
-		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.05), transparent 42%),
+		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.03), transparent 38%),
 		linear-gradient(
 			180deg,
-			rgb(245 248 245 / 0.18) 0%,
-			rgb(240 244 241 / 0.92) 18%,
-			rgb(236 240 237 / 0.96) 100%
+			transparent 0%,
+			rgb(247 249 247 / 0.18) 32%,
+			rgb(243 246 244 / 0.52) 100%
 		);
-	--app-footer-border: rgb(24 24 24 / 0.08);
+	--app-footer-border: rgb(24 24 24 / 0.05);
 	--app-footer-text: rgb(95 105 99);
 	--app-footer-text-strong: rgb(54 61 57);
 	--app-footer-top-fade: linear-gradient(
 		180deg,
 		transparent 0%,
-		rgb(239 243 240 / 0.88) 100%
+		rgb(241 245 242 / 0.5) 100%
 	);
 
 	--home-surface: rgb(249 250 249 / 0.84);
@@ -191,12 +191,12 @@
 		transparent
 	);
 	--app-footer-bg:
-		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.06), transparent 38%),
+		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.04), transparent 34%),
 		linear-gradient(
 			180deg,
-			rgb(18 18 18 / 0.12) 0%,
-			rgb(18 18 18 / 0.94) 20%,
-			rgb(20 20 20 / 0.98) 100%
+			transparent 0%,
+			rgb(18 18 18 / 0.24) 30%,
+			rgb(19 19 19 / 0.6) 100%
 		);
 	--app-footer-border: rgb(255 255 255 / 0.08);
 	--app-footer-text: rgb(179 179 179);
@@ -204,7 +204,7 @@
 	--app-footer-top-fade: linear-gradient(
 		180deg,
 		transparent 0%,
-		rgb(18 18 18 / 0.92) 100%
+		rgb(18 18 18 / 0.42) 100%
 	);
 
 	--home-surface: rgb(24 24 24 / 0.86);

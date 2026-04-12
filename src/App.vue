@@ -1,5 +1,5 @@
 <template>
-  <div class="app-home min-h-screen transition-colors duration-300 font-sans">
+  <div class="app-home min-h-screen flex flex-col transition-colors duration-300 font-sans">
     <AppHeader
       :is-signed-in="isSignedIn"
       :user="user"
@@ -11,7 +11,7 @@
       @change-password="openPasswordDialog"
     />
 
-    <main class="w-full relative z-30">
+    <main class="w-full relative z-30 flex-1">
       <div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5 mb-6 sm:mb-9">
           <nav class="flex-1 min-w-0" aria-label="软件分类">
@@ -181,6 +181,8 @@
         </BlurFade>
       </div>
     </main>
+
+    <AppFooter />
   </div>
 
   <SoftwareForm
@@ -218,8 +220,6 @@
     :software="softwareToCompare!"
     @error="message => showToast(message, 'error')"
   />
-
-  <AppFooter />
 
   <LoginDialog
     :is-open="showLoginDialog"
