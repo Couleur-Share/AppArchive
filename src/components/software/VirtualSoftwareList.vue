@@ -52,11 +52,11 @@
                   <TagBadge
                     v-if="isNewItem(item)"
                     size="xs"
-                    variant="success"
+                    variant="neutral"
                     strong
                     class="uppercase tracking-wider"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span class="software-new-dot w-1.5 h-1.5 rounded-full animate-pulse" />
                     New
                   </TagBadge>
                 </div>
@@ -69,13 +69,13 @@
                    <MenuItems @click.stop class="software-card-menu-panel absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg focus:outline-none z-50 overflow-hidden">
                      <div class="py-1">
                        <MenuItem v-if="item.website" v-slot="{ active }">
-                        <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                        <button @click.stop="openWebsite(item.website)" :class="[active ? 'software-card-action software-card-action--active' : 'software-card-action', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <ArrowUpRight class="w-3.5 h-3.5" /> <span>访问官网</span>
                          </button>
                        </MenuItem>
                        <div v-if="item.website && canEdit" class="my-0.5 h-px bg-slate-200/60 dark:bg-slate-700/60"></div>
                        <MenuItem v-if="canEdit" v-slot="{ active }">
-                        <button @click.stop="$emit('edit', item)" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                        <button @click.stop="$emit('edit', item)" :class="[active ? 'software-card-action software-card-action--active' : 'software-card-action', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <Edit class="w-3.5 h-3.5" /> <span>编辑</span>
                          </button>
                        </MenuItem>
@@ -154,11 +154,11 @@
               <TagBadge
                 v-if="isNewItem(item)"
                 size="xs"
-                variant="success"
+                variant="neutral"
                 strong
                 class="uppercase tracking-wider"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span class="software-new-dot w-1.5 h-1.5 rounded-full animate-pulse" />
                 New
               </TagBadge>
             </div>
@@ -191,7 +191,7 @@
               <button 
                 v-if="item.website"
                 @click="openWebsite(item.website)"
-                class="p-2 hover:bg-primary/10 dark:hover:bg-primary/[0.14] text-slate-400 hover:text-primary dark:hover:text-primary rounded-lg transition-colors shrink-0"
+                class="software-card-inline-action p-2 rounded-lg transition-colors shrink-0"
                 title="访问官网"
               >
                 <ArrowUpRight class="w-4 h-4" />
@@ -200,7 +200,7 @@
               <template v-if="canEdit">
                 <button 
                   @click="$emit('edit', item)"
-                  class="p-2 hover:bg-primary/10 dark:hover:bg-primary/[0.14] text-slate-400 hover:text-primary dark:hover:text-primary rounded-lg transition-colors shrink-0"
+                  class="software-card-inline-action p-2 rounded-lg transition-colors shrink-0"
                   title="编辑"
                 >
                   <Edit class="w-4 h-4" />
@@ -360,6 +360,21 @@ const handleMouseLeave = (e: MouseEvent) => {
   background: color-mix(in srgb, var(--home-card-menu-bg) 86%, transparent);
 }
 
+.software-card-action {
+  color: var(--home-text);
+  border-radius: 0.75rem;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 180ms ease;
+}
+
+.software-card-action--active {
+  color: var(--home-text-strong);
+  background: color-mix(in srgb, var(--home-accent-soft) 86%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-accent-border) 76%, transparent);
+}
+
 .software-card-menu-panel {
   background: var(--home-card-menu-bg);
   border: 1px solid var(--home-card-menu-border);
@@ -391,6 +406,23 @@ const handleMouseLeave = (e: MouseEvent) => {
   background: var(--home-card-system-bg);
   border: 1px solid var(--home-card-system-border);
   color: var(--home-text-muted);
+}
+
+.software-new-dot {
+  background: var(--home-tab-badge-active-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--home-accent-soft) 68%, transparent);
+}
+
+.software-card-inline-action {
+  color: color-mix(in srgb, var(--home-text-muted) 88%, var(--home-text-subtle));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .software-card-inline-action:hover {
+    color: var(--home-text-strong);
+    background: color-mix(in srgb, var(--home-accent-soft) 86%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-accent-border) 76%, transparent);
+  }
 }
 
 .line-clamp-1 {

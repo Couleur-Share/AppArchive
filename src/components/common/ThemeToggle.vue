@@ -44,7 +44,7 @@ defineEmits<(e: 'update:modelValue', value: boolean) => void>()
 
 .theme-toggle-btn:focus-visible {
   border-color: var(--home-accent-border);
-  box-shadow: 0 0 0 4px rgb(30 215 96 / 0.12);
+  box-shadow: var(--home-focus-ring-soft);
 }
 
 .theme-toggle-sun {

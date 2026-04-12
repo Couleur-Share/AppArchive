@@ -370,9 +370,7 @@ onBeforeUnmount(() => {
 
 :where(.tab-item, .tab-badge, .tab-indicator, .nav-btn) {
   --tab-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --ui-focus-ring:
-    0 0 0 2px rgb(255 255 255 / 0.22),
-    0 0 0 5px rgb(0 220 130 / 0.22);
+  --ui-focus-ring: var(--home-focus-ring);
   --ui-indicator-shadow: var(--home-tab-indicator-shadow);
   --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;

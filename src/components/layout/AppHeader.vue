@@ -217,7 +217,7 @@ const handleSignOut = () => {
 
 .app-header-icon-btn:focus-visible {
   border-color: var(--home-accent-border);
-  box-shadow: 0 0 0 4px rgb(30 215 96 / 0.12);
+  box-shadow: var(--home-focus-ring-soft);
 }
 
 .app-header-mobile-panel {
@@ -240,9 +240,7 @@ const handleSignOut = () => {
   outline: none;
   background: var(--home-surface-strong);
   border-color: var(--home-accent-border);
-  box-shadow:
-    0 0 0 4px rgb(30 215 96 / 0.1),
-    0 18px 30px -24px rgb(18 18 18 / 0.32);
+  box-shadow: var(--home-focus-ring-soft);
 }
 
 .app-header-search-clear {

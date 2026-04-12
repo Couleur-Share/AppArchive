@@ -26,13 +26,13 @@
           <TagBadge
             size="sm"
             strong
-            :variant="newCount > 0 ? 'success' : 'neutral'"
+            variant="neutral"
             class="h-7 sm:h-8 rounded-lg sm:rounded-xl px-2.5 sm:px-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs"
           >
             <span class="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
               <span
-                class="relative inline-flex h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full"
-                :class="newCount > 0 ? 'bg-primary' : 'bg-gray-400 dark:bg-gray-500'"
+                class="radar-dot relative inline-flex h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full"
+                :class="{ 'radar-dot--active': newCount > 0 }"
               />
             </span>
             <span>
@@ -58,10 +58,8 @@
           v-for="item in modeOptions"
           :key="item.value"
           type="button"
-          class="shrink-0 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 sm:px-3 sm:text-sm"
-          :class="mode === item.value
-            ? 'border-primary bg-primary text-[rgb(18_18_18)] shadow-[0_10px_22px_-16px_rgba(30,215,96,0.55)]'
-            : 'border-slate-200/80 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-white/[0.08] dark:bg-[#1f1f1f] dark:text-slate-300 dark:hover:border-white/[0.12] dark:hover:bg-[#252525]'"
+          class="radar-pill shrink-0 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 sm:px-3 sm:text-sm"
+          :class="mode === item.value ? 'radar-pill--active' : 'radar-pill--inactive'"
           @click="$emit('update:mode', item.value)"
         >
           {{ item.label }}
@@ -77,8 +75,8 @@
           @click="$emit('update:onlyNew', !onlyNew)"
         >
           <span
-            class="relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors duration-200"
-            :class="onlyNew ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'"
+            class="radar-switch relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors duration-200"
+            :class="{ 'radar-switch--active': onlyNew }"
           >
             <span
               class="inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200"
@@ -146,3 +144,48 @@ const compactHintText = computed(() => {
   return '查看近 30 天新增。'
 })
 </script>
+
+<style scoped>
+.radar-dot {
+  background: color-mix(in srgb, var(--home-text-subtle) 78%, transparent);
+  transition:
+    background-color 150ms var(--ease),
+    box-shadow 150ms var(--ease);
+}
+
+.radar-dot--active {
+  background: var(--home-tab-badge-active-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--home-accent-soft) 68%, transparent);
+}
+
+.radar-pill--active {
+  border-color: color-mix(in srgb, var(--home-accent-border) 82%, transparent);
+  background: var(--home-tab-badge-active-bg);
+  color: var(--home-tab-badge-active-text);
+  box-shadow: var(--home-tab-badge-active-shadow);
+}
+
+.radar-pill--inactive {
+  border-color: color-mix(in srgb, var(--home-border) 90%, transparent);
+  background: color-mix(in srgb, var(--home-surface-strong) 96%, transparent);
+  color: var(--home-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .radar-pill--inactive:hover {
+    background: var(--home-surface-hover);
+    border-color: color-mix(in srgb, var(--home-border-strong) 72%, transparent);
+  }
+}
+
+.radar-switch {
+  background: color-mix(in srgb, var(--home-text-subtle) 34%, transparent);
+}
+
+.radar-switch--active {
+  background: var(--home-tab-badge-active-bg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 10px 18px -14px color-mix(in srgb, var(--home-tab-badge-active-bg) 56%, transparent);
+}
+</style>

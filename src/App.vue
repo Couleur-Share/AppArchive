@@ -1205,15 +1205,15 @@ const isEllipsis = (page: number) => {
   background-color: var(--app-bg-start);
   min-height: 100vh;
 
-  --gradient-light-start: #f3f5f4;
-  --gradient-light-end: #e8ece9;
-  --gradient-light-accent1: rgba(30, 215, 96, 0.08);
-  --gradient-light-accent2: rgba(18, 18, 18, 0.05);
+  --gradient-light-start: #f7f8fb;
+  --gradient-light-end: #e5eaf0;
+  --gradient-light-accent1: rgba(148, 163, 184, 0.08);
+  --gradient-light-accent2: rgba(15, 23, 42, 0.05);
 
-  --gradient-dark-start: #121212;
-  --gradient-dark-end: #121212;
-  --gradient-dark-accent1: rgba(30, 215, 96, 0.12);
-  --gradient-dark-accent2: rgba(255, 255, 255, 0.03);
+  --gradient-dark-start: #0f1115;
+  --gradient-dark-end: #161a21;
+  --gradient-dark-accent1: rgba(148, 163, 184, 0.08);
+  --gradient-dark-accent2: rgba(255, 255, 255, 0.035);
 }
 
 :root.dark {
@@ -1244,9 +1244,7 @@ button {
 
 .top-actions-bar,
 .pagination-shell {
-  --ui-focus-ring:
-    0 0 0 2px rgb(255 255 255 / 0.22),
-    0 0 0 5px rgb(30 215 96 / 0.22);
+  --ui-focus-ring: var(--home-focus-ring);
   --ui-accent-shadow: var(--home-accent-shadow);
   --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;
@@ -1330,7 +1328,7 @@ button {
   }
 
   .pagination-page-btn--active:hover {
-    box-shadow: 0 14px 26px -18px rgb(30 215 96 / 0.46);
+    box-shadow: var(--home-tab-badge-active-shadow);
   }
 }
 
@@ -1365,10 +1363,10 @@ button {
 }
 
 .pagination-page-btn--active {
-  background: #1ed760;
-  color: rgb(18 18 18);
+  background: var(--home-tab-badge-active-bg);
+  color: var(--home-tab-badge-active-text);
   border-color: transparent;
-  box-shadow: 0 12px 24px -16px rgb(30 215 96 / 0.42);
+  box-shadow: var(--home-tab-badge-active-shadow);
 }
 
 .pagination-page-btn--idle {
@@ -1580,14 +1578,14 @@ button {
 
 /* 为每个点设置不同的渐变色 */
 .w-3.h-3:nth-child(1) {
-  --dot-color-start: #1ed760;
-  --dot-color-end: #53e38a;
+  --dot-color-start: #334155;
+  --dot-color-end: #64748b;
   --delay: 0s;
 }
 
 .w-3.h-3:nth-child(2) {
-  --dot-color-start: #1db954;
-  --dot-color-end: #1ed760;
+  --dot-color-start: #475569;
+  --dot-color-end: #94a3b8;
   --delay: 0.1s;
 }
 
@@ -1598,8 +1596,8 @@ button {
 }
 
 .w-3.h-3:nth-child(4) {
-  --dot-color-start: #3de17c;
-  --dot-color-end: #1ed760;
+  --dot-color-start: #94a3b8;
+  --dot-color-end: #cbd5e1;
   --delay: 0.3s;
 }
 

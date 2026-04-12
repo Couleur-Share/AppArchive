@@ -27,116 +27,126 @@
 	--theme-primary-700: #169c46;
 
 	/* Homepage palette */
-	--app-bg-start: #f5f8f5;
-	--app-bg-mid: #edf1ee;
-	--app-bg-end: #e6ebe7;
-	--app-bg-bottom-end: #e1e7e2;
-	--app-bg-accent1: rgb(30 215 96 / 0.08);
-	--app-bg-accent2: rgb(18 18 18 / 0.04);
-	--app-bg-accent3: rgb(29 185 84 / 0.04);
-	--app-bg-top-glow: rgb(255 255 255 / 0.34);
-	--app-bg-top-veil: rgb(255 255 255 / 0.08);
+	--app-bg-start: #f7f8fb;
+	--app-bg-mid: #eef1f5;
+	--app-bg-end: #e5eaf0;
+	--app-bg-bottom-end: #dde3ea;
+	--app-bg-accent1: rgb(148 163 184 / 0.08);
+	--app-bg-accent2: rgb(15 23 42 / 0.05);
+	--app-bg-accent3: rgb(148 163 184 / 0.12);
+	--app-bg-top-glow: rgb(255 255 255 / 0.46);
+	--app-bg-top-veil: rgb(255 255 255 / 0.16);
 	--app-bg-bottom-glow: rgb(255 255 255 / 0.18);
-	--app-bg-bottom-shade: rgb(18 18 18 / 0.04);
+	--app-bg-bottom-shade: rgb(15 23 42 / 0.06);
 	--app-header-shell-bg: linear-gradient(
 		180deg,
-		rgb(249 250 249 / 0.92),
-		rgb(242 245 243 / 0.86)
+		rgb(250 251 252 / 0.92),
+		rgb(243 246 249 / 0.86)
 	);
-	--app-header-shadow: 0 18px 40px -36px rgb(18 18 18 / 0.32);
+	--app-header-shadow: 0 18px 40px -36px rgb(15 23 42 / 0.24);
 	--app-header-divider: linear-gradient(
 		90deg,
 		transparent,
-		rgb(30 215 96 / 0.12) 18%,
-		rgb(30 215 96 / 0.2) 50%,
+		rgb(100 116 139 / 0.08) 18%,
+		rgb(100 116 139 / 0.16) 50%,
 		transparent
 	);
 	--app-header-fade: linear-gradient(
 		180deg,
-		rgb(255 255 255 / 0.16),
+		rgb(255 255 255 / 0.14),
 		transparent
 	);
 	--app-footer-bg:
-		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.03), transparent 38%),
+		radial-gradient(circle at 50% 0%, rgb(148 163 184 / 0.08), transparent 38%),
 		linear-gradient(
 			180deg,
 			transparent 0%,
-			rgb(247 249 247 / 0.18) 32%,
-			rgb(243 246 244 / 0.52) 100%
+			rgb(246 248 250 / 0.22) 32%,
+			rgb(239 242 246 / 0.58) 100%
 		);
-	--app-footer-border: rgb(24 24 24 / 0.05);
-	--app-footer-text: rgb(95 105 99);
-	--app-footer-text-strong: rgb(54 61 57);
+	--app-footer-border: rgb(15 23 42 / 0.06);
+	--app-footer-text: rgb(100 110 125);
+	--app-footer-text-strong: rgb(49 58 71);
 	--app-footer-top-fade: linear-gradient(
 		180deg,
 		transparent 0%,
-		rgb(241 245 242 / 0.5) 100%
+		rgb(239 242 246 / 0.54) 100%
 	);
 
-	--home-surface: rgb(249 250 249 / 0.84);
-	--home-surface-strong: rgb(253 253 252 / 0.92);
+	--home-surface: rgb(249 250 251 / 0.84);
+	--home-surface-strong: rgb(255 255 255 / 0.92);
 	--home-surface-hover: rgb(255 255 255 / 0.96);
-	--home-surface-soft: rgb(242 245 243 / 0.86);
-	--home-tab-rail-bg: rgb(241 244 242 / 0.96);
-	--home-tab-rail-border: rgb(24 24 24 / 0.08);
+	--home-surface-soft: rgb(243 246 249 / 0.86);
+	--home-tab-rail-bg: rgb(241 244 247 / 0.96);
+	--home-tab-rail-border: rgb(15 23 42 / 0.08);
 	--home-tab-rail-shadow:
-		0 18px 34px -28px rgb(18 18 18 / 0.18), inset 0 1px 0
-		rgb(255 255 255 / 0.46);
+		0 18px 34px -28px rgb(15 23 42 / 0.12), inset 0 1px 0
+		rgb(255 255 255 / 0.54);
 	--home-surface-elevated: linear-gradient(
 		180deg,
-		rgb(254 254 253 / 0.96),
-		rgb(239 243 240 / 0.92)
+		rgb(255 255 255 / 0.96),
+		rgb(242 246 250 / 0.92)
 	);
-	--home-card-bg: #f5f7f5;
-	--home-card-bg-hover: #eff3f0;
-	--home-card-border: rgb(24 24 24 / 0.08);
-	--home-card-border-hover: rgb(30 215 96 / 0.24);
-	--home-card-shadow: 0 24px 52px -38px rgb(18 18 18 / 0.18);
-	--home-card-shadow-hover: 0 28px 56px -36px rgb(18 18 18 / 0.24);
-	--home-card-divider: rgb(24 24 24 / 0.08);
+	--home-card-bg: #f7f9fb;
+	--home-card-bg-hover: #f1f4f8;
+	--home-card-border: rgb(15 23 42 / 0.08);
+	--home-card-border-hover: rgb(71 85 105 / 0.18);
+	--home-card-shadow: 0 24px 52px -38px rgb(15 23 42 / 0.16);
+	--home-card-shadow-hover: 0 28px 56px -36px rgb(15 23 42 / 0.22);
+	--home-card-divider: rgb(15 23 42 / 0.08);
 	--home-card-icon-shell: rgb(255 255 255 / 0.92);
-	--home-card-icon-ring: rgb(24 24 24 / 0.08);
-	--home-card-menu-bg: rgb(250 251 250 / 0.97);
-	--home-card-menu-border: rgb(24 24 24 / 0.08);
+	--home-card-icon-ring: rgb(15 23 42 / 0.08);
+	--home-card-menu-bg: rgb(251 252 253 / 0.97);
+	--home-card-menu-border: rgb(15 23 42 / 0.08);
 	--home-card-system-bg: rgb(255 255 255 / 0.72);
-	--home-card-system-border: rgb(24 24 24 / 0.08);
-	--home-border: rgb(24 24 24 / 0.08);
-	--home-border-strong: rgb(24 24 24 / 0.14);
-	--home-shadow: 0 24px 58px -38px rgb(18 18 18 / 0.22);
+	--home-card-system-border: rgb(15 23 42 / 0.08);
+	--home-border: rgb(15 23 42 / 0.08);
+	--home-border-strong: rgb(15 23 42 / 0.14);
+	--home-shadow: 0 24px 58px -38px rgb(15 23 42 / 0.18);
 	--home-shadow-strong:
-		0 24px 60px -34px rgb(18 18 18 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.6);
-	--home-accent-soft: rgb(30 215 96 / 0.12);
-	--home-accent-border: rgb(29 185 84 / 0.26);
-	--home-accent-shadow: 0 18px 42px -28px rgb(30 215 96 / 0.36);
-	--home-text-strong: rgb(18 18 18);
-	--home-text: rgb(54 61 57);
-	--home-text-muted: rgb(95 105 99);
-	--home-text-subtle: rgb(126 134 129);
-	--home-tab-active-text: rgb(18 18 18);
+		0 24px 60px -34px rgb(15 23 42 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.6);
+	--home-accent-soft: rgb(100 116 139 / 0.12);
+	--home-accent-border: rgb(71 85 105 / 0.2);
+	--home-accent-shadow: 0 18px 42px -28px rgb(71 85 105 / 0.24);
+	--home-focus-ring:
+		0 0 0 2px rgb(255 255 255 / 0.3),
+		0 0 0 5px rgb(100 116 139 / 0.16);
+	--home-focus-ring-soft:
+		0 0 0 4px rgb(100 116 139 / 0.14),
+		0 18px 30px -24px rgb(15 23 42 / 0.22);
+	--home-text-strong: rgb(17 24 39);
+	--home-text: rgb(51 65 85);
+	--home-text-muted: rgb(100 116 139);
+	--home-text-subtle: rgb(132 145 163);
+	--home-tab-active-text: rgb(17 24 39);
 	--home-tab-indicator-bg: transparent;
 	--home-tab-indicator-shadow: none;
 	--home-tab-indicator-beam: linear-gradient(
 		90deg,
 		transparent 0%,
-		rgb(29 185 84 / 0.16) 18%,
-		rgb(30 215 96 / 0.92) 50%,
-		rgb(29 185 84 / 0.16) 82%,
+		rgb(100 116 139 / 0.08) 18%,
+		rgb(51 65 85 / 0.82) 50%,
+		rgb(100 116 139 / 0.08) 82%,
 		transparent 100%
 	);
 	--home-tab-indicator-glow:
-		0 10px 18px -10px rgb(30 215 96 / 0.4), 0 0 0 1px rgb(30 215 96 / 0.08);
-	--home-tab-badge-active-bg: #1ed760;
-	--home-tab-badge-active-text: rgb(18 18 18);
+		0 10px 18px -10px rgb(51 65 85 / 0.18), 0 0 0 1px rgb(100 116 139 / 0.06);
+	--home-tab-badge-active-bg: rgb(31 41 55);
+	--home-tab-badge-active-text: rgb(248 250 252);
 	--home-tab-badge-active-shadow:
-		0 12px 20px -14px rgb(30 215 96 / 0.42), inset 0 1px 0
-		rgb(255 255 255 / 0.34);
+		0 12px 20px -14px rgb(31 41 55 / 0.28), inset 0 1px 0
+		rgb(255 255 255 / 0.1);
 	--home-tab-hover: rgb(255 255 255 / 0.9);
-	--home-nav-btn-bg: linear-gradient(180deg, #1ed760, #1db954);
-	--home-nav-btn-color: rgb(18 18 18);
-	--theme-toggle-sun: oklch(0.72 0.12 140);
-	--theme-toggle-sun-hover: oklch(0.66 0.14 140);
-	--theme-toggle-moon: oklch(0.38 0.02 220);
-	--theme-toggle-moon-hover: oklch(0.32 0.02 220);
+	--home-nav-btn-bg: linear-gradient(
+		180deg,
+		rgb(255 255 255 / 0.96),
+		rgb(236 240 245 / 0.96)
+	);
+	--home-nav-btn-color: rgb(31 41 55);
+	--theme-toggle-sun: oklch(0.78 0.08 84);
+	--theme-toggle-sun-hover: oklch(0.73 0.09 84);
+	--theme-toggle-moon: oklch(0.44 0.02 250);
+	--theme-toggle-moon-hover: oklch(0.38 0.02 250);
 
 	--gray-100: hsl(0 0% 95%);
 	--gray-700: hsl(0 0% 40%);
@@ -161,28 +171,28 @@
 
 .dark:root {
 	--primary-l: 48%;
-	--app-bg-start: #101312;
-	--app-bg-mid: #121412;
-	--app-bg-end: #151715;
-	--app-bg-bottom-end: #181917;
-	--app-bg-accent1: rgb(30 215 96 / 0.1);
-	--app-bg-accent2: rgb(255 255 255 / 0.025);
-	--app-bg-accent3: rgb(255 255 255 / 0.03);
+	--app-bg-start: #0f1115;
+	--app-bg-mid: #12151b;
+	--app-bg-end: #161a21;
+	--app-bg-bottom-end: #1a1f27;
+	--app-bg-accent1: rgb(148 163 184 / 0.08);
+	--app-bg-accent2: rgb(255 255 255 / 0.035);
+	--app-bg-accent3: rgb(71 85 105 / 0.14);
 	--app-bg-top-glow: rgb(255 255 255 / 0.04);
-	--app-bg-top-veil: rgb(30 215 96 / 0.03);
-	--app-bg-bottom-glow: rgb(255 255 255 / 0.03);
-	--app-bg-bottom-shade: rgb(0 0 0 / 0.3);
+	--app-bg-top-veil: rgb(148 163 184 / 0.03);
+	--app-bg-bottom-glow: rgb(255 255 255 / 0.025);
+	--app-bg-bottom-shade: rgb(0 0 0 / 0.42);
 	--app-header-shell-bg: linear-gradient(
 		180deg,
-		rgb(19 20 19 / 0.92),
-		rgb(18 18 18 / 0.84)
+		rgb(18 22 28 / 0.92),
+		rgb(16 19 24 / 0.84)
 	);
-	--app-header-shadow: 0 20px 42px -34px rgb(0 0 0 / 0.68);
+	--app-header-shadow: 0 20px 42px -34px rgb(0 0 0 / 0.72);
 	--app-header-divider: linear-gradient(
 		90deg,
 		transparent,
-		rgb(30 215 96 / 0.1) 18%,
-		rgb(30 215 96 / 0.18) 50%,
+		rgb(148 163 184 / 0.08) 18%,
+		rgb(148 163 184 / 0.14) 50%,
 		transparent
 	);
 	--app-header-fade: linear-gradient(
@@ -191,84 +201,94 @@
 		transparent
 	);
 	--app-footer-bg:
-		radial-gradient(circle at 50% 0%, rgb(30 215 96 / 0.04), transparent 34%),
+		radial-gradient(circle at 50% 0%, rgb(148 163 184 / 0.06), transparent 34%),
 		linear-gradient(
 			180deg,
 			transparent 0%,
-			rgb(18 18 18 / 0.24) 30%,
-			rgb(19 19 19 / 0.6) 100%
+			rgb(15 18 24 / 0.24) 30%,
+			rgb(13 16 21 / 0.62) 100%
 		);
 	--app-footer-border: rgb(255 255 255 / 0.08);
-	--app-footer-text: rgb(179 179 179);
-	--app-footer-text-strong: rgb(236 236 236);
+	--app-footer-text: rgb(160 169 182);
+	--app-footer-text-strong: rgb(233 236 240);
 	--app-footer-top-fade: linear-gradient(
 		180deg,
 		transparent 0%,
-		rgb(18 18 18 / 0.42) 100%
+		rgb(15 18 24 / 0.46) 100%
 	);
 
-	--home-surface: rgb(24 24 24 / 0.86);
-	--home-surface-strong: rgb(31 31 31 / 0.94);
-	--home-surface-hover: rgb(37 37 37 / 0.96);
-	--home-surface-soft: rgb(31 31 31 / 0.82);
-	--home-tab-rail-bg: rgb(18 18 18 / 0.98);
+	--home-surface: rgb(21 25 31 / 0.86);
+	--home-surface-strong: rgb(27 32 40 / 0.94);
+	--home-surface-hover: rgb(33 39 49 / 0.96);
+	--home-surface-soft: rgb(24 29 37 / 0.82);
+	--home-tab-rail-bg: rgb(16 20 26 / 0.98);
 	--home-tab-rail-border: rgb(255 255 255 / 0.08);
 	--home-tab-rail-shadow:
-		0 20px 38px -28px rgb(0 0 0 / 0.86), inset 0 1px 0 rgb(255 255 255 / 0.03);
+		0 20px 38px -28px rgb(0 0 0 / 0.88), inset 0 1px 0 rgb(255 255 255 / 0.04);
 	--home-surface-elevated: linear-gradient(
 		180deg,
-		rgb(31 31 31 / 0.96),
-		rgb(24 24 24 / 0.98)
+		rgb(29 34 42 / 0.96),
+		rgb(21 25 31 / 0.98)
 	);
-	--home-card-bg: #181818;
-	--home-card-bg-hover: #1f1f1f;
+	--home-card-bg: #171c23;
+	--home-card-bg-hover: #1c222b;
 	--home-card-border: rgb(255 255 255 / 0.08);
-	--home-card-border-hover: rgb(30 215 96 / 0.24);
+	--home-card-border-hover: rgb(148 163 184 / 0.18);
 	--home-card-shadow:
-		0 18px 34px -28px rgb(0 0 0 / 0.62), inset 0 1px 0 rgb(255 255 255 / 0.025);
+		0 18px 34px -28px rgb(0 0 0 / 0.66), inset 0 1px 0 rgb(255 255 255 / 0.03);
 	--home-card-shadow-hover:
-		0 22px 40px -28px rgb(0 0 0 / 0.72), inset 0 1px 0 rgb(255 255 255 / 0.03);
+		0 22px 40px -28px rgb(0 0 0 / 0.76), inset 0 1px 0 rgb(255 255 255 / 0.04);
 	--home-card-divider: rgb(255 255 255 / 0.08);
-	--home-card-icon-shell: rgb(31 31 31 / 0.98);
-	--home-card-icon-ring: rgb(255 255 255 / 0.09);
-	--home-card-menu-bg: rgb(24 24 24 / 0.98);
+	--home-card-icon-shell: rgb(28 34 42 / 0.98);
+	--home-card-icon-ring: rgb(255 255 255 / 0.08);
+	--home-card-menu-bg: rgb(17 21 27 / 0.98);
 	--home-card-menu-border: rgb(255 255 255 / 0.08);
-	--home-card-system-bg: rgb(255 255 255 / 0.03);
+	--home-card-system-bg: rgb(255 255 255 / 0.04);
 	--home-card-system-border: rgb(255 255 255 / 0.1);
 	--home-border: rgb(255 255 255 / 0.08);
 	--home-border-strong: rgb(255 255 255 / 0.14);
-	--home-shadow: 0 32px 72px -42px rgb(0 0 0 / 0.92);
+	--home-shadow: 0 32px 72px -42px rgb(0 0 0 / 0.9);
 	--home-shadow-strong:
-		0 32px 72px -40px rgb(0 0 0 / 0.96), inset 0 1px 0 rgb(255 255 255 / 0.04);
-	--home-accent-soft: rgb(30 215 96 / 0.16);
-	--home-accent-border: rgb(30 215 96 / 0.28);
-	--home-accent-shadow: 0 20px 44px -28px rgb(30 215 96 / 0.3);
-	--home-text-strong: rgb(253 253 253);
-	--home-text: rgb(236 236 236);
-	--home-text-muted: rgb(179 179 179);
-	--home-text-subtle: rgb(124 124 124);
-	--home-tab-active-text: rgb(253 253 253);
+		0 32px 72px -40px rgb(0 0 0 / 0.94), inset 0 1px 0 rgb(255 255 255 / 0.05);
+	--home-accent-soft: rgb(148 163 184 / 0.14);
+	--home-accent-border: rgb(148 163 184 / 0.22);
+	--home-accent-shadow: 0 20px 44px -28px rgb(0 0 0 / 0.46);
+	--home-focus-ring:
+		0 0 0 2px rgb(255 255 255 / 0.12),
+		0 0 0 5px rgb(148 163 184 / 0.18);
+	--home-focus-ring-soft:
+		0 0 0 4px rgb(148 163 184 / 0.12),
+		0 18px 30px -24px rgb(0 0 0 / 0.48);
+	--home-text-strong: rgb(248 250 252);
+	--home-text: rgb(226 232 240);
+	--home-text-muted: rgb(160 169 182);
+	--home-text-subtle: rgb(118 129 145);
+	--home-tab-active-text: rgb(248 250 252);
 	--home-tab-indicator-bg: transparent;
 	--home-tab-indicator-shadow: none;
 	--home-tab-indicator-beam: linear-gradient(
 		90deg,
 		transparent 0%,
-		rgb(30 215 96 / 0.1) 14%,
-		rgb(30 215 96 / 0.98) 50%,
-		rgb(30 215 96 / 0.1) 86%,
+		rgb(148 163 184 / 0.08) 14%,
+		rgb(226 232 240 / 0.88) 50%,
+		rgb(148 163 184 / 0.08) 86%,
 		transparent 100%
 	);
-	--home-tab-indicator-glow: 0 8px 16px -14px rgb(30 215 96 / 0.28);
-	--home-tab-badge-active-bg: #1ed760;
-	--home-tab-badge-active-text: rgb(18 18 18);
+	--home-tab-indicator-glow: 0 8px 16px -14px rgb(226 232 240 / 0.16);
+	--home-tab-badge-active-bg: rgb(229 234 240);
+	--home-tab-badge-active-text: rgb(17 24 39);
 	--home-tab-badge-active-shadow:
-		0 14px 24px -14px rgb(30 215 96 / 0.42), inset 0 1px 0
-		rgb(255 255 255 / 0.14);
-	--home-tab-hover: rgb(37 37 37 / 0.92);
-	--home-nav-btn-bg: linear-gradient(180deg, #1ed760, #1db954);
-	--home-nav-btn-color: rgb(18 18 18);
-	--theme-toggle-sun: oklch(0.8 0.09 140);
-	--theme-toggle-sun-hover: oklch(0.84 0.08 140);
+		0 14px 24px -14px rgb(0 0 0 / 0.48), inset 0 1px 0
+		rgb(255 255 255 / 0.18);
+	--home-tab-hover: rgb(33 39 49 / 0.92);
+	--home-nav-btn-bg: linear-gradient(
+		180deg,
+		rgb(31 37 46 / 0.96),
+		rgb(24 28 35 / 0.98)
+	);
+	--home-nav-btn-color: rgb(230 234 239);
+	--theme-toggle-sun: oklch(0.82 0.06 84);
+	--theme-toggle-sun-hover: oklch(0.86 0.05 84);
 	--theme-toggle-moon: oklch(0.82 0.02 220);
 	--theme-toggle-moon-hover: oklch(0.88 0.02 220);
 }
