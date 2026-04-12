@@ -43,7 +43,7 @@
               @click.stop
             >
               <!-- 顶部标题栏 -->
-              <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#171f2e] z-10">
+<div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181818] z-10">
                 <div class="flex items-center gap-4">
                   <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
                     <LayoutDashboard class="w-6 h-6" />
@@ -104,7 +104,7 @@
               <!-- 主体内容区：左右分栏 -->
               <div class="flex-1 flex overflow-hidden">
                 <!-- 左侧：软件选择 (30%) -->
-                <div class="w-80 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#171f2e] z-10">
+<div class="w-80 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181818] z-10">
                     <!-- 搜索框 -->
                     <div class="p-4 border-b border-gray-100 dark:border-gray-800">
                         <div class="relative">
@@ -121,7 +121,7 @@
                     
                     <!-- 软件列表 -->
                     <div class="flex-1 overflow-hidden relative">
-                         <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-[#171f2e]/50 z-10 backdrop-blur-[1px]">
+<div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-[#181818]/60 z-10 backdrop-blur-[1px]">
                             <Loader2 class="w-6 h-6 animate-spin text-primary" />
                          </div>
                          <ComparableSoftwareList
@@ -134,7 +134,7 @@
                     </div>
                     
                     <!-- 底部统计 -->
-                    <div class="p-3 text-center text-xs text-gray-400 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#171f2e]">
+<div class="p-3 text-center text-xs text-gray-400 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#181818]">
                         共 {{ comparableSoftware.length }} 个可选软件
                     </div>
                 </div>
@@ -142,7 +142,7 @@
                 <!-- 右侧：对比结果 (70%) -->
                 <div class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-transparent relative">
                     <!-- 已选软件 Chip 栏 -->
-                    <div class="flex-shrink-0 p-4 bg-white dark:bg-[#171f2e] border-b border-gray-200/50 dark:border-gray-700/30 overflow-x-auto no-scrollbar">
+<div class="flex-shrink-0 p-4 bg-white dark:bg-[#181818] border-b border-gray-200/50 dark:border-gray-700/30 overflow-x-auto no-scrollbar">
                         <div class="flex items-center gap-2">
                             <div 
                                v-for="comp in selectedComparisons" 

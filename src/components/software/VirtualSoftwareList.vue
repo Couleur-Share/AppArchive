@@ -56,7 +56,7 @@
                     strong
                     class="uppercase tracking-wider"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     New
                   </TagBadge>
                 </div>
@@ -69,13 +69,13 @@
                    <MenuItems @click.stop class="software-card-menu-panel absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg focus:outline-none z-50 overflow-hidden">
                      <div class="py-1">
                        <MenuItem v-if="item.website" v-slot="{ active }">
-                         <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-slate-50 dark:bg-slate-800/70 text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                        <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <ArrowUpRight class="w-3.5 h-3.5" /> <span>访问官网</span>
                          </button>
                        </MenuItem>
                        <div v-if="item.website && canEdit" class="my-0.5 h-px bg-slate-200/60 dark:bg-slate-700/60"></div>
                        <MenuItem v-if="canEdit" v-slot="{ active }">
-                         <button @click.stop="$emit('edit', item)" :class="[active ? 'bg-slate-50 dark:bg-slate-800/70 text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                        <button @click.stop="$emit('edit', item)" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
                            <Edit class="w-3.5 h-3.5" /> <span>编辑</span>
                          </button>
                        </MenuItem>
@@ -158,7 +158,7 @@
                 strong
                 class="uppercase tracking-wider"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 New
               </TagBadge>
             </div>
@@ -191,7 +191,7 @@
               <button 
                 v-if="item.website"
                 @click="openWebsite(item.website)"
-                class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/12 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-lg transition-colors shrink-0"
+                class="p-2 hover:bg-primary/10 dark:hover:bg-primary/[0.14] text-slate-400 hover:text-primary dark:hover:text-primary rounded-lg transition-colors shrink-0"
                 title="访问官网"
               >
                 <ArrowUpRight class="w-4 h-4" />
@@ -200,7 +200,7 @@
               <template v-if="canEdit">
                 <button 
                   @click="$emit('edit', item)"
-                  class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/12 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-lg transition-colors shrink-0"
+                  class="p-2 hover:bg-primary/10 dark:hover:bg-primary/[0.14] text-slate-400 hover:text-primary dark:hover:text-primary rounded-lg transition-colors shrink-0"
                   title="编辑"
                 >
                   <Edit class="w-4 h-4" />

@@ -177,7 +177,7 @@ const handleSignOut = () => {
   position: sticky;
   border-color: var(--home-border);
   background: color-mix(in srgb, var(--home-surface) 92%, transparent);
-  box-shadow: 0 18px 40px -36px rgb(15 23 42 / 0.42);
+  box-shadow: 0 18px 40px -36px rgb(18 18 18 / 0.42);
 }
 
 .app-header-shell::after {
@@ -186,7 +186,7 @@ const handleSignOut = () => {
   inset: auto 0 0;
   height: 1px;
   background:
-    linear-gradient(90deg, transparent, rgb(0 220 130 / 0.22) 18%, rgb(0 220 130 / 0.42) 50%, transparent);
+    linear-gradient(90deg, transparent, rgb(30 215 96 / 0.22) 18%, rgb(30 215 96 / 0.42) 50%, transparent);
 }
 
 .app-header-icon-btn {
@@ -204,12 +204,12 @@ const handleSignOut = () => {
   color: var(--home-text-strong);
   background: var(--home-surface-hover);
   border-color: var(--home-border);
-  box-shadow: 0 14px 28px -24px rgb(15 23 42 / 0.38);
+  box-shadow: 0 14px 28px -24px rgb(18 18 18 / 0.38);
 }
 
 .app-header-icon-btn:focus-visible {
   border-color: var(--home-accent-border);
-  box-shadow: 0 0 0 4px rgb(0 220 130 / 0.12);
+  box-shadow: 0 0 0 4px rgb(30 215 96 / 0.12);
 }
 
 .app-header-mobile-panel {
@@ -232,8 +232,8 @@ const handleSignOut = () => {
   background: var(--home-surface-strong);
   border-color: var(--home-accent-border);
   box-shadow:
-    0 0 0 4px rgb(0 220 130 / 0.1),
-    0 18px 30px -24px rgb(15 23 42 / 0.32);
+    0 0 0 4px rgb(30 215 96 / 0.1),
+    0 18px 30px -24px rgb(18 18 18 / 0.32);
 }
 
 .app-header-search-clear {

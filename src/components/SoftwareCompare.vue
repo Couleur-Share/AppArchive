@@ -34,7 +34,7 @@
               <!-- 标题栏 -->
               <div class="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50">
                 <DialogTitle as="h3" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <span class="text-emerald-500">VS</span>
+                  <span class="text-primary">VS</span>
                   {{ software.category }} 软件深度对比
                 </DialogTitle>
                 <button
@@ -56,18 +56,18 @@
                   <div 
                     v-for="(sw, index) in similarSoftwares" 
                     :key="sw.id"
-                    class="compare-card relative bg-white dark:bg-gray-800 rounded-xl p-5 
-                           border border-gray-100 dark:border-gray-700 shadow-sm
+                    class="compare-card relative rounded-xl border border-slate-200/70 bg-[#f7f8f7] p-5
+                           shadow-[0_16px_30px_-26px_rgba(18,18,18,0.16)]
+                           dark:border-white/[0.08] dark:bg-[#181818]
                            hover:shadow-md transition-shadow duration-300 opacity-0 translate-y-4"
                   >
                     <!-- 头部信息 -->
                     <div class="flex items-center gap-4 mb-6">
-                      <div class="relative group">
-                        <div class="absolute inset-0 bg-emerald-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div class="relative">
                         <img 
                           :src="getIconUrl(sw.icon)" 
                           :alt="sw.name" 
-                          class="relative w-14 h-14 rounded-xl shadow-sm bg-white dark:bg-gray-700 object-contain p-1" 
+                          class="relative w-14 h-14 rounded-xl border border-slate-200/70 bg-white object-contain p-1 dark:border-white/[0.08] dark:bg-[#1f1f1f]" 
                           loading="lazy"
                           referrerpolicy="origin"
                         >
@@ -83,13 +83,13 @@
                     <!-- 优点列表 -->
                     <div class="mb-5">
                       <h5 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
-                        <ThumbsUp class="w-4 h-4 text-emerald-500" />
+                        <ThumbsUp class="w-4 h-4 text-primary" />
                         核心优势
                       </h5>
                       <ul class="space-y-2">
                         <li v-for="(pro, idx) in sw.pros" :key="idx"
                           class="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-300 group">
-                          <Check class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+                          <Check class="w-4 h-4 text-primary mt-0.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
                           <span class="leading-relaxed">{{ pro }}</span>
                         </li>
                       </ul>
@@ -177,8 +177,8 @@ const onAfterEnter = () => {
   gsap.to(cards, {
     opacity: 1,
     y: 0,
-    duration: 0.6,
-    stagger: 0.15, // 每个卡片间隔 0.15s
+    duration: 0.42,
+    stagger: 0.08,
     ease: 'power3.out', // 平滑减速，避免回弹造成晃动
     clearProps: 'all' // 动画结束后清除 inline style，避免干扰 hover 效果
   })

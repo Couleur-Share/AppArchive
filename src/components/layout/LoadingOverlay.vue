@@ -2,68 +2,45 @@
   <Transition name="fade">
     <div
       v-if="show"
-      class="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden"
+      class="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden px-6"
     >
-      <!-- 背景遮罩 (适配深色/浅色模式) -->
-      <div class="absolute inset-0 app-modal-backdrop transition-colors duration-300"></div>
+      <div class="absolute inset-0 loading-overlay-backdrop"></div>
 
-      <!-- 动态背景光晕 -->
-      <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-30">
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: 2s"></div>
-      </div>
-
-      <!-- 主要内容 -->
-      <div class="relative flex flex-col items-center justify-center w-full max-w-md px-6 py-8 z-10 rounded-3xl app-modal-panel app-modal-panel--interactive">
-        
-        <!-- 核心动画区域 -->
-        <div class="relative w-32 h-32 mb-10 flex items-center justify-center">
-           <!-- 外环 1 -->
-           <div class="absolute inset-0 rounded-full border border-primary/30 border-t-primary border-r-transparent animate-spin-slow"></div>
-           <!-- 外环 2 -->
-           <div class="absolute inset-2 rounded-full border border-primary/30 border-b-primary border-l-transparent animate-reverse-spin"></div>
-           
-           <!-- 核心球体 -->
-           <div class="w-16 h-16 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl flex items-center justify-center relative overflow-hidden group">
-              <svg class="w-8 h-8 text-primary animate-pulse group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      <div class="relative z-10 w-full max-w-md">
+        <div class="loading-panel rounded-[24px] border px-6 py-7 sm:px-7">
+          <div class="flex items-start gap-4">
+            <div class="loading-indicator flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary/20">
+              <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 4.5V10h5L11 19.5V14H6l7-9.5Z" />
               </svg>
-              <!-- 扫描光效 -->
-              <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent -translate-y-full animate-scan-fast"></div>
-           </div>
-        </div>
+            </div>
 
-        <!-- 状态文字 -->
-        <div class="text-center w-full space-y-4">
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {{ title }}
-          </h3>
-          
-          <!-- 动态处理文本 -->
-          <div class="h-6 flex items-center justify-center overflow-hidden">
-             <div class="relative">
-               <transition name="slide-up" mode="out-in">
-                  <p :key="currentMessage" class="text-primary font-mono text-sm flex items-center gap-2">
-                    <span class="animate-pulse">></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                System Load
+              </p>
+              <h3 class="mt-1.5 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                {{ title }}
+              </h3>
+              <div class="mt-3 h-6 overflow-hidden">
+                <transition name="slide-up" mode="out-in">
+                  <p :key="currentMessage" class="text-sm text-slate-600 dark:text-slate-300">
                     {{ currentMessage }}
                   </p>
-               </transition>
-             </div>
+                </transition>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="loading-progress-track h-1.5 overflow-hidden rounded-full">
+              <div ref="progressBar" class="loading-progress h-full w-0 rounded-full"></div>
+            </div>
+            <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+              首次加载可能需要较长时间
+            </p>
           </div>
         </div>
-
-        <!-- 进度条 -->
-        <div class="w-full mt-8 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-          <div ref="progressBar" class="h-full bg-primary w-0 shadow-[0_0_10px_hsla(var(--primary-h),var(--primary-s),var(--primary-l),0.3)] relative">
-            <div class="absolute right-0 top-0 bottom-0 w-2 bg-white/30 blur-[2px]"></div>
-          </div>
-        </div>
-
-        <!-- 底部提示 -->
-        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500 font-light">
-          首次加载可能需要较长时间
-        </p>
-
       </div>
     </div>
   </Transition>
@@ -151,7 +128,54 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style>
+.loading-overlay-backdrop {
+  background: rgb(18 18 18 / 0.36);
+  backdrop-filter: blur(6px);
+}
+
+.dark .loading-overlay-backdrop {
+  background: rgb(0 0 0 / 0.76);
+}
+
+.loading-panel {
+  background: linear-gradient(180deg, rgb(248 250 248 / 0.98), rgb(241 244 241 / 0.98));
+  border-color: rgb(15 23 42 / 0.08);
+  box-shadow: 0 28px 64px -30px rgb(15 23 42 / 0.28);
+}
+
+.dark .loading-panel {
+  background: linear-gradient(180deg, rgb(31 31 31 / 0.98), rgb(24 24 24 / 0.98));
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow: 0 28px 64px -28px rgb(0 0 0 / 0.78);
+}
+
+.loading-indicator {
+  background: rgb(255 255 255 / 0.82);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.46),
+    0 14px 28px -24px rgb(15 23 42 / 0.22);
+}
+
+.dark .loading-indicator {
+  background: rgb(18 18 18 / 0.92);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 18px 32px -26px rgb(0 0 0 / 0.7);
+}
+
+.loading-progress-track {
+  background: rgb(15 23 42 / 0.08);
+}
+
+.dark .loading-progress-track {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.loading-progress {
+  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.4s ease;
@@ -160,29 +184,6 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.animate-pulse-slow {
-  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-.animate-spin-slow {
-  animation: spin 8s linear infinite;
-}
-.animate-reverse-spin {
-  animation: spin 6s linear infinite reverse;
-}
-.animate-scan-fast {
-  animation: scan 2s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(200%); }
 }
 
 .slide-up-enter-active,

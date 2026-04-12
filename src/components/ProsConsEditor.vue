@@ -10,7 +10,7 @@
             type="text"
             :disabled="disabled"
             @input="onProsInput(index)"
-            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/40 focus:border-primary"
             placeholder="输入优点..."
           />
           <IconButton size="xs" variant="danger" type="button" :disabled="disabled" @click="removePro(index)">
@@ -34,7 +34,7 @@
             type="text"
             :disabled="disabled"
             @input="onConsInput(index)"
-            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/40 focus:border-primary"
             placeholder="输入缺点..."
           />
           <IconButton size="xs" variant="danger" type="button" :disabled="disabled" @click="removeCon(index)">

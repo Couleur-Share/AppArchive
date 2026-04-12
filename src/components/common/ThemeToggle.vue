@@ -39,12 +39,12 @@ defineEmits<(e: 'update:modelValue', value: boolean) => void>()
   color: var(--home-text-strong);
   background: var(--home-surface-hover);
   border-color: var(--home-border);
-  box-shadow: 0 14px 28px -24px rgb(15 23 42 / 0.38);
+  box-shadow: 0 14px 28px -24px rgb(18 18 18 / 0.38);
 }
 
 .theme-toggle-btn:focus-visible {
   border-color: var(--home-accent-border);
-  box-shadow: 0 0 0 4px rgb(0 220 130 / 0.12);
+  box-shadow: 0 0 0 4px rgb(30 215 96 / 0.12);
 }
 
 .theme-toggle-sun {

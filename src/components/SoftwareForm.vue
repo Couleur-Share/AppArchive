@@ -98,7 +98,7 @@
           <!-- Section 1: 核心信息 -->
           <section class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-              <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <LayoutGrid class="w-4 h-4" />
               </div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">核心信息</h3>
@@ -109,7 +109,7 @@
               <div class="space-y-2 col-span-2 md:col-span-1">
                 <label class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
                   <span>软件名称 <span class="text-red-500">*</span></span>
-                  <span class="text-xs text-blue-500 cursor-pointer hover:underline" @click="startAIFromName" v-if="formData.name && !isAnalyzing">AI 自动填充?</span>
+                  <span class="text-xs text-primary cursor-pointer hover:underline" @click="startAIFromName" v-if="formData.name && !isAnalyzing">AI 自动填充?</span>
                 </label>
                 <div class="relative group">
                   <input
@@ -117,15 +117,15 @@
                     @blur="validateField('name')"
                     @input="handleInput('name', $event.target.value)"
                     ref="nameInputRef"
-                    class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                    class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
                     :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.name}"
                     placeholder="输入软件名称，如 Chrome"
                   />
-                  <Type class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <Type class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                   
                   <!-- AI Loading Indicator -->
                   <div v-if="isAnalyzing" class="absolute right-3 top-1/2 -translate-y-1/2">
-                    <Loader2 class="w-4 h-4 text-blue-500 animate-spin" />
+                    <Loader2 class="w-4 h-4 text-primary animate-spin" />
                   </div>
                 </div>
                 <p v-if="errors.name" class="text-xs text-red-500 animate-in slide-in-from-top-1">
@@ -141,7 +141,7 @@
                 <Listbox v-model="formData.category">
                   <div class="relative">
                     <ListboxButton
-                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 text-left flex items-center justify-between text-gray-900 dark:text-white transition-all focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 text-left flex items-center justify-between text-gray-900 dark:text-white transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     >
                       <span class="block truncate">{{ formData.category || '选择类别' }}</span>
                       <ChevronDown class="h-4 w-4 text-gray-400" />
@@ -164,14 +164,14 @@
                         >
                           <li
                             :class="[
-                              active ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300' : 'text-gray-900 dark:text-gray-200',
+                              active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-gray-900 dark:text-gray-200',
                               'relative cursor-pointer select-none py-2.5 pl-10 pr-4 transition-colors'
                             ]"
                           >
                             <span :class="[selected ? 'font-medium' : 'font-normal', 'block truncate']">
                               {{ category }}
                             </span>
-                            <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
+                            <span v-if="selected" class="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
                               <Check class="h-4 w-4" aria-hidden="true" />
                             </span>
                           </li>
@@ -194,7 +194,7 @@
                     @input="onDescriptionInput"
                     @blur="validateField('description')"
                     rows="3"
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 text-sm leading-relaxed"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 text-sm leading-relaxed"
                     placeholder="简要描述该软件的主要功能和特点..."
                   ></textarea>
                 </div>
@@ -206,7 +206,7 @@
           <!-- Section 2: 视觉与授权 -->
           <section class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-              <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Sparkles class="w-4 h-4" />
               </div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">视觉与授权</h3>
@@ -256,7 +256,7 @@
           <!-- Section 3: 系统支持 -->
           <section class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-              <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+              <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Monitor class="w-4 h-4" />
               </div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">支持系统 <span class="text-red-500">*</span></h3>
@@ -271,8 +271,8 @@
                 class="relative flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 group"
                 :class="[
                   (formData.systems || []).includes(sys)
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 dark:border-green-500/50 shadow-sm'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 bg-white dark:bg-gray-800'
+                    ? 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
                 ]"
               >
                 <SystemIcon :system="sys" class="w-8 h-8 mb-2 transition-transform group-hover:scale-110" />
@@ -284,7 +284,7 @@
                   {{ sys }}
                 </TagBadge>
                 
-                <div v-if="(formData.systems || []).includes(sys)" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500"></div>
+                <div v-if="(formData.systems || []).includes(sys)" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary"></div>
               </button>
             </div>
             <p v-if="errors.systems" class="text-xs text-red-500">{{ errors.systems }}</p>
@@ -293,7 +293,7 @@
           <!-- Section 4: 链接与资源 -->
           <section class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-              <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+              <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Link2 class="w-4 h-4" />
               </div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">链接与资源</h3>
@@ -306,10 +306,10 @@
                     <input
                       v-model="formData.website"
                       @blur="validateField('website')"
-                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 dark:text-white"
+                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white"
                       placeholder="https://..."
                     />
-                    <Globe class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                    <Globe class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                  </div>
                  <p v-if="errors.website" class="text-xs text-red-500">{{ errors.website }}</p>
                </div>
@@ -328,7 +328,7 @@
           <!-- Section 5: 评价 (Pros & Cons) -->
           <section class="space-y-6">
              <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
-               <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400">
+               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                  <ThumbsUp class="w-4 h-4" />
                </div>
                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">评价分析</h3>
@@ -698,36 +698,14 @@ whenever(Ctrl_Enter, () => {
 
 const getLicenseCardClass = (license: string, selected: boolean) => {
   if (!selected) {
-    return 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 bg-white dark:bg-gray-800'
+    return 'border-gray-200 dark:border-gray-700 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
   }
-  switch (license) {
-    case '免费':
-      return 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20 dark:border-cyan-500/50'
-    case '收费':
-      return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500/50'
-    case '开源':
-      return 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-500/50'
-    case '已购':
-      return 'border-violet-500 bg-violet-50 dark:bg-violet-900/20 dark:border-violet-500/50'
-    default:
-      return 'border-gray-400 bg-gray-50 dark:bg-gray-700/40 dark:border-gray-500'
-  }
+  return 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
 }
 
 const getLicenseIndicatorClass = (license: string, selected: boolean) => {
   if (!selected) return 'border-gray-300 dark:border-gray-600'
-  switch (license) {
-    case '免费':
-      return 'border-cyan-500 bg-cyan-500'
-    case '收费':
-      return 'border-blue-500 bg-blue-500'
-    case '开源':
-      return 'border-emerald-500 bg-emerald-500'
-    case '已购':
-      return 'border-violet-500 bg-violet-500'
-    default:
-      return 'border-gray-500 bg-gray-500'
-  }
+  return 'border-primary bg-primary'
 }
 
 const getLicenseHint = (license: string) => {

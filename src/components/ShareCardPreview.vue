@@ -70,7 +70,7 @@
                         <div>
                           <div class="text-2xl font-bold">{{ detail.software.name }}</div>
                           <div :class="['text-sm mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ metaLine }}</div>
-                          <a v-if="showWebsite && detail.software.website" :href="detail.software.website" target="_blank" rel="noopener noreferrer" :class="['text-sm mt-1 underline', theme === 'classic' ? 'text-blue-600' : 'text-white']">{{ detail.software.website }}</a>
+                          <a v-if="showWebsite && detail.software.website" :href="detail.software.website" target="_blank" rel="noopener noreferrer" :class="['text-sm mt-1 underline', theme === 'classic' ? 'text-primary' : 'text-white']">{{ detail.software.website }}</a>
                         </div>
                       </div>
                       <div v-if="detail.software.description" class="mb-6">
@@ -78,7 +78,7 @@
                       </div>
                       <div class="grid grid-cols-2 gap-6">
                         <div>
-                          <div :class="['font-semibold mb-2', theme === 'classic' ? 'text-green-600' : 'text-green-200']">优点</div>
+                          <div :class="['font-semibold mb-2', theme === 'classic' ? 'text-primary' : 'text-primary/90']">优点</div>
                           <ul :class="['list-disc list-inside text-sm space-y-1', theme === 'classic' ? 'text-gray-800' : 'text-white']">
                             <li v-for="(pro, i) in (detail.software.pros || []).slice(0,6)" :key="'pro-'+i">{{ pro }}</li>
                             <li v-if="!(detail.software.pros||[]).length" :class="[theme === 'classic' ? 'text-gray-400' : 'text-white/70']">暂无</li>
@@ -129,7 +129,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-3">
                               <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-green-600' : 'text-green-200'">优点</div>
+                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-primary' : 'text-primary/90'">优点</div>
                                 <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
                                   <li v-for="(p, i) in (sw.pros || []).slice(0,5)" :key="'pro-'+sw.id+'-'+i">{{ p }}</li>
                                   <li v-if="!(sw.pros||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
@@ -151,7 +151,7 @@
                         <div class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
                           <ul class="space-y-3">
                             <li v-for="(line, idx) in comparison.recommendationLines" :key="'rec-'+idx" class="text-sm leading-7 flex items-baseline gap-2" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-blue-500' : 'bg-white/80'"></span>
+                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-primary' : 'bg-white/80'"></span>
                               <span>{{ line }}</span>
                             </li>
                           </ul>
@@ -178,7 +178,7 @@
                         <div>
                           <div class="text-2xl font-bold">{{ detail.software.name }}</div>
                           <div :class="['text-sm mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ metaLine }}</div>
-                          <a v-if="showWebsite && detail.software.website" :href="detail.software.website" target="_blank" rel="noopener noreferrer" :class="['text-sm mt-1 underline', theme === 'classic' ? 'text-blue-600' : 'text-white']">{{ detail.software.website }}</a>
+                          <a v-if="showWebsite && detail.software.website" :href="detail.software.website" target="_blank" rel="noopener noreferrer" :class="['text-sm mt-1 underline', theme === 'classic' ? 'text-primary' : 'text-white']">{{ detail.software.website }}</a>
                         </div>
                       </div>
                       <div v-if="detail.software.description" class="mb-6">
@@ -186,7 +186,7 @@
                       </div>
                       <div class="grid grid-cols-2 gap-6">
                         <div>
-                          <div :class="['font-semibold mb-2', theme === 'classic' ? 'text-green-600' : 'text-green-200']">优点</div>
+                          <div :class="['font-semibold mb-2', theme === 'classic' ? 'text-primary' : 'text-primary/90']">优点</div>
                           <ul :class="['list-disc list-inside text-sm space-y-1', theme === 'classic' ? 'text-gray-800' : 'text-white']">
                             <li v-for="(pro, i) in (detail.software.pros || []).slice(0,6)" :key="'exp-pro-'+i">{{ pro }}</li>
                             <li v-if="!(detail.software.pros||[]).length" :class="[theme === 'classic' ? 'text-gray-400' : 'text-white/70']">暂无</li>
@@ -235,7 +235,7 @@
                             </div>
                             <div class="grid grid-cols-1 gap-3">
                               <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-green-600' : 'text-green-200'">优点</div>
+                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-primary' : 'text-primary/90'">优点</div>
                                 <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
                                   <li v-for="(p, i) in (sw.pros || []).slice(0,5)" :key="'exp-prok-'+sw.id+'-'+i">{{ p }}</li>
                                   <li v-if="!(sw.pros||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
@@ -257,7 +257,7 @@
                         <div class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
                           <ul class="space-y-3">
                             <li v-for="(line, idx) in comparison.recommendationLines" :key="'exp-rec-'+idx" class="text-sm leading-7 flex items-baseline gap-2" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-blue-500' : 'bg-white/80'"></span>
+                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-primary' : 'bg-white/80'"></span>
                               <span>{{ line }}</span>
                             </li>
                           </ul>
@@ -315,9 +315,9 @@ const closeButtonRef = ref<HTMLElement | null>(null)
 const previousFocusedElement = ref<HTMLElement | null>(null)
 
 const themeClass = computed(() => {
-  if (theme.value === 'dark') return 'bg-[#020420] text-white'
-  if (theme.value === 'gradient') return 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white'
-  return 'bg-white text-gray-900'
+  if (theme.value === 'dark') return 'bg-[#121212] text-white'
+  if (theme.value === 'gradient') return 'bg-gradient-to-br from-[#1f1f1f] via-[#181818] to-[#121212] text-white'
+  return 'bg-[#f7f8f7] text-gray-900'
 })
 
 const previewRef = ref<HTMLElement | null>(null)

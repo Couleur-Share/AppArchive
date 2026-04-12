@@ -18,9 +18,9 @@ export const getSecretKindLabel = (kind: SecretKind): string => {
 export const getSecretKindClass = (kind: SecretKind): string => {
 	switch (kind) {
 		case "license":
-			return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-700/50";
+			return "bg-primary/12 dark:bg-primary/[0.16] text-[hsl(var(--primary-h)_72%_28%)] dark:text-[hsl(var(--primary-h)_74%_82%)] border border-primary/20 dark:border-primary/24";
 		case "account":
-			return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-700/50";
+			return "bg-gray-100 dark:bg-[#252525] text-gray-700 dark:text-gray-300 border border-gray-200/70 dark:border-white/10";
 		case "config":
 			return "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-700/50";
 		default:

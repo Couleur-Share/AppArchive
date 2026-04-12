@@ -3,8 +3,8 @@
     <template v-if="isSignedIn">
       <Menu as="div" class="relative z-50">
         <MenuButton
-          class="ml-2 w-8 h-8 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                 bg-blue-500 text-white flex items-center justify-center text-sm font-semibold select-none"
+          class="ml-2 w-8 h-8 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                 bg-primary text-[rgb(18_18_18)] flex items-center justify-center text-sm font-semibold select-none"
         >
           <img v-if="user?.avatar" :src="user.avatar" class="w-full h-full object-cover" alt="" />
           <span v-else>{{ avatarInitial }}</span>
@@ -65,7 +65,7 @@
     <template v-else>
       <button
         @click="$emit('sign-in')"
-        class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 flex items-center space-x-2"
+        class="px-4 py-2 rounded-lg bg-primary text-[rgb(18_18_18)] hover:bg-[#1db954] transition-colors duration-200 flex items-center space-x-2"
       >
         <UserIcon class="h-4 w-4" />
         <span>登录</span>

@@ -55,9 +55,9 @@
                 <div
                   v-if="successMessage"
                   class="flex items-center gap-2 px-3 py-2.5 rounded-xl
-                         bg-green-50 dark:bg-green-950/30
-                         border border-green-200 dark:border-green-800/40
-                         text-sm text-green-600 dark:text-green-400"
+                         bg-primary/10 dark:bg-primary/[0.14]
+                         border border-primary/20 dark:border-primary/24
+                         text-sm text-[hsl(var(--primary-h)_70%_26%)] dark:text-[hsl(var(--primary-h)_72%_80%)]"
                 >
                   <Check class="w-4 h-4 shrink-0" />
                   <span>{{ successMessage }}</span>
@@ -98,8 +98,8 @@
                              text-gray-900 dark:text-white
                              placeholder-gray-400 dark:placeholder-gray-500
                              focus:bg-white dark:focus:bg-gray-900
-                             focus:border-blue-500 dark:focus:border-blue-500
-                             focus:ring-2 focus:ring-blue-500/20
+                             focus:border-primary dark:focus:border-primary
+                             focus:ring-2 focus:ring-primary/20
                              disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200"
                       placeholder="请输入当前密码"
@@ -129,8 +129,8 @@
                              text-gray-900 dark:text-white
                              placeholder-gray-400 dark:placeholder-gray-500
                              focus:bg-white dark:focus:bg-gray-900
-                             focus:border-blue-500 dark:focus:border-blue-500
-                             focus:ring-2 focus:ring-blue-500/20
+                             focus:border-primary dark:focus:border-primary
+                             focus:ring-2 focus:ring-primary/20
                              disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200"
                       placeholder="至少 6 位"
@@ -160,8 +160,8 @@
                              text-gray-900 dark:text-white
                              placeholder-gray-400 dark:placeholder-gray-500
                              focus:bg-white dark:focus:bg-gray-900
-                             focus:border-blue-500 dark:focus:border-blue-500
-                             focus:ring-2 focus:ring-blue-500/20
+                             focus:border-primary dark:focus:border-primary
+                             focus:ring-2 focus:ring-primary/20
                              disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200"
                       placeholder="再次输入新密码"
@@ -175,8 +175,8 @@
                   type="submit"
                   :disabled="isLoading || !oldPassword || !newPassword || !confirmPassword"
                   class="w-full py-2.5 px-4 rounded-xl text-sm font-medium
-                         text-white bg-blue-500 hover:bg-blue-600
-                         focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2
+                         text-[rgb(18_18_18)] bg-primary hover:bg-[#1db954]
+                         focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2
                          focus:ring-offset-white dark:focus:ring-offset-gray-900
                          disabled:opacity-50 disabled:cursor-not-allowed
                          transition-all duration-200

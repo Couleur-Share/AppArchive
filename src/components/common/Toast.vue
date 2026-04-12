@@ -8,20 +8,20 @@
     <div
       v-for="toast in toasts"
       :key="toast.id"
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-level2 p-4 flex items-center gap-3 min-w-[300px]"
+      class="rounded-xl border p-4 flex items-center gap-3 min-w-[300px] backdrop-blur-md shadow-level2"
       :class="{
-        'border-l-4 border-green-500': toast.type === 'success',
-        'border-l-4 border-red-500': toast.type === 'error',
-        'border-l-4 border-blue-500': toast.type === 'info',
+        'bg-white/95 border-primary/20 dark:bg-[#181818]/95 dark:border-primary/24': toast.type === 'success',
+        'bg-white/95 border-red-500/20 dark:bg-[#181818]/95 dark:border-red-500/24': toast.type === 'error',
+        'bg-white/95 border-[#539df5]/20 dark:bg-[#181818]/95 dark:border-[#539df5]/24': toast.type === 'info',
       }"
     >
       <component
         :is="getToastIcon(toast.type)"
         class="h-5 w-5"
         :class="{
-          'text-green-500': toast.type === 'success',
+          'text-primary': toast.type === 'success',
           'text-red-500': toast.type === 'error',
-          'text-blue-500': toast.type === 'info',
+          'text-[#539df5]': toast.type === 'info',
         }"
       />
       <span>{{ toast.message }}</span>

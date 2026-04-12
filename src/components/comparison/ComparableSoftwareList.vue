@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex flex-col bg-white dark:bg-[#171f2e]">
+<div class="h-full flex flex-col bg-white dark:bg-[#181818]">
     <!-- 列表区域 -->
     <div class="flex-1 overflow-y-auto custom-scrollbar p-2" ref="listRef" @scroll="onScroll">
       <div :style="{ height: `${topSpacer}px` }"></div>

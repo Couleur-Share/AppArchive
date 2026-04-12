@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <!-- 加载状态 -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 gap-4">
-      <div class="w-10 h-10 border-4 border-gray-300 dark:border-gray-600 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin"></div>
+      <div class="w-10 h-10 border-4 border-gray-300 dark:border-gray-600 border-t-primary rounded-full animate-spin"></div>
       <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">正在获取版本信息...</span>
     </div>
 
@@ -13,7 +13,7 @@
       </div>
       <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">获取失败</h3>
       <p class="text-gray-500 max-w-md text-sm">{{ errorMsg }}</p>
-      <button @click="loadReleases" class="mt-4 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+      <button @click="loadReleases" class="mt-4 px-4 py-2 text-sm font-medium text-primary hover:text-[#169c46] hover:bg-primary/10 dark:hover:bg-primary/[0.14] rounded-lg transition-colors">
         重试
       </button>
     </div>
@@ -80,7 +80,7 @@
             <div
               class="absolute left-[10px] top-[22px] w-[15px] h-[15px] rounded-full border-2 z-10 transition-colors"
               :class="index === 0
-                ? 'bg-green-500 border-green-400 dark:bg-green-400 dark:border-green-500 shadow-sm shadow-green-500/30'
+                ? 'bg-primary border-primary dark:bg-primary dark:border-primary shadow-sm shadow-primary/30'
                 : release.prerelease
                   ? 'bg-amber-400 border-amber-300 dark:bg-amber-500 dark:border-amber-600'
                   : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'"
@@ -90,7 +90,7 @@
             <div
               class="group mb-4 p-5 rounded-xl bg-white dark:bg-gray-800 border transition-all duration-200"
               :class="index === 0
-                ? 'border-green-200 dark:border-green-800/50 shadow-sm'
+                ? 'border-primary/20 dark:border-primary/24 shadow-sm shadow-primary/10'
                 : 'border-gray-100 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm'"
             >
               <!-- 标题行 -->
@@ -117,7 +117,7 @@
                 <a
                   :href="release.html_url"
                   target="_blank"
-                  class="shrink-0 p-1 rounded text-gray-400 hover:text-blue-500 transition-colors opacity-0 group-hover:opacity-100"
+                  class="shrink-0 p-1 rounded text-gray-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <ExternalLink class="w-4 h-4" />
                 </a>
@@ -128,7 +128,7 @@
                 <Clock class="w-3.5 h-3.5" />
                 <span>{{ formatDate(release.published_at) }}</span>
                 <span v-if="index === 0" class="text-gray-400">·</span>
-                <span v-if="index === 0" class="text-green-600 dark:text-green-400 font-medium">
+                <span v-if="index === 0" class="text-primary font-medium">
                   {{ timeAgo(release.published_at) }}
                 </span>
               </div>
@@ -148,7 +148,7 @@
                 <button
                   v-if="isLongBody(release.body)"
                   @click="toggleExpand(release.tag_name)"
-                  class="mt-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  class="mt-1 text-xs font-medium text-primary hover:underline flex items-center gap-1"
                 >
                   {{ expandedReleases.has(release.tag_name) ? '收起' : '展开全部' }}
                   <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': expandedReleases.has(release.tag_name) }" />
@@ -167,9 +167,9 @@
                     :key="asset.name"
                     :href="asset.download_url"
                     target="_blank"
-                    class="group/asset flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/30 hover:bg-blue-50 dark:hover:bg-blue-900/10 border border-transparent hover:border-blue-200 dark:hover:border-blue-800/30 transition-all text-xs"
+                    class="group/asset flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-900/30 hover:bg-primary/10 dark:hover:bg-primary/[0.12] border border-transparent hover:border-primary/20 dark:hover:border-primary/24 transition-all text-xs"
                   >
-                    <Download class="w-4 h-4 text-gray-400 group-hover/asset:text-blue-500 shrink-0 transition-colors" />
+                    <Download class="w-4 h-4 text-gray-400 group-hover/asset:text-primary shrink-0 transition-colors" />
                     <span class="font-mono text-gray-700 dark:text-gray-300 truncate flex-1 min-w-0">{{ asset.name }}</span>
                     <span class="text-gray-400 dark:text-gray-500 shrink-0 tabular-nums">{{ formatSize(asset.size) }}</span>
                     <span v-if="asset.download_count > 0" class="text-gray-400 dark:text-gray-500 shrink-0 tabular-nums">
@@ -179,7 +179,7 @@
                   <button
                     v-if="release.assets.length > 3 && !showAllAssets.has(release.tag_name)"
                     @click.prevent="showAllAssets.add(release.tag_name)"
-                    class="w-full text-center py-2 text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                    class="w-full text-center py-2 text-xs text-primary hover:text-[#169c46] font-medium transition-colors"
                   >
                     查看全部 {{ release.assets.length }} 个文件
                   </button>
@@ -404,11 +404,11 @@ watch(() => props.softwareId, () => {
 }
 
 .release-markdown a {
-  @apply text-blue-500 hover:underline;
+  @apply text-primary hover:underline;
 }
 
 .release-markdown blockquote {
-  @apply border-l-4 border-gray-200 dark:border-gray-700 pl-4 my-2 italic text-gray-600 dark:text-gray-400;
+  @apply my-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 italic text-gray-600 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400;
 }
 
 .release-markdown hr {

@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#020618] transition-colors duration-300">
+  <div class="min-h-screen bg-[#f3f5f4] dark:bg-[#121212] transition-colors duration-300">
     <!-- 顶部导航 -->
-    <header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+    <header class="sticky top-0 z-30 bg-white/80 dark:bg-[#181818]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <router-link to="/" class="text-lg font-bold text-gray-900 dark:text-white hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">
+        <router-link to="/" class="text-lg font-bold text-gray-900 dark:text-white hover:text-primary transition-colors">
           软件清单
         </router-link>
         <div class="flex items-center gap-3">
@@ -16,7 +16,7 @@
           </button>
           <router-link
             to="/"
-            class="text-sm text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors flex items-center gap-1"
+            class="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors flex items-center gap-1"
           >
             <Home class="w-4 h-4" />
             <span class="hidden sm:inline">返回首页</span>
@@ -53,7 +53,7 @@
       <p class="text-gray-500 dark:text-gray-400 mb-8">该软件可能已被删除或链接无效。</p>
       <router-link
         to="/"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-[rgb(18_18_18)] font-medium hover:bg-[#1db954] transition-colors"
       >
         <Home class="w-4 h-4" />
         返回首页
@@ -113,21 +113,21 @@
               :href="software.website"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 shadow-sm transition-colors"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-[rgb(18_18_18)] text-sm font-medium hover:bg-[#1db954] shadow-sm transition-colors"
             >
               <ExternalLink class="w-4 h-4" />
               访问官网
             </a>
             <router-link
               :to="{ name: 'software-detail', params: { id: software.id } }"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-emerald-500/50 hover:text-emerald-500 shadow-sm transition-colors"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:text-primary shadow-sm transition-colors"
             >
               <ArrowRight class="w-4 h-4" />
               在应用中查看
             </router-link>
             <button
               @click="copyShareLink"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-emerald-500/50 hover:text-emerald-500 shadow-sm transition-colors"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:text-primary shadow-sm transition-colors"
             >
               <Link2 class="w-4 h-4" />
               {{ copySuccess ? '已复制' : '复制链接' }}
@@ -148,7 +148,7 @@
           <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">优点</h2>
           <ul class="space-y-3">
             <li v-for="(pro, i) in software.pros" :key="i" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
-              <CheckCircle2 class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+              <CheckCircle2 class="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>{{ pro }}</span>
             </li>
           </ul>
@@ -198,9 +198,9 @@
             :href="article.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="group p-4 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-emerald-500/50 hover:shadow-md transition-all"
+            class="group p-4 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-primary/50 hover:shadow-md transition-all"
           >
-            <div class="font-medium text-gray-900 dark:text-white group-hover:text-emerald-500 transition-colors line-clamp-1">
+            <div class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1">
               {{ article.title }}
             </div>
             <div v-if="article.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">

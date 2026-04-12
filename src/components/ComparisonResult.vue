@@ -3,10 +3,10 @@
     <!-- 加载状态指示器 -->
     <div v-if="isLoading" 
          class="fixed inset-0 app-modal-backdrop flex items-center justify-center z-[60]">
-      <div class="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/20 p-6 backdrop-blur-xl dark:bg-white/5">
+      <div class="flex flex-col items-center gap-4 rounded-[22px] border border-slate-200/70 bg-[#f7f8f7] p-6 shadow-[0_24px_48px_-30px_rgba(18,18,18,0.2)] dark:border-white/[0.08] dark:bg-[#181818]">
         <div class="animate-spin rounded-full h-12 w-12 border-4 
                     border-primary/20 border-t-primary"></div>
-        <span class="text-sm text-white/90 font-medium">正在加载比较数据...</span>
+        <span class="text-sm font-medium text-slate-700 dark:text-slate-200">正在加载比较数据...</span>
       </div>
     </div>
 
@@ -56,7 +56,7 @@
               <!-- 标题栏 -->
               <div class="flex items-center justify-between px-8 py-6 
                           border-b border-gray-200/50 dark:border-gray-600/30
-                          bg-white/30 dark:bg-gray-800/50 backdrop-blur-sm">
+                          bg-[#f3f5f4] dark:bg-[#1f1f1f]">
                 <DialogTitle as="h3" class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                   软件对比分析
                 </DialogTitle>
@@ -143,10 +143,10 @@
                 <!-- 空状态 -->
                 <div v-if="!comparedSoftwares.length" 
                      class="flex flex-col items-center justify-center py-16 text-center">
-                  <div class="mb-8 flex h-24 w-24 items-center justify-center rounded-[28px] border border-primary/15 bg-primary/10 text-primary shadow-[0_24px_48px_-32px_rgba(15,23,42,0.28)] dark:bg-primary/12">
+                  <div class="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-slate-950 shadow-[0_14px_28px_-18px_rgba(30,215,96,0.45)]">
                     <div class="relative">
                       <FileSearch class="w-11 h-11" />
-                      <div class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border border-white/70 bg-white text-primary shadow-sm dark:border-slate-900 dark:bg-slate-900">
+                      <div class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border border-white/70 bg-white text-primary shadow-sm dark:border-slate-900 dark:bg-[#121212]">
                         <Plus class="w-4 h-4" />
                       </div>
                     </div>
@@ -163,7 +163,7 @@
                   <button
                     v-if="canEdit"
                     @click="$emit('edit')"
-                    class="flex items-center gap-2 rounded-xl border border-primary/35 bg-primary px-6 py-3 font-medium text-slate-950 transition-all duration-200 hover:brightness-[0.98] hover:shadow-md"
+                    class="flex items-center gap-2 rounded-full border border-primary/35 bg-primary px-6 py-3 font-medium text-slate-950 transition-all duration-200 hover:brightness-[0.98] hover:shadow-md"
                   >
                     <Plus class="w-5 h-5" />
                     创建比较
@@ -173,10 +173,10 @@
                 <!-- 比较表格 -->
                 <template v-else>
                   <!-- 顶部信息卡与内容视觉衔接：增加渐变过渡与边角呼应 -->
-                  <div class="overflow-x-auto rounded-t-xl border border-b-0 border-gray-200/50 dark:border-gray-700/30 bg-white/60 dark:bg-gray-800/40">
+                  <div class="overflow-x-auto rounded-t-xl border border-b-0 border-slate-200/70 bg-[#f7f8f7] dark:border-white/[0.08] dark:bg-[#181818]">
                     <table class="w-full">
                       <thead>
-                        <tr class="bg-gray-50/50 dark:bg-gray-800/50">
+                        <tr class="bg-[#eef2ef] dark:bg-[#1f1f1f]">
                           <th class="p-5 text-left font-medium text-gray-600 dark:text-gray-400 w-[120px]">
                             <span class="whitespace-nowrap">对比项目</span>
                           </th>
@@ -288,7 +288,7 @@
                   </div>
 
                   <!-- 综合分析：与上方表格做“卡片一体化” -->
-                  <div class="rounded-b-xl border border-t-0 border-primary/15 bg-primary/[0.06] px-6 pt-2 pb-6 dark:bg-primary/[0.08]">
+                  <div class="rounded-b-xl border border-t-0 border-slate-200/70 bg-[#f3f6f3] px-6 pt-2 pb-6 dark:border-white/[0.08] dark:bg-[#1f1f1f]">
                     <div class="prose dark:prose-invert max-w-none">
                       <div v-html="renderedSummary" class="markdown-content"></div>
                     </div>

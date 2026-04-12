@@ -40,7 +40,7 @@ const containerClass = computed(() => {
   }
 
   if (props.variant === 'success') {
-    return `${baseClass} border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/[0.10] dark:text-emerald-300`
+    return `${baseClass} border-primary/20 bg-primary/[0.08] text-[hsl(var(--primary-h)_72%_28%)] dark:border-primary/24 dark:bg-primary/[0.12] dark:text-[hsl(var(--primary-h)_74%_82%)]`
   }
 
   if (props.variant === 'warning') {

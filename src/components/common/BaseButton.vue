@@ -62,15 +62,15 @@ const isDisabled = computed(() => props.disabled || props.loading)
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 focus-visible:ring-blue-500/70'
+      return 'bg-primary text-[rgb(18_18_18)] hover:bg-[#1db954] shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 focus-visible:ring-primary/70'
     case 'danger':
       return 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400 shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/30 focus-visible:ring-red-500/70'
     case 'ghost':
-      return 'bg-transparent text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-gray-400/70'
+      return 'bg-transparent text-gray-800 dark:text-gray-200 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] focus-visible:ring-primary/35'
     case 'link':
-      return 'bg-transparent text-blue-600 dark:text-blue-300 hover:underline focus-visible:ring-blue-400/70'
+      return 'bg-transparent text-primary hover:text-[#169c46] hover:underline focus-visible:ring-primary/50'
     default:
-      return 'border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 focus-visible:ring-gray-400/70'
+      return 'border border-gray-200 dark:border-gray-700 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] text-gray-800 dark:text-gray-200 focus-visible:ring-primary/35'
   }
 })
 </script>

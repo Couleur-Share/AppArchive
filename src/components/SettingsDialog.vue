@@ -103,7 +103,7 @@
                     <div v-if="activeTab === 'account'" class="space-y-6">
                       <div class="flex items-center gap-6">
                         <div class="relative group cursor-pointer shrink-0" @click="triggerAvatarUpload">
-                          <div class="w-20 h-20 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center text-white text-2xl font-semibold select-none">
+                          <div class="w-20 h-20 rounded-full overflow-hidden bg-primary flex items-center justify-center text-[rgb(18_18_18)] text-2xl font-semibold select-none">
                             <img v-if="editAvatar" :src="editAvatar" class="w-full h-full object-cover" alt="头像" />
                             <span v-else>{{ profileInitial }}</span>
                           </div>

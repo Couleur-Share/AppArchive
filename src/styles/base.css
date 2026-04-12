@@ -25,17 +25,17 @@
 			var(--gradient-light-end)
 		);
 	min-height: 100vh;
-	--gradient-light-start: #f5f7fb;
-	--gradient-light-end: #e9eef7;
-	--gradient-light-accent1: rgba(147, 197, 253, 0.14);
-	--gradient-light-accent2: rgba(167, 139, 250, 0.08);
-	--gradient-light-accent3: rgba(134, 239, 172, 0.06);
+	--gradient-light-start: #f3f5f4;
+	--gradient-light-end: #e8ece9;
+	--gradient-light-accent1: rgba(30, 215, 96, 0.1);
+	--gradient-light-accent2: rgba(18, 18, 18, 0.05);
+	--gradient-light-accent3: rgba(29, 185, 84, 0.05);
 
-	--gradient-dark-start: #020420;
-	--gradient-dark-end: #0f172a;
-	--gradient-dark-accent1: rgba(0, 220, 130, 0.15);
-	--gradient-dark-accent2: rgba(56, 189, 248, 0.1);
-	--gradient-dark-accent3: rgba(0, 220, 130, 0.05);
+	--gradient-dark-start: #121212;
+	--gradient-dark-end: #181818;
+	--gradient-dark-accent1: rgba(30, 215, 96, 0.14);
+	--gradient-dark-accent2: rgba(255, 255, 255, 0.03);
+	--gradient-dark-accent3: rgba(31, 31, 31, 0.12);
 }
 
 :root.dark {
@@ -179,12 +179,12 @@ img {
 	.backdrop-blur-xl,
 	.backdrop-blur-md {
 		backdrop-filter: none;
-		background-color: rgba(255, 255, 255, 0.9);
+		background-color: rgba(248, 250, 248, 0.92);
 	}
 
 	.dark .backdrop-blur-xl,
 	.dark .backdrop-blur-md {
-		background-color: rgba(17, 24, 39, 0.9);
+		background-color: rgba(24, 24, 24, 0.92);
 	}
 }
 

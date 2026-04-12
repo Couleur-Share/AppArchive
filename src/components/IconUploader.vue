@@ -8,7 +8,7 @@
                    flex items-center justify-center
                    bg-gray-50 dark:bg-gray-800/50 overflow-hidden
                    transition-colors duration-100
-                   group-hover:border-blue-500/50 dark:group-hover:border-blue-400/50
+                   group-hover:border-primary/50 dark:group-hover:border-primary/50
                    cursor-default"
         @dragover.prevent
         @drop="onDrop"
@@ -16,7 +16,7 @@
       >
         <!-- 加载状态 -->
         <div v-if="isLoading" class="absolute inset-0 bg-gray-50/90 dark:bg-gray-800/90 flex items-center justify-center backdrop-blur-sm">
-          <Loader2 class="w-4 h-4 animate-spin text-blue-500" />
+          <Loader2 class="w-4 h-4 animate-spin text-primary" />
         </div>
 
         <!-- 图标预览 -->

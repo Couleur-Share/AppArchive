@@ -62,11 +62,11 @@ const isDisabled = computed(() => props.disabled || props.loading)
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-300 focus-visible:ring-blue-400/70'
+      return 'hover:bg-primary/10 dark:hover:bg-primary/[0.16] text-primary dark:text-primary focus-visible:ring-primary/50'
     case 'danger':
       return 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 focus-visible:ring-red-400/70'
     default:
-      return 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 focus-visible:ring-gray-400/70'
+      return 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 focus-visible:ring-primary/35'
   }
 })
 </script>

@@ -8,27 +8,25 @@
       aria-busy="true"
     >
       <div ref="backdropLayer" class="absolute inset-0">
-        <div class="absolute inset-0 bg-white/[0.76] dark:bg-slate-950/80 backdrop-blur-[10px]"></div>
-        <div class="analysis-overlay-grid absolute inset-0"></div>
-        <div class="analysis-overlay-glow absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full"></div>
+        <div class="analysis-overlay-backdrop absolute inset-0"></div>
       </div>
 
       <div ref="panelRef" class="relative z-10 w-full max-w-3xl">
-        <div class="analysis-panel overflow-hidden rounded-[30px] border border-white/60 bg-white/80 shadow-[0_36px_120px_-60px_rgba(15,23,42,0.58)] backdrop-blur-2xl dark:border-white/[0.08] dark:bg-slate-950/[0.88] dark:shadow-[0_38px_120px_-56px_rgba(2,6,23,0.95)]">
+        <div class="analysis-panel overflow-hidden rounded-[24px] border">
           <div class="flex items-center justify-between gap-4 border-b border-slate-900/[0.06] px-6 py-4 dark:border-white/[0.08]">
-            <div class="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.32em] text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
               <span class="analysis-panel-dot h-2 w-2 rounded-full"></span>
-              AI Analysis
+              Analysis Queue
             </div>
-            <div class="rounded-full border border-slate-900/[0.08] bg-white/70 px-3 py-1 text-[11px] font-medium text-slate-600 dark:border-white/10 dark:bg-slate-900/[0.88] dark:text-slate-300">
+            <div class="analysis-progress-chip rounded-full px-3 py-1 text-[11px] font-semibold">
               {{ Math.round(visualProgress) }}%
             </div>
           </div>
 
-          <div class="grid gap-8 px-6 py-7 md:grid-cols-[164px_minmax(0,1fr)] md:items-center lg:px-8 lg:py-8">
+          <div class="grid gap-6 px-6 py-7 md:grid-cols-[156px_minmax(0,1fr)] md:items-center lg:px-8 lg:py-8">
             <div ref="visualRef" class="relative mx-auto h-40 w-40 shrink-0">
-              <div class="absolute inset-0 rounded-full border border-slate-900/[0.06] dark:border-white/[0.08]"></div>
-              <div class="analysis-orbit absolute inset-[10px] rounded-full border border-primary/[0.15]"></div>
+              <div class="absolute inset-0 rounded-full border border-slate-900/[0.08] dark:border-white/[0.08]"></div>
+              <div class="absolute inset-[12px] rounded-full border border-slate-900/[0.06] dark:border-white/[0.05]"></div>
 
               <svg class="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
                 <circle
@@ -38,7 +36,7 @@
                   fill="none"
                   stroke="currentColor"
                   stroke-width="4"
-                  class="text-slate-300/70 dark:text-white/10"
+                  class="text-slate-300/70 dark:text-white/[0.08]"
                 />
                 <circle
                   ref="progressRing"
@@ -57,9 +55,8 @@
 
               <div
                 ref="coreRef"
-                class="absolute inset-[38px] flex items-center justify-center rounded-[28px] border border-white/80 bg-white/[0.88] shadow-[0_18px_48px_-32px_rgba(15,23,42,0.48)] dark:border-white/[0.08] dark:bg-slate-900/[0.92] dark:shadow-[0_18px_52px_-34px_rgba(2,6,23,0.9)]"
+                class="analysis-core absolute inset-[40px] flex items-center justify-center rounded-full border border-slate-900/[0.08] bg-white dark:border-white/[0.08] dark:bg-[#121212]"
               >
-                <div class="analysis-core-glow absolute inset-0 rounded-[inherit]"></div>
                 <svg class="relative z-10 h-11 w-11 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 4.5V10h5L11 19.5V14H6l7-9.5Z" />
                 </svg>
@@ -67,11 +64,11 @@
             </div>
 
             <div ref="contentRef" class="space-y-5 text-center md:text-left">
-              <div class="space-y-3">
-                <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              <div class="space-y-2.5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
                   Software Analysis
                 </p>
-                <h3 class="text-[1.75rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                <h3 class="text-[1.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
                   正在整理软件分析结果
                 </h3>
                 <div class="relative h-6 overflow-hidden">
@@ -88,11 +85,11 @@
               </div>
 
               <div class="space-y-3">
-                <div class="flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                   <span>Pipeline</span>
                   <span>{{ Math.round(visualProgress) }}%</span>
                 </div>
-                <div class="h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/[0.08]">
+                <div class="analysis-progress-track h-1.5 overflow-hidden rounded-full">
                   <div
                     class="analysis-progress h-full rounded-full"
                     :style="{ transform: `scaleX(${Math.min(Math.max(visualProgress, 0), 100) / 100})` }"
@@ -104,14 +101,14 @@
                 <div
                   v-for="phase in phaseItems"
                   :key="phase.label"
-                  class="rounded-2xl border px-3 py-2 text-left transition-colors duration-200"
+                  class="rounded-xl border px-3 py-2.5 text-left transition-colors duration-200"
                   :class="phase.current
-                    ? 'border-primary/[0.28] bg-primary/10 text-[hsl(var(--primary-h)_70%_24%)] dark:border-primary/[0.34] dark:bg-primary/[0.16] dark:text-[hsl(var(--primary-h)_72%_80%)]'
+                    ? 'border-primary/[0.3] bg-primary/[0.08] text-[hsl(var(--primary-h)_72%_26%)] dark:border-primary/[0.28] dark:bg-primary/[0.12] dark:text-[hsl(var(--primary-h)_72%_80%)]'
                     : phase.active
-                      ? 'border-slate-900/10 bg-slate-900/[0.03] text-slate-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200'
-                      : 'border-slate-900/[0.06] bg-white/[0.55] text-slate-400 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-slate-500'"
+                      ? 'border-slate-900/[0.08] bg-slate-900/[0.03] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-200'
+                      : 'border-slate-900/[0.06] bg-white/70 text-slate-400 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-500'"
                 >
-                  <p class="text-[11px] font-medium uppercase tracking-[0.18em]">Stage {{ phase.index }}</p>
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Stage {{ phase.index }}</p>
                   <p class="mt-1 text-sm font-medium tracking-tight">{{ phase.label }}</p>
                 </div>
               </div>
@@ -346,89 +343,67 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.analysis-overlay-grid {
-  background-image:
-    linear-gradient(rgb(15 23 42 / 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(15 23 42 / 0.055) 1px, transparent 1px);
-  background-size: 36px 36px;
-  opacity: 0.42;
-  -webkit-mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.88) 26%, transparent 82%);
-  mask-image: radial-gradient(circle at center, rgb(0 0 0 / 0.88) 26%, transparent 82%);
+<style>
+.analysis-overlay-backdrop {
+  background: rgb(18 18 18 / 0.34);
+  backdrop-filter: blur(6px);
 }
 
-:global(.dark) .analysis-overlay-grid {
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
-}
-
-.analysis-overlay-glow {
-  background: radial-gradient(
-    circle at center,
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.16) 0%,
-    transparent 70%
-  );
-}
-
-:global(.dark) .analysis-overlay-glow {
-  background: radial-gradient(
-    circle at center,
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.09) 0%,
-    transparent 72%
-  );
+.dark .analysis-overlay-backdrop {
+  background: rgb(0 0 0 / 0.72);
 }
 
 .analysis-panel {
-  position: relative;
+  background: linear-gradient(180deg, rgb(248 250 248 / 0.98), rgb(241 244 241 / 0.98));
+  border-color: rgb(15 23 42 / 0.08);
+  box-shadow: 0 28px 64px -32px rgb(15 23 42 / 0.28);
 }
 
-.analysis-panel::before {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgb(255 255 255 / 0.22), transparent 48%);
-  content: '';
+.dark .analysis-panel {
+  background: linear-gradient(180deg, rgb(31 31 31 / 0.98), rgb(24 24 24 / 0.98));
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow: 0 28px 64px -30px rgb(0 0 0 / 0.78);
 }
 
-:global(.dark) .analysis-panel::before {
-  background: linear-gradient(135deg, rgb(255 255 255 / 0.045), transparent 44%);
+.analysis-progress-chip {
+  border: 1px solid rgb(15 23 42 / 0.08);
+  background: rgb(255 255 255 / 0.72);
+  color: rgb(71 85 105);
+}
+
+.dark .analysis-progress-chip {
+  border-color: rgb(255 255 255 / 0.08);
+  background: rgb(18 18 18 / 0.88);
+  color: rgb(203 203 203);
 }
 
 .analysis-panel-dot {
-  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.82);
-  box-shadow: 0 0 0 5px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.12);
+  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
 }
 
-.analysis-core-glow {
-  background: linear-gradient(
-    135deg,
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.16),
-    transparent 72%
-  );
+.analysis-core {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.46),
+    0 16px 32px -24px rgb(15 23 42 / 0.22);
 }
 
-:global(.dark) .analysis-core-glow {
-  background: linear-gradient(
-    135deg,
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.14),
-    transparent 72%
-  );
+.dark .analysis-core {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 18px 36px -28px rgb(0 0 0 / 0.74);
 }
 
-.analysis-orbit {
-  animation: analysis-orbit 16s linear infinite;
+.analysis-progress-track {
+  background: rgb(15 23 42 / 0.08);
+}
+
+.dark .analysis-progress-track {
+  background: rgb(255 255 255 / 0.08);
 }
 
 .analysis-progress {
   transform-origin: left center;
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.28),
-    hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.94)
-  );
-  box-shadow: 0 10px 24px -18px hsl(var(--primary-h) var(--primary-s) var(--primary-l) / 0.7);
+  background: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
 }
 
 .analysis-status-enter-active,
@@ -448,17 +423,7 @@ onUnmounted(() => {
   transform: translateY(-6px);
 }
 
-@keyframes analysis-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .analysis-orbit {
-    animation: none !important;
-  }
-
   .analysis-status-enter-active,
   .analysis-status-leave-active {
     transition-duration: 1ms;

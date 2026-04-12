@@ -47,8 +47,8 @@ defineEmits<{
   background: var(--home-surface-strong);
   border-color: var(--home-accent-border);
   box-shadow:
-    0 0 0 4px rgb(0 220 130 / 0.1),
-    0 18px 30px -24px rgb(15 23 42 / 0.32);
+    0 0 0 4px rgb(30 215 96 / 0.1),
+    0 18px 30px -24px rgb(18 18 18 / 0.32);
 }
 
 .search-bar-clear {

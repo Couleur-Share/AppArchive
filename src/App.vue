@@ -100,12 +100,12 @@
       <!-- 分页组件 -->
       <div class="mt-7 sm:mt-9 mb-9 sm:mb-12 flex justify-center px-4">
         <BlurFade :delay="0.06" :offset="6" direction="up" inView>
-        <nav class="pagination-shell inline-flex items-center gap-1.5 sm:gap-2 bg-white/65 dark:bg-gray-800/[0.68] px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-2xl shadow-lg border border-gray-200/70 dark:border-gray-600/[0.45]" v-gsap="'fade'">
+        <nav class="pagination-shell inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2 py-2 sm:px-3 sm:py-3" v-gsap="'fade'">
           <!-- 上一页按钮 -->
           <button
             @click="onPageChange(currentPage - 1)"
             :disabled="currentPage === 0"
-            class="pagination-nav-btn p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn h-10 w-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="currentPage === 0 ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'"
           >
             <svg
@@ -129,7 +129,7 @@
               <button
                 v-if="shouldShowPageButton(page)"
                 @click="onPageChange(page - 1)"
-                class="pagination-page-btn min-w-[2.5rem] h-10 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center"
+                class="pagination-page-btn flex h-10 min-w-[2.5rem] items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200"
                 :class="[
                   currentPage === page - 1
                     ? 'pagination-page-btn--active'
@@ -156,7 +156,7 @@
           <button
             @click="onPageChange(currentPage + 1)"
             :disabled="currentPage >= Math.ceil(totalItems / pageSize) - 1"
-            class="pagination-nav-btn p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn h-10 w-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="
               currentPage >= Math.ceil(totalItems / pageSize) - 1
                 ? 'text-gray-400'
@@ -1205,15 +1205,15 @@ const isEllipsis = (page: number) => {
   background-color: var(--app-bg-start);
   min-height: 100vh;
 
-  --gradient-light-start: #f0f2f5;
-  --gradient-light-end: #f1f5f9;
-  --gradient-light-accent1: rgba(16, 185, 129, 0.08);
-  --gradient-light-accent2: rgba(59, 130, 246, 0.06);
+  --gradient-light-start: #f3f5f4;
+  --gradient-light-end: #e8ece9;
+  --gradient-light-accent1: rgba(30, 215, 96, 0.08);
+  --gradient-light-accent2: rgba(18, 18, 18, 0.05);
 
-  --gradient-dark-start: #020618;
-  --gradient-dark-end: #020618;
-  --gradient-dark-accent1: rgba(0, 220, 130, 0.08);
-  --gradient-dark-accent2: rgba(56, 189, 248, 0.04);
+  --gradient-dark-start: #121212;
+  --gradient-dark-end: #121212;
+  --gradient-dark-accent1: rgba(30, 215, 96, 0.12);
+  --gradient-dark-accent2: rgba(255, 255, 255, 0.03);
 }
 
 :root.dark {
@@ -1246,7 +1246,7 @@ button {
 .pagination-shell {
   --ui-focus-ring:
     0 0 0 2px rgb(255 255 255 / 0.22),
-    0 0 0 5px rgb(0 220 130 / 0.22);
+    0 0 0 5px rgb(30 215 96 / 0.22);
   --ui-accent-shadow: var(--home-accent-shadow);
   --ui-hover-shadow: var(--home-shadow);
   --ui-hover-brightness: 1.03;
@@ -1255,7 +1255,7 @@ button {
   background: var(--home-surface);
   border-color: var(--home-border);
   box-shadow: var(--home-shadow-strong);
-  backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(12px);
 }
 
 .top-actions-bar {
@@ -1264,25 +1264,28 @@ button {
   box-shadow: var(--home-tab-rail-shadow);
 }
 
+.pagination-shell {
+  background: var(--home-tab-rail-bg);
+  border-color: var(--home-tab-rail-border);
+  box-shadow: var(--home-tab-rail-shadow);
+}
+
 .app-home {
   color: var(--home-text);
   background:
-    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 0.78), transparent 24%),
-    radial-gradient(circle at 0% 34%, var(--app-bg-accent1), transparent 24%),
-    radial-gradient(circle at 100% 36%, var(--app-bg-accent3), transparent 24%),
-    radial-gradient(circle at 50% 100%, var(--app-bg-accent2), transparent 34%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.28), transparent 14%),
-    repeating-linear-gradient(
-      135deg,
-      rgb(255 255 255 / 0.18) 0 1px,
-      transparent 1px 8px
-    ),
+    radial-gradient(circle at 14% 0%, var(--app-bg-accent1), transparent 24%),
+    radial-gradient(circle at 100% 12%, var(--app-bg-accent2), transparent 28%),
+    radial-gradient(circle at 50% 100%, var(--app-bg-accent3), transparent 34%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.24), transparent 12%),
     linear-gradient(180deg, var(--app-bg-start), var(--app-bg-end));
   background-repeat: no-repeat;
 }
 
 .dark .app-home {
-  background: #020618;
+  background:
+    radial-gradient(circle at 16% 0%, var(--app-bg-accent1), transparent 18%),
+    radial-gradient(circle at 100% 0%, var(--app-bg-accent2), transparent 22%),
+    linear-gradient(180deg, #121212, #121212);
 }
 
 .top-action-btn {
@@ -1314,7 +1317,6 @@ button {
   .pagination-page-btn--idle:hover {
     background-color: var(--ui-hover-surface-light);
     box-shadow: var(--ui-hover-shadow);
-    filter: brightness(var(--ui-hover-brightness));
   }
 
   .dark .top-action-btn:not(:disabled):hover,
@@ -1324,7 +1326,7 @@ button {
   }
 
   .pagination-page-btn--active:hover {
-    filter: brightness(var(--ui-hover-brightness));
+    box-shadow: 0 14px 26px -18px rgb(30 215 96 / 0.46);
   }
 }
 
@@ -1359,10 +1361,10 @@ button {
 }
 
 .pagination-page-btn--active {
-  background: var(--home-nav-btn-bg);
-  color: var(--home-nav-btn-color);
-  border-color: var(--home-accent-border);
-  box-shadow: var(--ui-accent-shadow);
+  background: #1ed760;
+  color: rgb(18 18 18);
+  border-color: transparent;
+  box-shadow: 0 12px 24px -16px rgb(30 215 96 / 0.42);
 }
 
 .pagination-page-btn--idle {
@@ -1511,14 +1513,14 @@ button {
 /* 更新卡片样式 */
 .bg-white\/30 {
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(249, 250, 249, 0.78);
+  border: 1px solid rgba(24, 24, 24, 0.08);
 }
 
 .dark .bg-gray-900\/30 {
   backdrop-filter: blur(12px);
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(24, 24, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 @keyframes dance {
@@ -1574,32 +1576,32 @@ button {
 
 /* 为每个点设置不同的渐变色 */
 .w-3.h-3:nth-child(1) {
-  --dot-color-start: #3b82f6;
-  --dot-color-end: #60a5fa;
+  --dot-color-start: #1ed760;
+  --dot-color-end: #53e38a;
   --delay: 0s;
 }
 
 .w-3.h-3:nth-child(2) {
-  --dot-color-start: #ec4899;
-  --dot-color-end: #f472b6;
+  --dot-color-start: #1db954;
+  --dot-color-end: #1ed760;
   --delay: 0.1s;
 }
 
 .w-3.h-3:nth-child(3) {
-  --dot-color-start: #8b5cf6;
-  --dot-color-end: #a78bfa;
+  --dot-color-start: #4d4d4d;
+  --dot-color-end: #7c7c7c;
   --delay: 0.2s;
 }
 
 .w-3.h-3:nth-child(4) {
-  --dot-color-start: #10b981;
-  --dot-color-end: #34d399;
+  --dot-color-start: #3de17c;
+  --dot-color-end: #1ed760;
   --delay: 0.3s;
 }
 
 .w-3.h-3:nth-child(5) {
-  --dot-color-start: #f97316;
-  --dot-color-end: #fb923c;
+  --dot-color-start: #b3b3b3;
+  --dot-color-end: #ededed;
   --delay: 0.4s;
 }
 

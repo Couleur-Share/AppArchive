@@ -90,8 +90,8 @@
                              text-gray-900 dark:text-white
                              placeholder-gray-400 dark:placeholder-gray-500
                              focus:bg-white dark:focus:bg-gray-900
-                             focus:border-blue-500 dark:focus:border-blue-500
-                             focus:ring-2 focus:ring-blue-500/20
+                             focus:border-primary dark:focus:border-primary
+                             focus:ring-2 focus:ring-primary/20
                              disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200"
                       placeholder="请输入用户名"
@@ -121,8 +121,8 @@
                              text-gray-900 dark:text-white
                              placeholder-gray-400 dark:placeholder-gray-500
                              focus:bg-white dark:focus:bg-gray-900
-                             focus:border-blue-500 dark:focus:border-blue-500
-                             focus:ring-2 focus:ring-blue-500/20
+                             focus:border-primary dark:focus:border-primary
+                             focus:ring-2 focus:ring-primary/20
                              disabled:opacity-50 disabled:cursor-not-allowed
                              transition-all duration-200"
                       placeholder="请输入密码"
@@ -133,7 +133,7 @@
                       class="absolute inset-y-0 right-0 pr-3 flex items-center
                              text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
                              focus-visible:outline-none focus-visible:ring-2
-                             focus-visible:ring-blue-500/40 rounded-md"
+                             focus-visible:ring-primary/40 rounded-md"
                     >
                       <EyeOff v-if="showPassword" class="w-4 h-4" />
                       <Eye v-else class="w-4 h-4" />
@@ -146,8 +146,8 @@
                   type="submit"
                   :disabled="isLoading || !username || !password"
                   class="w-full py-2.5 px-4 rounded-xl text-sm font-medium
-                         text-white bg-blue-500 hover:bg-blue-600
-                         focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2
+                         text-[rgb(18_18_18)] bg-primary hover:bg-[#1db954]
+                         focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2
                          focus:ring-offset-white dark:focus:ring-offset-gray-900
                          disabled:opacity-50 disabled:cursor-not-allowed
                          transition-all duration-200

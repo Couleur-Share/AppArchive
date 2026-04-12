@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 flex flex-col h-full bg-gray-50/50 dark:bg-transparent">
     <!-- 工具栏/标题栏 -->
-    <div class="flex-shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200/50 dark:border-gray-700/30 bg-white dark:bg-[#171f2e]">
+<div class="flex-shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200/50 dark:border-gray-700/30 bg-white dark:bg-[#181818]">
       <div class="flex items-center gap-3">
         <!-- 模式切换 -->
         <div class="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-md">
@@ -54,7 +54,7 @@
                  focus:ring-2 focus:ring-primary/20 focus:border-primary
                  disabled:opacity-50 disabled:cursor-not-allowed
                  border-gray-200 dark:border-gray-700 
-                 bg-white dark:bg-[#171f2e]
+bg-white dark:bg-[#181818]
                  resize-none font-mono text-sm leading-relaxed text-gray-800 dark:text-gray-200 shadow-sm"
           placeholder="# 开始编写对比分析...&#10;&#10;支持 Markdown 格式&#10;- 列表&#10;**加粗**"
           :disabled="disabled"
@@ -71,7 +71,7 @@
         <div 
           v-if="previewHtml"
           class="prose prose-blue dark:prose-invert max-w-none markdown-content
-                 bg-white dark:bg-[#171f2e] p-8 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700/50"
+bg-white dark:bg-[#181818] p-8 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700/50"
           v-html="previewHtml"
           @click="handlePreviewClick"
         ></div>
@@ -81,11 +81,11 @@
           v-else
           @click="isEditMode = true"
           class="h-full flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700
-                 bg-gray-50 dark:bg-[#171f2e]/30
+bg-gray-50 dark:bg-[#181818]/40
                  cursor-pointer hover:border-primary/30 dark:hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-primary/10
                  transition-all duration-200 group"
         >
-          <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-[1.04] dark:bg-[#171f2e]">
+<div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-[1.04] dark:bg-[#181818]">
             <Edit3 class="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors" />
           </div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">暂无分析内容</h3>

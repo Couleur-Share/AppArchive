@@ -58,7 +58,7 @@
                      flex flex-col will-change-transform"
             >
               <!-- 顶部区域：头部信息与标签页 -->
-              <div class="flex-shrink-0 bg-white dark:bg-[#171f2e] z-10 relative">
+              <div class="flex-shrink-0 bg-white dark:bg-[#181818] z-10 relative">
                 <!-- 头部信息 -->
                 <div class="p-5 sm:p-8 pb-0 sm:pb-0">
                   <div class="flex flex-col sm:flex-row gap-5 sm:gap-8">
@@ -271,7 +271,7 @@
                         <button 
                             v-if="showExpandButton"
                             @click="isDescriptionExpanded = !isDescriptionExpanded"
-                            class="mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                            class="mt-2 text-sm font-medium text-primary hover:underline flex items-center gap-1"
                         >
                             {{ isDescriptionExpanded ? '收起描述' : '展开全部' }}
                             <ChevronDown class="w-4 h-4 transition-transform" :class="{'rotate-180': isDescriptionExpanded}" />
@@ -317,7 +317,7 @@
                             </h3>
                             <ul class="space-y-3">
                                 <li v-for="(pro, idx) in (software.pros || [])" :key="idx" class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
-                                    <CheckCircle2 class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                                    <CheckCircle2 class="w-5 h-5 text-primary shrink-0 mt-0.5" />
                                     <span>{{ pro }}</span>
                                 </li>
                                 <li v-if="!(software.pros || []).length" class="text-gray-400 italic">暂无记录</li>
@@ -340,8 +340,8 @@
                     </div>
 
                     <!-- 安全审查 —— 只要有 AI 分析记录就展示此区块 -->
-                    <div v-if="software.analysis_model" :class="hasWarnings ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50' : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40'" class="rounded-lg p-6 shadow-sm border">
-                        <h3 :class="hasWarnings ? 'text-amber-800 dark:text-amber-300' : 'text-emerald-800 dark:text-emerald-300'" class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <div v-if="software.analysis_model" :class="hasWarnings ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50' : 'bg-primary/10 dark:bg-primary/[0.14] border-primary/20 dark:border-primary/24'" class="rounded-lg p-6 shadow-sm border">
+                        <h3 :class="hasWarnings ? 'text-amber-800 dark:text-amber-300' : 'text-[hsl(var(--primary-h)_72%_28%)] dark:text-[hsl(var(--primary-h)_74%_82%)]'" class="text-lg font-bold mb-4 flex items-center gap-2">
                             <svg v-if="hasWarnings" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                             <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                             {{ hasWarnings ? '安全风险与争议事件' : '安全审查' }}
@@ -359,11 +359,11 @@
                             </p>
                         </template>
 
-                        <div v-else class="flex items-center gap-3 text-emerald-700 dark:text-emerald-300">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        <div v-else class="flex items-center gap-3 text-[hsl(var(--primary-h)_72%_28%)] dark:text-[hsl(var(--primary-h)_74%_82%)]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-primary"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                             <span>未发现已知安全风险或争议事件</span>
                         </div>
-                        <p v-if="!hasWarnings" class="mt-3 text-xs text-emerald-600/70 dark:text-emerald-400/50">
+                        <p v-if="!hasWarnings" class="mt-3 text-xs text-primary/80 dark:text-primary/60">
                             基于 AI 知识库{{ hasSafetySource ? '与 Tavily 安全搜索' : '' }}综合审查
                         </p>
                     </div>
@@ -383,18 +383,18 @@
                                     :key="article.id"
                                     :href="article.url"
                                     target="_blank"
-                                    class="group p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
+                                class="group p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
                                 >
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="space-y-1.5">
-                                            <div class="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                                <div class="font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1">
                                                 {{ article.title }}
                                             </div>
                                             <div v-if="article.description" class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
                                                 {{ article.description }}
                                             </div>
                                         </div>
-                                        <ExternalLink class="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0 transition-colors" />
+                                <ExternalLink class="w-4 h-4 text-gray-300 group-hover:text-primary shrink-0 transition-colors" />
                                     </div>
                                 </a>
                             </div>
@@ -562,7 +562,7 @@
               </div>
 
               <!-- 底部导航栏 -->
-              <div class="flex-shrink-0 p-4 sm:p-5 bg-white dark:bg-[#171f2e] border-t border-gray-100 dark:border-gray-800 z-10">
+              <div class="flex-shrink-0 p-4 sm:p-5 bg-white dark:bg-[#181818] border-t border-gray-100 dark:border-gray-800 z-10">
                 <div class="flex items-center justify-between max-w-5xl mx-auto w-full">
                     <Tooltip :content="hasPrev ? `上一个: ${prevSoftware?.name}` : '没有了'">
                         <button 
@@ -1104,7 +1104,7 @@ const afterLeave = () => {
 .markdown-content p { @apply my-2 leading-relaxed text-gray-700 dark:text-gray-300; }
 .markdown-content ul { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
 .markdown-content li { @apply my-1; }
-.markdown-content a { @apply text-blue-500 hover:underline; }
+.markdown-content a { @apply text-primary hover:underline; }
 
 .scroll-mask {
   scrollbar-width: none;

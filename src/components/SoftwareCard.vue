@@ -5,8 +5,8 @@
       class="card-body h-full flex flex-col p-5 rounded-2xl cursor-pointer
              bg-white dark:bg-gray-900 
              border border-gray-200 dark:border-gray-800
-             hover:border-emerald-500/50 dark:hover:border-emerald-500/50
-             shadow-sm hover:shadow-xl hover:shadow-emerald-500/10
+             hover:border-primary/50 dark:hover:border-primary/50
+             shadow-sm hover:shadow-xl hover:shadow-primary/10
              transform-gpu"
       @click="$emit('click', software)"
     >
@@ -34,7 +34,7 @@
 
         <div class="flex-1 min-w-0 pt-1">
           <div class="flex items-center justify-between gap-2">
-            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-500 transition-colors duration-200">
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-primary transition-colors duration-200">
               {{ software.name }}
             </h3>
             
@@ -57,14 +57,14 @@
                 <MenuItems @click.stop class="absolute right-0 mt-2 w-40 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 focus:outline-none z-50 overflow-hidden">
                   <div class="p-1">
                     <MenuItem v-if="software.website" v-slot="{ active }">
-                      <button @click.stop="openSoftwareUrl" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50 text-emerald-500' : 'text-gray-700 dark:text-gray-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2 rounded-lg transition-colors duration-150']">
+                      <button @click.stop="openSoftwareUrl" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-gray-700 dark:text-gray-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2 rounded-lg transition-colors duration-150']">
                         <ArrowUpRight class="w-4 h-4" />
                         <span>访问官网</span>
                       </button>
                     </MenuItem>
                     <div v-if="software.website && canEdit" class="my-1 h-px bg-gray-100 dark:bg-gray-700"></div>
                     <MenuItem v-if="canEdit" v-slot="{ active }">
-                      <button @click.stop="$emit('edit', software)" :class="[active ? 'bg-gray-50 dark:bg-gray-700/50 text-emerald-500' : 'text-gray-700 dark:text-gray-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2 rounded-lg transition-colors duration-150']">
+                      <button @click.stop="$emit('edit', software)" :class="[active ? 'bg-primary/10 dark:bg-primary/[0.14] text-primary' : 'text-gray-700 dark:text-gray-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2 rounded-lg transition-colors duration-150']">
                         <Edit class="w-4 h-4" />
                         <span>编辑</span>
                       </button>
@@ -111,7 +111,7 @@
             </div>
           </template>
         </div>
-        <div class="text-[10px] font-bold text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
+        <div class="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
           了解更多 <ArrowUpRight class="w-3 h-3" />
         </div>
       </div>

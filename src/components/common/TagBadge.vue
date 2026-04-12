@@ -61,21 +61,21 @@ const weightClass = computed(() => (props.strong ? 'font-semibold' : 'font-mediu
 const variantClass = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-900/35 dark:text-blue-300 dark:border-blue-700/70'
+      return 'bg-primary/12 text-[hsl(var(--primary-h)_72%_28%)] border-primary/25 dark:bg-primary/[0.16] dark:text-[hsl(var(--primary-h)_74%_82%)] dark:border-primary/[0.28]'
     case 'info':
-      return 'bg-cyan-50 text-cyan-700 border-cyan-200/80 dark:bg-cyan-900/35 dark:text-cyan-200 dark:border-cyan-700/70'
+      return 'bg-[#539df5]/10 text-[#2c66b6] border-[#539df5]/20 dark:bg-[#539df5]/16 dark:text-[#a8c9ff] dark:border-[#539df5]/28'
     case 'success':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-900/35 dark:text-emerald-300 dark:border-emerald-700/70'
+      return 'bg-[#1db954]/10 text-[#16783d] border-[#1db954]/20 dark:bg-[#1db954]/16 dark:text-[#9be6b7] dark:border-[#1db954]/28'
     case 'warning':
       return 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-900/35 dark:text-amber-300 dark:border-amber-700/70'
     case 'danger':
       return 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-900/35 dark:text-rose-300 dark:border-rose-700/70'
     case 'violet':
-      return 'bg-violet-50 text-violet-700 border-violet-200/80 dark:bg-violet-900/35 dark:text-violet-300 dark:border-violet-700/70'
+      return 'bg-stone-100/85 text-stone-700 border-stone-200/80 dark:bg-[#252525] dark:text-stone-200 dark:border-white/10'
     case 'fuchsia':
-      return 'bg-fuchsia-100/75 text-fuchsia-700 border-fuchsia-200/80 dark:bg-fuchsia-900/40 dark:text-fuchsia-200 dark:border-fuchsia-700/70'
+      return 'bg-zinc-100/85 text-zinc-700 border-zinc-200/80 dark:bg-[#252525] dark:text-zinc-200 dark:border-white/10'
     default:
-      return 'bg-gray-100/80 text-gray-700 border-gray-200/80 dark:bg-gray-800/80 dark:text-gray-300 dark:border-gray-700/80'
+      return 'bg-gray-100/85 text-gray-700 border-gray-200/80 dark:bg-[#252525] dark:text-gray-300 dark:border-white/10'
   }
 })
 

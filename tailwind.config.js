@@ -31,18 +31,18 @@ export default {
 						maxWidth: "none",
 						color: "inherit",
 						a: {
-							color: "#3b82f6",
+							color: "hsl(var(--primary-h) var(--primary-s) 36%)",
 							"&:hover": {
-								color: "#2563eb",
+								color: "hsl(var(--primary-h) var(--primary-s) 30%)",
 							},
 						},
 						// 添加暗色模式支持
 						"html.dark &": {
 							color: "inherit",
 							a: {
-								color: "#60a5fa",
+								color: "hsl(var(--primary-h) 68% 72%)",
 								"&:hover": {
-									color: "#93c5fd",
+									color: "hsl(var(--primary-h) 72% 82%)",
 								},
 							},
 						},
