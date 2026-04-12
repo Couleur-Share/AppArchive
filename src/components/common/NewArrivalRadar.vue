@@ -70,7 +70,7 @@
           type="button"
           class="px-2.5 sm:px-3 py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-sm font-medium transition-all duration-200 border shrink-0"
           :class="mode === item.value
-            ? 'bg-emerald-500 text-emerald-950 border-emerald-400 shadow-[0_16px_32px_-24px_rgba(0,220,130,0.8)]'
+            ? 'bg-[#00c16a] dark:bg-[#00dc82] text-white dark:text-emerald-950 border-[#00c16a] dark:border-[#00dc82] shadow-[0_16px_32px_-24px_rgba(0,193,106,0.75)] dark:shadow-[0_16px_32px_-24px_rgba(0,220,130,0.8)]'
             : 'bg-white/60 dark:bg-slate-900/50 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:text-emerald-700 dark:hover:text-emerald-300'"
           @click="$emit('update:mode', item.value)"
         >

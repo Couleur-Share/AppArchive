@@ -1282,13 +1282,7 @@ button {
 }
 
 .dark .app-home {
-  background:
-    linear-gradient(180deg, rgb(0 220 130 / 0.045), transparent 14%),
-    radial-gradient(120% 42% at 50% -4%, var(--app-bg-accent1), transparent 36%),
-    radial-gradient(72% 26% at 50% 10%, var(--app-bg-accent2), transparent 42%),
-    radial-gradient(circle at 50% 0%, var(--app-bg-accent3), transparent 24%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.012), transparent 16%),
-    linear-gradient(180deg, var(--app-bg-start), var(--app-bg-end));
+  background: #020618;
 }
 
 .top-action-btn {

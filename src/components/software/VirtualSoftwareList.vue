@@ -17,14 +17,8 @@
       <template v-if="viewMode === 'grid'">
         <!-- 图标容器 -->
         <div class="absolute -top-2 left-6 z-10 pointer-events-none">
-          <div class="w-16 h-16 rounded-full overflow-hidden 
-                      bg-white/85 dark:bg-slate-900/85
+          <div class="software-card-icon-shell w-16 h-16 rounded-full overflow-hidden 
                       backdrop-blur-md backdrop-saturate-150
-                      ring-2 ring-white/85 dark:ring-slate-700/55
-                      shadow-[0_18px_32px_-24px_rgba(15,23,42,0.5)]
-                      group-hover:ring-3 group-hover:ring-white/95 dark:group-hover:ring-emerald-400/18
-                      group-hover:shadow-[0_24px_44px_-28px_rgba(0,220,130,0.28)]
-                      group-hover:scale-110 group-hover:bg-white/95 dark:group-hover:bg-slate-900/95
                       transition-all duration-500 ease-out transform-gpu">
             <img
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
@@ -39,13 +33,8 @@
 
         <!-- 卡片主体 -->
         <div
-          class="relative overflow-hidden rounded-lg
-                 bg-white/[0.78] dark:bg-[#081220]/[0.86] p-6 
-                 hover:bg-white/[0.92] dark:hover:bg-[#0b1a2e]/[0.94] 
-                 border border-slate-200/60 dark:border-slate-700/45 
-                 hover:border-emerald-400/30 dark:hover:border-emerald-400/22
-                 backdrop-blur transition-colors duration-100
-                 hover:shadow-[0_26px_56px_-36px_rgba(15,23,42,0.52)] cursor-pointer
+          class="software-grid-card relative overflow-hidden rounded-lg
+                 p-6 cursor-pointer
                  min-h-[280px] flex flex-col z-[1]"
           @click="handleItemClick(item, 'grid')"
         >
@@ -73,11 +62,11 @@
                 </div>
                </div>
                <Menu as="div" class="relative">
-                 <MenuButton @click.stop class="p-1.5 rounded-lg hover:bg-slate-100/80 dark:hover:bg-slate-800/70 transition-all duration-200 opacity-0 group-hover:opacity-100 text-slate-500 dark:text-slate-400 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
+                 <MenuButton @click.stop class="software-card-menu-trigger p-1.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
                    <MoreVertical class="w-4 h-4" />
                  </MenuButton>
                  <transition enter-active-class="transition duration-150 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-100 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
-                   <MenuItems @click.stop class="absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-xl ring-1 ring-slate-200/50 dark:ring-white/10 focus:outline-none z-50 overflow-hidden">
+                   <MenuItems @click.stop class="software-card-menu-panel absolute right-0 mt-1.5 w-36 origin-top-right rounded-lg focus:outline-none z-50 overflow-hidden">
                      <div class="py-1">
                        <MenuItem v-if="item.website" v-slot="{ active }">
                          <button @click.stop="openWebsite(item.website)" :class="[active ? 'bg-slate-50 dark:bg-slate-800/70 text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
@@ -103,23 +92,23 @@
 
              <!-- 描述文本 -->
              <div class="relative flex-grow mt-4">
-               <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
+               <p class="software-card-copy text-sm line-clamp-3 mb-4">
                  {{ getDescription(item.description) }}
                </p>
-               <div v-if="(item.description || '').length > 120" class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/75 backdrop-blur-sm rounded-md shadow-sm whitespace-nowrap pointer-events-none">
+               <div v-if="(item.description || '').length > 120" class="software-card-hint absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2 py-1 text-xs rounded-md whitespace-nowrap pointer-events-none">
                  点击查看完整内容
                </div>
              </div>
 
              <!-- 底部区域 -->
-             <div class="flex items-center mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/35">
+             <div class="software-card-divider flex items-center mt-4 pt-4 border-t">
                <div class="flex items-center gap-2 flex-1 min-w-0">
                 <TagBadge size="sm" strong class="shrink-0" :variant="getLicenseVariant(item.license)">
                    {{ getLicenseLabel(item.license) }}
                 </TagBadge>
                  <div class="flex items-center gap-1">
                    <template v-for="system in item.systems || []" :key="system">
-                     <div class="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-50/45 dark:bg-emerald-500/10 text-slate-600 dark:text-slate-400 shrink-0" :title="system">
+                     <div class="software-card-system-chip flex items-center justify-center w-6 h-6 rounded-lg shrink-0" :title="system">
                        <SystemIcon :system="system" class="w-4 h-4" />
                      </div>
                    </template>
@@ -136,19 +125,14 @@
       <!-- =============================================== -->
       <template v-else>
         <div 
-          class="relative flex items-center gap-4 p-3 rounded-xl
-                 bg-white/[0.76] dark:bg-[#081220]/[0.84] 
-                 hover:bg-white/[0.92] dark:hover:bg-[#0b1a2e]/[0.92]
-                 border border-slate-200/60 dark:border-slate-700/45
-                 hover:border-emerald-400/30 dark:hover:border-emerald-400/22
-                 backdrop-blur transition-all duration-200
-                 hover:shadow-[0_22px_48px_-34px_rgba(15,23,42,0.44)] cursor-pointer"
+          class="software-list-card relative flex items-center gap-4 p-3 rounded-xl
+                 transition-all duration-200 cursor-pointer"
           @click="handleItemClick(item, 'list')"
           @mouseenter="handleMouseEnter"
           @mouseleave="handleMouseLeave"
         >
           <!-- 1. 左侧：小图标 -->
-          <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-white/60 dark:bg-slate-900/85 ring-1 ring-slate-200/60 dark:ring-slate-700/55">
+          <div class="software-card-icon-shell w-12 h-12 shrink-0 rounded-lg overflow-hidden">
             <img
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
@@ -178,7 +162,7 @@
                 New
               </TagBadge>
             </div>
-            <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1 w-full pr-4">
+            <p class="software-card-copy text-sm line-clamp-1 w-full pr-4">
               {{ getDescription(item.description) }}
             </p>
           </div>
@@ -311,6 +295,104 @@ const handleMouseLeave = (e: MouseEvent) => {
 </script>
 
 <style scoped>
+.software-grid-card,
+.software-list-card {
+  background: var(--home-card-bg);
+  border: 1px solid var(--home-card-border);
+  box-shadow: var(--home-card-shadow);
+}
+
+.software-grid-card {
+  backdrop-filter: blur(10px) saturate(116%);
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.software-list-card {
+  backdrop-filter: blur(8px) saturate(112%);
+  transition:
+    background 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.software-grid-card:hover,
+.software-list-card:hover {
+  background: var(--home-card-bg-hover);
+  border-color: var(--home-card-border-hover);
+  box-shadow: var(--home-card-shadow-hover);
+}
+
+.software-grid-card:hover {
+  transform: translateY(-2px);
+}
+
+.software-card-icon-shell {
+  background: var(--home-card-icon-shell);
+  border: 1px solid var(--home-card-icon-ring);
+  box-shadow: 0 14px 28px -24px rgb(15 23 42 / 0.18);
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:global(.dark) .software-card-icon-shell {
+  box-shadow: 0 16px 30px -26px rgb(2 6 23 / 0.52);
+}
+
+.group:hover .software-card-icon-shell {
+  transform: scale(1.03);
+  border-color: var(--home-card-border-hover);
+  box-shadow: 0 18px 34px -28px rgb(2 6 23 / 0.58);
+}
+
+.software-card-menu-trigger {
+  color: color-mix(in srgb, var(--home-text-muted) 82%, var(--home-text-subtle));
+}
+
+.software-card-menu-trigger:hover {
+  color: var(--home-text);
+  background: color-mix(in srgb, var(--home-card-menu-bg) 86%, transparent);
+}
+
+.software-card-menu-panel {
+  background: var(--home-card-menu-bg);
+  border: 1px solid var(--home-card-menu-border);
+  backdrop-filter: blur(12px) saturate(118%);
+  box-shadow: 0 16px 32px -28px rgb(15 23 42 / 0.16);
+}
+
+:global(.dark) .software-card-menu-panel {
+  box-shadow: 0 18px 36px -30px rgb(2 6 23 / 0.56);
+}
+
+.software-card-copy {
+  color: color-mix(in srgb, var(--home-text-muted) 86%, var(--home-text-subtle));
+  transition: color 180ms ease;
+}
+
+.software-card-hint {
+  color: color-mix(in srgb, var(--home-text-muted) 90%, var(--home-text-subtle));
+  background: color-mix(in srgb, var(--home-card-menu-bg) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--home-card-menu-border) 76%, transparent);
+  box-shadow: 0 10px 20px -18px rgb(15 23 42 / 0.22);
+}
+
+.software-card-divider {
+  border-color: var(--home-card-divider);
+}
+
+.software-card-system-chip {
+  background: var(--home-card-system-bg);
+  border: 1px solid var(--home-card-system-border);
+  color: var(--home-text-muted);
+}
+
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;

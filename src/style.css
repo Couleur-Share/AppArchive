@@ -47,6 +47,19 @@
 		rgb(255 255 255 / 0.92),
 		rgb(242 247 245 / 0.88)
 	);
+	--home-card-bg: #f7f9fc;
+	--home-card-bg-hover: #f1f5f9;
+	--home-card-border: rgb(226 232 240 / 0.78);
+	--home-card-border-hover: rgb(0 220 130 / 0.18);
+	--home-card-shadow: 0 26px 56px -38px rgb(15 23 42 / 0.18);
+	--home-card-shadow-hover: 0 30px 62px -38px rgb(15 23 42 / 0.24);
+	--home-card-divider: rgb(226 232 240 / 0.74);
+	--home-card-icon-shell: rgb(255 255 255 / 0.9);
+	--home-card-icon-ring: rgb(226 232 240 / 0.82);
+	--home-card-menu-bg: rgb(255 255 255 / 0.95);
+	--home-card-menu-border: rgb(226 232 240 / 0.76);
+	--home-card-system-bg: rgb(255 255 255 / 0.68);
+	--home-card-system-border: rgb(226 232 240 / 0.7);
 	--home-border: rgb(148 163 184 / 0.22);
 	--home-border-strong: rgb(148 163 184 / 0.32);
 	--home-shadow: 0 24px 58px -36px rgb(15 23 42 / 0.28);
@@ -73,14 +86,10 @@
 	);
 	--home-tab-indicator-glow:
 		0 10px 18px -10px rgb(0 220 130 / 0.5), 0 0 0 1px rgb(94 233 173 / 0.08);
-	--home-tab-badge-active-bg: linear-gradient(
-		180deg,
-		rgb(119 246 193 / 0.98),
-		rgb(0 220 130 / 0.94)
-	);
-	--home-tab-badge-active-text: rgb(3 20 14);
+	--home-tab-badge-active-bg: #00c16a;
+	--home-tab-badge-active-text: rgb(255 255 255);
 	--home-tab-badge-active-shadow:
-		0 12px 20px -14px rgb(0 220 130 / 0.52), inset 0 1px 0
+		0 12px 20px -14px rgb(0 193 106 / 0.52), inset 0 1px 0
 		rgb(255 255 255 / 0.38);
 	--home-tab-hover: rgb(249 252 252 / 0.92);
 	--home-nav-btn-bg: linear-gradient(
@@ -117,8 +126,8 @@
 
 .dark:root {
 	--primary-l: 46%;
-	--app-bg-start: oklch(0.14 0.018 252);
-	--app-bg-end: oklch(0.08 0.012 252);
+	--app-bg-start: #020618;
+	--app-bg-end: #020618;
 	--app-bg-accent1: rgb(0 220 130 / 0.14);
 	--app-bg-accent2: rgb(45 212 191 / 0.06);
 	--app-bg-accent3: rgb(255 255 255 / 0.02);
@@ -136,6 +145,23 @@
 		rgb(9 18 33 / 0.96),
 		rgb(4 12 23 / 0.98)
 	);
+	--home-card-bg: #091023;
+	--home-card-bg-hover: #0f172b;
+	--home-card-border: rgb(148 163 184 / 0.14);
+	--home-card-border-hover: rgb(94 233 173 / 0.1);
+	--home-card-shadow:
+		0 18px 36px -32px rgb(2 6 23 / 0.48), inset 0 1px 0
+		rgb(255 255 255 / 0.025);
+	--home-card-shadow-hover:
+		0 20px 42px -32px rgb(2 6 23 / 0.56), inset 0 1px 0
+		rgb(255 255 255 / 0.03);
+	--home-card-divider: rgb(51 65 85 / 0.26);
+	--home-card-icon-shell: rgb(8 14 28 / 0.98);
+	--home-card-icon-ring: rgb(71 85 105 / 0.34);
+	--home-card-menu-bg: rgb(7 13 26 / 0.98);
+	--home-card-menu-border: rgb(71 85 105 / 0.18);
+	--home-card-system-bg: rgb(255 255 255 / 0.02);
+	--home-card-system-border: rgb(51 65 85 / 0.24);
 	--home-border: rgb(71 85 105 / 0.38);
 	--home-border-strong: rgb(148 163 184 / 0.18);
 	--home-shadow: 0 34px 84px -46px rgb(2 6 23 / 0.9);
@@ -160,11 +186,7 @@
 		transparent 100%
 	);
 	--home-tab-indicator-glow: 0 8px 16px -14px rgb(0 220 130 / 0.18);
-	--home-tab-badge-active-bg: linear-gradient(
-		180deg,
-		rgb(119 246 193 / 0.98),
-		rgb(0 220 130 / 0.94)
-	);
+	--home-tab-badge-active-bg: #00dc82;
 	--home-tab-badge-active-text: rgb(4 23 16);
 	--home-tab-badge-active-shadow:
 		0 14px 24px -14px rgb(0 220 130 / 0.42), inset 0 1px 0
