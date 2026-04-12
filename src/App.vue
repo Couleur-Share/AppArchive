@@ -1273,19 +1273,23 @@ button {
 .app-home {
   color: var(--home-text);
   background:
-    radial-gradient(circle at 14% 0%, var(--app-bg-accent1), transparent 24%),
-    radial-gradient(circle at 100% 12%, var(--app-bg-accent2), transparent 28%),
-    radial-gradient(circle at 50% 100%, var(--app-bg-accent3), transparent 34%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.24), transparent 12%),
-    linear-gradient(180deg, var(--app-bg-start), var(--app-bg-end));
+    radial-gradient(circle at 14% -4%, var(--app-bg-accent1), transparent 26%),
+    radial-gradient(circle at 100% 10%, var(--app-bg-accent2), transparent 30%),
+    radial-gradient(circle at 50% 112%, var(--app-bg-accent3), transparent 38%),
+    linear-gradient(180deg, var(--app-bg-top-glow) 0%, var(--app-bg-top-veil) 12%, transparent 24%),
+    linear-gradient(180deg, transparent 66%, var(--app-bg-bottom-glow) 88%, var(--app-bg-bottom-shade) 100%),
+    linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 18%, var(--app-bg-end) 74%, var(--app-bg-bottom-end) 100%);
   background-repeat: no-repeat;
 }
 
 .dark .app-home {
   background:
-    radial-gradient(circle at 16% 0%, var(--app-bg-accent1), transparent 18%),
+    radial-gradient(circle at 16% -6%, var(--app-bg-accent1), transparent 24%),
     radial-gradient(circle at 100% 0%, var(--app-bg-accent2), transparent 22%),
-    linear-gradient(180deg, #121212, #121212);
+    radial-gradient(circle at 50% 110%, var(--app-bg-accent3), transparent 30%),
+    linear-gradient(180deg, var(--app-bg-top-glow) 0%, var(--app-bg-top-veil) 16%, transparent 30%),
+    linear-gradient(180deg, transparent 64%, var(--app-bg-bottom-glow) 86%, var(--app-bg-bottom-shade) 100%),
+    linear-gradient(180deg, var(--app-bg-start) 0%, var(--app-bg-mid) 18%, var(--app-bg-end) 74%, var(--app-bg-bottom-end) 100%);
 }
 
 .top-action-btn {
