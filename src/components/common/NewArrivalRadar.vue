@@ -1,6 +1,6 @@
 <template>
   <section
-    class="relative overflow-hidden rounded-[22px] border border-slate-200/70 bg-[#f7f8f7] shadow-[0_18px_36px_-30px_rgba(18,18,18,0.18)] dark:border-white/[0.08] dark:bg-[#181818]"
+    class="new-arrival-card relative overflow-hidden rounded-[22px] border"
   >
     <div class="relative space-y-3 px-3 py-3 sm:space-y-4 sm:px-5 sm:py-5">
       <div class="flex items-start justify-between gap-2 sm:gap-3">
@@ -146,6 +146,33 @@ const compactHintText = computed(() => {
 </script>
 
 <style scoped>
+.new-arrival-card {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--home-surface-strong) 94%, white) 0%,
+      color-mix(in srgb, var(--home-surface-soft) 92%, transparent) 100%
+    );
+  border-color: color-mix(in srgb, var(--home-border) 90%, transparent);
+  box-shadow:
+    0 18px 36px -30px rgb(15 23 42 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.38);
+  backdrop-filter: blur(12px) saturate(112%);
+}
+
+:global(.dark) .new-arrival-card {
+  background:
+    linear-gradient(
+      180deg,
+      rgb(26 31 39 / 0.96) 0%,
+      rgb(19 23 30 / 0.98) 100%
+    );
+  border-color: color-mix(in srgb, var(--home-border) 96%, transparent);
+  box-shadow:
+    0 24px 44px -32px rgb(0 0 0 / 0.56),
+    inset 0 1px 0 rgb(255 255 255 / 0.03);
+}
+
 .radar-dot {
   background: color-mix(in srgb, var(--home-text-subtle) 78%, transparent);
   transition:
