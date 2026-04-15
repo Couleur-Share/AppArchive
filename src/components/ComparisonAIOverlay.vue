@@ -1,146 +1,148 @@
 <template>
-  <Transition :css="false" @enter="onEnter" @leave="onLeave">
-    <div
-      v-if="active"
-      class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden px-6 py-10"
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      <div ref="backdropLayer" class="absolute inset-0">
-        <div class="comparison-overlay-backdrop absolute inset-0"></div>
-      </div>
+  <Teleport to="body">
+    <Transition :css="false" @enter="onEnter" @leave="onLeave">
+      <div
+        v-if="active"
+        class="fixed inset-0 z-[120] flex items-center justify-center overflow-hidden px-6 py-10"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <div ref="backdropLayer" class="absolute inset-0">
+          <div class="comparison-overlay-backdrop absolute inset-0"></div>
+        </div>
 
-      <div ref="panelRef" class="relative z-10 w-full max-w-5xl">
-        <div class="comparison-panel overflow-hidden rounded-[28px] border">
-          <div class="flex items-center justify-between gap-4 border-b border-slate-900/[0.06] px-6 py-4 dark:border-white/[0.08]">
-            <div class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
-              <span class="comparison-panel-dot h-2 w-2 rounded-full"></span>
-              Comparison Analysis
-            </div>
-            <div class="comparison-progress-chip rounded-full px-3 py-1 text-[11px] font-semibold">
-              {{ Math.round(visualProgress) }}%
-            </div>
-          </div>
-
-          <div class="grid gap-7 px-6 py-7 lg:px-8 lg:py-8">
-            <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(260px,320px)_minmax(0,1fr)] md:items-center">
-              <div ref="leftNodeRef" class="comparison-node md:justify-self-end">
-                <div class="comparison-node-card rounded-2xl p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-[#121212] dark:text-slate-300">
-                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 7.5h16M7.5 4v16M8 15l2.5-2.5 2 2L16 11" />
-                      </svg>
-                    </div>
-                    <div class="min-w-0">
-                      <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 01</p>
-                      <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">校验上下文与结构</p>
-                    </div>
-                  </div>
-                </div>
+        <div ref="panelRef" class="relative z-10 w-full max-w-5xl">
+          <div class="comparison-panel overflow-hidden rounded-[28px] border">
+            <div class="flex items-center justify-between gap-4 border-b border-slate-900/[0.06] px-6 py-4 dark:border-white/[0.08]">
+              <div class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
+                <span class="comparison-panel-dot h-2 w-2 rounded-full"></span>
+                Comparison Analysis
               </div>
-
-              <div
-                ref="centerNodeRef"
-                class="comparison-center rounded-[24px] p-6"
-              >
-                <div class="flex items-start justify-between gap-4">
-                  <div class="flex items-center gap-3">
-                    <div class="comparison-center-icon relative flex h-14 w-14 items-center justify-center rounded-full border border-primary/20">
-                      <svg class="relative z-10 h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 6h8m-7 6h6m-8 6h10M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">汇总中</p>
-                      <h3 class="mt-1 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-                        构建对比结论
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div class="comparison-stage-chip rounded-full px-3 py-1 text-[11px] font-semibold">
-                    主流程
-                  </div>
-                </div>
-
-                <div class="mt-6 space-y-3">
-                  <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                    <span>Difference Map</span>
-                    <span>{{ Math.round(visualProgress) }}%</span>
-                  </div>
-                  <div class="comparison-progress-track h-1.5 overflow-hidden rounded-full">
-                    <div
-                      class="comparison-progress h-full rounded-full"
-                      :style="{ transform: `scaleX(${Math.min(Math.max(visualProgress, 0), 100) / 100})` }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              <div ref="rightNodeRef" class="comparison-node md:justify-self-start">
-                <div class="comparison-node-card rounded-2xl p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-[#121212] dark:text-slate-300">
-                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M6 7h12M6 12h8m-8 5h12" />
-                      </svg>
-                    </div>
-                    <div class="min-w-0">
-                      <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 02</p>
-                      <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">归纳关键差异维度</p>
-                    </div>
-                  </div>
-                </div>
+              <div class="comparison-progress-chip rounded-full px-3 py-1 text-[11px] font-semibold">
+                {{ Math.round(visualProgress) }}%
               </div>
             </div>
 
-            <div ref="textBlockRef" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
-              <div class="space-y-3 text-center lg:text-left">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                  Comparison Analysis
-                </p>
-                <h4 class="text-[1.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-                  正在整理多软件对比结论
-                </h4>
-                <div class="relative h-6 overflow-hidden">
-                  <TransitionGroup name="comparison-status">
-                    <p
-                      v-if="currentMessage"
-                      :key="currentMessage"
-                      class="absolute inset-x-0 text-sm text-slate-600 dark:text-slate-300 lg:inset-x-auto"
-                    >
-                      {{ currentMessage }}
-                    </p>
-                  </TransitionGroup>
+            <div class="grid gap-7 px-6 py-7 lg:px-8 lg:py-8">
+              <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(260px,320px)_minmax(0,1fr)] md:items-center">
+                <div ref="leftNodeRef" class="comparison-node md:justify-self-end">
+                  <div class="comparison-node-card rounded-2xl p-4">
+                    <div class="flex items-center gap-3">
+                      <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-[#121212] dark:text-slate-300">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 7.5h16M7.5 4v16M8 15l2.5-2.5 2 2L16 11" />
+                        </svg>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 01</p>
+                        <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">校验上下文与结构</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  会先归纳候选软件的共同点与关键差异，再生成推荐和最终总结。
-                </p>
-              </div>
 
-              <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
                 <div
-                  v-for="phase in phaseItems"
-                  :key="phase.label"
-                  class="rounded-xl border px-3 py-2.5 text-left transition-colors duration-200"
-                  :class="phase.current
-                    ? 'border-primary/[0.3] bg-primary/[0.08] text-[hsl(var(--primary-h)_72%_26%)] dark:border-primary/[0.28] dark:bg-primary/[0.12] dark:text-[hsl(var(--primary-h)_72%_80%)]'
-                    : phase.active
-                      ? 'border-slate-900/[0.08] bg-slate-900/[0.03] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-200'
-                      : 'border-slate-900/[0.06] bg-white/70 text-slate-400 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-500'"
+                  ref="centerNodeRef"
+                  class="comparison-center rounded-[24px] p-6"
                 >
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Stage {{ phase.index }}</p>
-                  <p class="mt-1 text-sm font-medium tracking-tight">{{ phase.label }}</p>
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                      <div class="comparison-center-icon relative flex h-14 w-14 items-center justify-center rounded-full border border-primary/20">
+                        <svg class="relative z-10 h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 6h8m-7 6h6m-8 6h10M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">汇总中</p>
+                        <h3 class="mt-1 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                          构建对比结论
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div class="comparison-stage-chip rounded-full px-3 py-1 text-[11px] font-semibold">
+                      主流程
+                    </div>
+                  </div>
+
+                  <div class="mt-6 space-y-3">
+                    <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                      <span>Difference Map</span>
+                      <span>{{ Math.round(visualProgress) }}%</span>
+                    </div>
+                    <div class="comparison-progress-track h-1.5 overflow-hidden rounded-full">
+                      <div
+                        class="comparison-progress h-full rounded-full"
+                        :style="{ transform: `scaleX(${Math.min(Math.max(visualProgress, 0), 100) / 100})` }"
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div ref="rightNodeRef" class="comparison-node md:justify-self-start">
+                  <div class="comparison-node-card rounded-2xl p-4">
+                    <div class="flex items-center gap-3">
+                      <div class="comparison-node-icon flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-[#121212] dark:text-slate-300">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M6 7h12M6 12h8m-8 5h12" />
+                        </svg>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">候选 02</p>
+                        <p class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">归纳关键差异维度</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div ref="textBlockRef" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
+                <div class="space-y-3 text-center lg:text-left">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                    Comparison Analysis
+                  </p>
+                  <h4 class="text-[1.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                    正在整理多软件对比结论
+                  </h4>
+                  <div class="relative h-6 overflow-hidden">
+                    <TransitionGroup name="comparison-status">
+                      <p
+                        v-if="currentMessage"
+                        :key="currentMessage"
+                        class="absolute inset-x-0 text-sm text-slate-600 dark:text-slate-300 lg:inset-x-auto"
+                      >
+                        {{ currentMessage }}
+                      </p>
+                    </TransitionGroup>
+                  </div>
+                  <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">
+                    会先归纳候选软件的共同点与关键差异，再生成推荐和最终总结。
+                  </p>
+                </div>
+
+                <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+                  <div
+                    v-for="phase in phaseItems"
+                    :key="phase.label"
+                    class="rounded-xl border px-3 py-2.5 text-left transition-colors duration-200"
+                    :class="phase.current
+                      ? 'border-primary/[0.3] bg-primary/[0.08] text-[hsl(var(--primary-h)_72%_26%)] dark:border-primary/[0.28] dark:bg-primary/[0.12] dark:text-[hsl(var(--primary-h)_72%_80%)]'
+                      : phase.active
+                        ? 'border-slate-900/[0.08] bg-slate-900/[0.03] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-200'
+                        : 'border-slate-900/[0.06] bg-white/70 text-slate-400 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-500'"
+                  >
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Stage {{ phase.index }}</p>
+                    <p class="mt-1 text-sm font-medium tracking-tight">{{ phase.label }}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
