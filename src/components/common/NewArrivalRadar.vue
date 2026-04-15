@@ -43,7 +43,7 @@
           <button
             v-if="canCollapse"
             type="button"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-500 transition-all duration-200 hover:border-slate-300 hover:text-slate-700 dark:border-white/[0.08] dark:bg-[#1f1f1f] dark:text-slate-400 dark:hover:border-white/[0.12] dark:hover:text-slate-200 sm:h-8 sm:w-8"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 transition-all duration-200 hover:border-slate-300 hover:text-slate-700 dark:border-white/[0.08] dark:bg-[#1f1f1f] dark:text-slate-400 dark:hover:border-white/[0.12] dark:hover:text-slate-200 sm:h-8 sm:w-8"
             title="收起新增面板"
             aria-label="收起新增面板"
             @click="emit('collapse')"
@@ -58,7 +58,7 @@
           v-for="item in modeOptions"
           :key="item.value"
           type="button"
-          class="radar-pill shrink-0 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 sm:px-3 sm:text-sm"
+          class="radar-pill shrink-0 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 sm:px-3 sm:text-sm"
           :class="mode === item.value ? 'radar-pill--active' : 'radar-pill--inactive'"
           @click="$emit('update:mode', item.value)"
         >

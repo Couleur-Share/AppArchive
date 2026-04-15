@@ -36,7 +36,7 @@
       <button
         v-if="hasIcon && !disabled"
         type="button"
-        class="absolute -top-2 -right-2 p-1 rounded-full bg-gray-900/80 text-white shadow-level2 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-500 dark:bg-gray-700 dark:hover:bg-gray-600"
+        class="absolute -top-2 -right-2 p-1 rounded-md bg-gray-900/80 text-white shadow-level2 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-500 dark:bg-gray-700 dark:hover:bg-gray-600"
         @click="clearIcon"
         title="移除图标"
         aria-label="移除图标"

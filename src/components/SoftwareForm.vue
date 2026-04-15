@@ -65,7 +65,7 @@
            <button
             type="button"
             @click="closeFormDialog"
-            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors app-modal-close-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors app-modal-close-btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40"
           >
             <X class="w-5 h-5" />
           </button>

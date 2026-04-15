@@ -444,7 +444,7 @@ html {
 }
 
 .app-modal-close-btn {
-	border-radius: 9999px;
+	border-radius: 8px;
 	transition:
 		color 150ms var(--ease),
 		background-color 150ms var(--ease),

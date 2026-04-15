@@ -163,7 +163,7 @@
                   <button
                     v-if="canEdit"
                     @click="$emit('edit')"
-                    class="flex items-center gap-2 rounded-full border border-primary/35 bg-primary px-6 py-3 font-medium text-slate-950 transition-all duration-200 hover:brightness-[0.98] hover:shadow-md"
+                    class="flex items-center gap-2 rounded-lg border border-primary/35 bg-primary px-6 py-3 font-medium text-slate-950 transition-all duration-200 hover:brightness-[0.98] hover:shadow-md"
                   >
                     <Plus class="w-5 h-5" />
                     创建比较

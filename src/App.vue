@@ -26,7 +26,7 @@
           </nav>
 
           <!-- 布局切换按钮 -->
-          <div class="top-actions-bar flex items-center gap-1.5 shrink-0 rounded-xl border p-1.5">
+          <div class="top-actions-bar hidden sm:flex items-center gap-1.5 shrink-0 rounded-xl border p-1.5">
             <button
               v-if="shouldHideNewArrivalRadar"
               @click="handleExpandNewArrivalRadar"
@@ -100,12 +100,12 @@
       <!-- 分页组件 -->
       <div class="mt-7 sm:mt-9 mb-9 sm:mb-12 flex justify-center px-4">
         <BlurFade :delay="0.06" :offset="6" direction="up" inView>
-        <nav class="pagination-shell inline-flex items-center gap-1.5 sm:gap-2 rounded-full border px-2 py-2 sm:px-3 sm:py-3" v-gsap="'fade'">
+        <nav class="pagination-shell inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border px-2 py-2 sm:px-3 sm:py-3" v-gsap="'fade'">
           <!-- 上一页按钮 -->
           <button
             @click="onPageChange(currentPage - 1)"
             :disabled="currentPage === 0"
-            class="pagination-nav-btn h-10 w-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn h-10 w-10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="currentPage === 0 ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'"
           >
             <svg
@@ -129,7 +129,7 @@
               <button
                 v-if="shouldShowPageButton(page)"
                 @click="onPageChange(page - 1)"
-                class="pagination-page-btn flex h-10 min-w-[2.5rem] items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200"
+                class="pagination-page-btn flex h-10 min-w-[2.5rem] items-center justify-center rounded-lg px-3 text-sm font-semibold transition-all duration-200"
                 :class="[
                   currentPage === page - 1
                     ? 'pagination-page-btn--active'
@@ -156,7 +156,7 @@
           <button
             @click="onPageChange(currentPage + 1)"
             :disabled="currentPage >= Math.ceil(totalItems / pageSize) - 1"
-            class="pagination-nav-btn h-10 w-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
+            class="pagination-nav-btn h-10 w-10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
             :class="
               currentPage >= Math.ceil(totalItems / pageSize) - 1
                 ? 'text-gray-400'

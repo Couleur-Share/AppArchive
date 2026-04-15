@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: 8px;
   color: var(--home-nav-btn-color);
   background: var(--home-nav-btn-bg);
   box-shadow: var(--home-accent-shadow);
