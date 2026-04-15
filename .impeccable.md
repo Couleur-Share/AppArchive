@@ -9,33 +9,70 @@
 - The product is also used for sharing curated software knowledge across others (LAN/shared access and share links).
 
 ### Brand Personality
-- Three-word personality: rational, refined, restrained.
+- Three-word personality: precise, immersive, functional.
 - Emotional goals:
-  - Calm efficiency for daily management.
+  - Calm efficiency — the UI recedes so software content takes center stage.
   - Professional trustworthiness for selection decisions.
-  - Subtle technology exploration feel, especially in AI-related moments.
+  - Subtle technology-signaling feel concentrated in AI workflows.
 - Tone guidance:
-  - Utility-first and precise.
-  - Detailed and polished in interaction quality.
+  - Utility-first and compact.
+  - Dark-first immersive experience — the interface disappears behind content.
   - Never noisy, playful, or trend-chasing.
 
 ### Aesthetic Direction
-- Direction: minimal foundation with subtle tech accents.
-- Theme strategy: light and dark are equally first-class (no secondary mode).
+- Direction: Spotify-inspired "content-first darkness" with achromatic UI and functional green accent.
+- Theme strategy: dark mode is the signature experience; light mode is a fully supported alternative (class-based `darkMode: "class"`).
 - Color strategy:
-  - Required primary accent: HSL 160-degree green family (`--primary-h: 160`).
-  - Neutral grays/slates dominate overall surfaces and typography.
+  - Brand accent: Spotify Green (`#1ed760`, `--primary-h: 141`, `--primary-s: 75%`, `--primary-l: 48%`).
+  - Green is functional only — play/active states, CTAs, state indicators. Never decorative.
+  - Dark surfaces: near-black (`#121212` → `#181818` → `#1f1f1f`), depth via shade variation.
+  - Light surfaces: soft gray-greens (`#f3f5f4` → `#e8ece9`) with subtle green-tinted radial accents.
+  - Text: white (`#ffffff`) primary / silver (`#b3b3b3`) secondary on dark; slate spectrum on light.
+  - Semantic: negative red (`#f3727f`), warning orange (`#ffa42b`), announcement blue (`#539df5`).
   - Avoid warm high-saturation dominant palettes (large red/orange/yellow fields).
 - Visual language:
-  - Clean structure, restrained glass/blur usage, soft borders, measured depth.
-  - Technology-signaling motion/effects should be concentrated in AI workflows, not spread everywhere.
-- References:
-  - Positive: Nuxt UI/Nuxt visual language, Linear, Raycast (precision, polish, restraint).
-  - Anti-reference: crowded legacy admin dashboards and over-decorated SaaS gradient-heavy UIs.
+  - Pill-and-circle geometry: pill buttons (500px–9999px radius), circular controls (50% radius).
+  - Heavy shadows on dark backgrounds (`rgba(0,0,0,0.3)–rgba(0,0,0,0.5)` at 8px–24px blur).
+  - Compact, dense layout — every pixel serves the task, not decorative breathing room.
+  - Technology-signaling motion/effects concentrated in AI workflows, not spread everywhere.
+- Reference: Spotify Web Player (dark immersion, functional green, pill geometry, content-as-color).
+- Anti-reference: crowded legacy admin dashboards, over-decorated SaaS gradient-heavy UIs, light-mode-first generic dashboards.
+
+### Typography Rules
+- Font: system stack via Tailwind (no custom web fonts).
+- Hierarchy through weight contrast (700 bold / 400 regular), not size variation.
+- Compact sizing range: body 16px, nav/caption/button 14px, small 12px, heading up to 32px.
+- Button labels: uppercase + wide letter-spacing (1.4px–2px) for systematic "label" voice when appropriate.
+
+### Component Patterns
+- **Buttons**: pill-shaped (radius 500px–9999px), dark surface (`#1f1f1f`), white text. Circular (50%) for play/action controls.
+- **Cards**: `#181818` or `#1f1f1f` on dark, `#f7f9fb` on light. Radius 6px–8px. Hover: background lightening + shadow intensification.
+- **Inputs**: pill-shaped (radius 500px), `#1f1f1f` on dark with inset border-shadow combo.
+- **Elevation**: 4 levels — Base (`#121212`) → Surface (`#181818`) → Elevated (shadow 0.3 opacity) → Dialog (shadow 0.5 opacity, 24px blur).
+- **Scrollbars**: thin (5px), rounded, muted thumb colors matching theme.
+- **Modals**: backdrop blur, gradient panel backgrounds, green-tinted emphasis borders.
+
+### Spacing & Layout
+- Base unit: 8px. Scale: 4px / 8px / 12px / 16px / 20px.
+- Border radius scale: 2px (badges) → 4px (inputs) → 6px (cards) → 8px (sections) → 500px (pill buttons) → 9999px (nav pills) → 50% (circles).
+- Default transition: 150ms `cubic-bezier(0.4, 0, 0.2, 1)`.
+
+### Quick Color Reference
+| Role | Dark | Light |
+|------|------|-------|
+| Background | `#121212` | `#f3f5f4` |
+| Surface | `#181818` | `#f7f9fb` |
+| Interactive | `#1f1f1f` | `#ffffff` |
+| Accent | `#1ed760` | `#1ed760` |
+| Accent border | `#1db954` | `#1db954` |
+| Text primary | `#ffffff` | `rgb(17 24 39)` |
+| Text secondary | `#b3b3b3` | `rgb(100 116 139)` |
+| Border | `rgb(255 255 255 / 0.08)` | `rgb(15 23 42 / 0.08)` |
+| Error | `#f3727f` | `#f3727f` |
 
 ### Design Principles
-1. Information First: prioritize scanability, findability, and decision clarity over decorative novelty.
-2. Calm by Default, Expressive by Context: keep base UI restrained; reserve high-impact motion/effects for AI and comparison moments.
-3. Accent Discipline: neutrals carry hierarchy; green accent communicates action/state and remains sparse for emphasis.
-4. Dual-Theme Parity: every screen/component must feel intentionally designed in both light and dark modes.
-5. Accessible Precision: support reduced motion, maintain at least WCAG AA contrast targets, and avoid color-only critical cues.
+1. Content First: the UI is achromatic by design — software icons and content provide the color. Interface recedes into dark/neutral backgrounds.
+2. Functional Green: Spotify Green (`#1ed760`) communicates action and state only. It remains sparse for emphasis — never used decoratively or on large surfaces.
+3. Compact Density: this is an app for scanning catalogs and making decisions, not a marketing site. Pack content tightly; dark backgrounds provide visual rest without large gaps.
+4. Dual-Theme Support: both dark and light modes must feel intentionally designed. Dark is signature; light is not an afterthought.
+5. Accessible Precision: support `prefers-reduced-motion`, maintain WCAG AA contrast targets, avoid color-only critical cues.
