@@ -259,7 +259,7 @@
                 >
                 <div v-if="activeTab === 'overview'" class="space-y-8 max-w-4xl mx-auto">
                   <!-- 产品描述 -->
-                  <section class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                  <section class="software-detail-card rounded-lg p-6">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         关于软件
                     </h3>
@@ -288,7 +288,7 @@
                       <div
                         v-for="(feature, index) in coreFeatures"
                         :key="index"
-                        class="p-5 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:shadow-md transition-shadow duration-300"
+                        class="software-detail-card software-detail-card--interactive rounded-lg p-5"
                       >
                         <div class="text-base font-bold text-gray-900 dark:text-white mb-1.5">
                           {{ feature.title }}
@@ -299,7 +299,7 @@
                       </div>
                       <div
                         v-if="coreFeatures.length === 0"
-                        class="col-span-full py-8 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700"
+                        class="software-detail-card col-span-full rounded-lg border-dashed py-8 text-center text-gray-500 dark:text-gray-400"
                       >
                         暂无核心特性记录
                       </div>
@@ -311,7 +311,7 @@
                 <div v-else-if="activeTab === 'details'" class="space-y-8 max-w-4xl mx-auto">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- 优势 -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                        <div class="software-detail-card rounded-lg p-6">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 优点
                             </h3>
@@ -325,7 +325,7 @@
                         </div>
                         
                         <!-- 劣势 -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                        <div class="software-detail-card rounded-lg p-6">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 缺点
                             </h3>
@@ -383,7 +383,7 @@
                                     :key="article.id"
                                     :href="article.url"
                                     target="_blank"
-                                class="group p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+                                class="software-detail-card software-detail-card--interactive group rounded-xl p-5 transition-all duration-300"
                                 >
                                     <div class="flex items-start justify-between gap-3">
                                         <div class="space-y-1.5">
@@ -400,7 +400,7 @@
                             </div>
                         </div>
                     </div>
-                    <div v-else class="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                    <div v-else class="software-detail-card flex flex-col items-center justify-center rounded-lg border-dashed py-20 text-center">
                         <div class="w-16 h-16 mb-6 rounded-full bg-gray-50 dark:bg-gray-900/20 flex items-center justify-center">
                             <Link class="w-8 h-8 text-gray-400" />
                         </div>
@@ -427,7 +427,7 @@
                         </div>
                    </div>
 
-                   <div v-else-if="!comparedSoftwares.length" class="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                   <div v-else-if="!comparedSoftwares.length" class="software-detail-card flex flex-col items-center justify-center rounded-lg border-dashed py-20 text-center">
                         <div class="w-16 h-16 mb-6 rounded-full bg-gray-50 dark:bg-gray-900/20 flex items-center justify-center">
                             <FileSearch class="w-8 h-8 text-gray-400" />
                         </div>
@@ -462,7 +462,7 @@
                                 <div
                                   v-for="sw in [software, ...comparedSoftwares]"
                                   :key="sw.id"
-                                  class="flex-none w-[300px] bg-white dark:bg-gray-800 rounded-lg p-5 border border-gray-200 dark:border-gray-700 shadow-sm"
+                                  class="software-detail-card software-detail-card--interactive flex-none w-[300px] rounded-lg p-5"
                                 >
                                    <div class="flex items-center gap-3 mb-4">
                                   <img :src="getIconUrl(sw.icon || '')" class="w-10 h-10 rounded-lg bg-gray-100" />
@@ -487,7 +487,7 @@
                         </div>
 
                         <!-- 综合分析 -->
-                        <div v-if="comparisonSummary" class="bg-white dark:bg-gray-800 rounded-lg p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                        <div v-if="comparisonSummary" class="software-detail-card rounded-lg p-6 sm:p-8">
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                                 综合分析
                             </h3>
@@ -500,13 +500,13 @@
                 <div v-else-if="activeTab === 'private'" class="space-y-8 max-w-4xl mx-auto">
                     <div class="grid gap-6">
                         <!-- 下载链接 -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                        <div class="software-detail-card rounded-lg p-6">
                              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 下载资源
                              </h3>
                              <div v-if="hasDownloadLinks" class="space-y-3">
                                 <div v-for="link in software.download_links" :key="link.id" 
-                                     class="p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors group">
+                                     class="software-detail-subcard software-detail-subcard--interactive rounded-lg p-4 transition-colors group">
                                      <div class="flex items-start justify-between gap-4">
                                         <div class="space-y-1">
                                             <div class="flex items-center gap-2">
@@ -536,12 +536,12 @@
                         </div>
 
                         <!-- 敏感信息 -->
-                        <div v-if="hasSecrets" class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-700/50">
+                        <div v-if="hasSecrets" class="software-detail-card rounded-lg p-6">
                              <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                 私密数据
                              </h3>
                              <div class="space-y-3">
-                                <div v-for="sec in software.secrets" :key="sec.id" class="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 dark:bg-gray-900/10 border border-gray-100 dark:border-gray-700/50">
+                                <div v-for="sec in software.secrets" :key="sec.id" class="software-detail-subcard flex items-center justify-between rounded-lg p-4">
                                     <div>
                                         <div class="flex items-center gap-2 mb-1">
                                             <TagBadge size="xs" variant="neutral" strong class="uppercase">{{ getSecretKindLabel(sec.kind) }}</TagBadge>
@@ -1105,6 +1105,66 @@ const afterLeave = () => {
 .markdown-content ul { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
 .markdown-content li { @apply my-1; }
 .markdown-content a { @apply text-primary hover:underline; }
+
+.software-detail-card {
+  border: 1px solid var(--modal-card-border-light);
+  background: var(--modal-card-bg-light);
+  box-shadow: var(--modal-card-shadow-light);
+}
+
+.dark .software-detail-card {
+  border-color: var(--modal-card-border-dark);
+  background: var(--modal-card-bg-dark);
+  box-shadow: var(--modal-card-shadow-dark);
+}
+
+.software-detail-card--interactive {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .software-detail-card--interactive:hover {
+    transform: translateY(-1px);
+    border-color: var(--modal-card-border-emphasis-light);
+    box-shadow: var(--modal-card-shadow-hover-light);
+  }
+
+  .dark .software-detail-card--interactive:hover {
+    border-color: var(--modal-card-border-emphasis-dark);
+    box-shadow: var(--modal-card-shadow-hover-dark);
+  }
+}
+
+.software-detail-subcard {
+  border: 1px solid var(--modal-card-border-light);
+  background: var(--modal-card-subtle-bg-light);
+  transition:
+    border-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .software-detail-subcard {
+  border-color: var(--modal-card-border-dark);
+  background: var(--modal-card-subtle-bg-dark);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .software-detail-subcard--interactive:hover {
+    border-color: var(--modal-card-border-emphasis-light);
+    background: color-mix(in srgb, var(--modal-card-subtle-bg-light) 92%, white);
+    box-shadow: 0 16px 24px -24px rgb(15 23 42 / 0.2);
+  }
+
+  .dark .software-detail-subcard--interactive:hover {
+    border-color: var(--modal-card-border-emphasis-dark);
+    background: color-mix(in srgb, var(--modal-card-subtle-bg-dark) 88%, rgb(255 255 255 / 0.06));
+    box-shadow: 0 16px 24px -24px rgb(0 0 0 / 0.44);
+  }
+}
 
 .scroll-mask {
   scrollbar-width: none;
