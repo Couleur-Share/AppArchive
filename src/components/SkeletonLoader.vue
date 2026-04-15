@@ -5,34 +5,31 @@
       <div 
         v-for="n in count" 
         :key="n"
-        class="bg-white/30 dark:bg-gray-800/30 rounded-2xl p-6 min-h-[280px] flex flex-col"
+        class="skeleton-card rounded-xl p-6 min-h-[280px] flex flex-col"
       >
-        <!-- 顶部：图标 + 标题 -->
         <div class="flex items-start gap-4 mb-4">
-          <div class="w-16 h-16 rounded-full bg-gray-200/70 dark:bg-gray-700/60"></div>
+          <div class="w-16 h-16 rounded-full skeleton-bone-strong"></div>
           <div class="flex-1 min-w-0 pt-1">
-            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+            <div class="h-4 skeleton-bone rounded w-3/4 mb-2"></div>
+            <div class="h-3 skeleton-bone rounded w-1/2"></div>
           </div>
         </div>
 
-        <!-- 中部：描述 -->
         <div class="space-y-2 mb-4">
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+          <div class="h-3 skeleton-bone rounded w-full"></div>
+          <div class="h-3 skeleton-bone rounded w-5/6"></div>
+          <div class="h-3 skeleton-bone rounded w-2/3"></div>
         </div>
 
-        <!-- 底部：标签 + 系统 -->
-        <div class="mt-auto flex items-center justify-between pt-4 border-t border-gray-200/40 dark:border-gray-700/40">
+        <div class="mt-auto flex items-center justify-between pt-4 border-t skeleton-divider">
           <div class="flex items-center gap-2">
-            <div class="h-5 w-10 rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-5 w-10 rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-10 rounded skeleton-bone"></div>
+            <div class="h-5 w-10 rounded skeleton-bone"></div>
           </div>
           <div class="flex items-center gap-1">
-            <div class="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-5 w-5 rounded bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-5 w-5 rounded skeleton-bone"></div>
+            <div class="h-5 w-5 rounded skeleton-bone"></div>
+            <div class="h-5 w-5 rounded skeleton-bone"></div>
           </div>
         </div>
       </div>
@@ -43,14 +40,14 @@
       <div 
         v-for="n in count" 
         :key="n"
-        class="bg-white/30 dark:bg-gray-800/30 rounded-xl p-3 flex items-center gap-4"
+        class="skeleton-card rounded-xl p-3 flex items-center gap-4"
       >
-        <div class="w-12 h-12 rounded-lg bg-gray-200/70 dark:bg-gray-700/60"></div>
+        <div class="w-12 h-12 rounded-lg skeleton-bone-strong"></div>
         <div class="flex-1 min-w-0">
-          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mb-2"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div class="h-4 skeleton-bone rounded w-2/3 mb-2"></div>
+          <div class="h-3 skeleton-bone rounded w-1/2"></div>
         </div>
-        <div class="h-6 w-12 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div class="h-6 w-12 rounded skeleton-bone"></div>
       </div>
     </div>
   </div>
@@ -59,7 +56,25 @@
 <script setup lang="ts">
 defineProps<{
   count: number
-  // 骨架布局类型：网格 or 列表
   variant?: 'grid' | 'list'
 }>()
-</script> 
+</script>
+
+<style scoped>
+.skeleton-card {
+  background: color-mix(in srgb, var(--home-card-bg) 62%, transparent);
+  border: 1px solid color-mix(in srgb, var(--home-card-border) 50%, transparent);
+}
+
+.skeleton-bone {
+  background: color-mix(in srgb, var(--home-text-subtle) 16%, transparent);
+}
+
+.skeleton-bone-strong {
+  background: color-mix(in srgb, var(--home-text-subtle) 22%, transparent);
+}
+
+.skeleton-divider {
+  border-color: color-mix(in srgb, var(--home-card-divider) 50%, transparent);
+}
+</style>

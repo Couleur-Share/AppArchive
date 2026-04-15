@@ -42,6 +42,8 @@
             @click="handleRefresh"
             class="app-header-icon-btn hidden sm:block px-3 py-2 rounded-lg focus:outline-none"
             :class="{ 'animate-spin': isLoading }"
+            title="刷新列表"
+            aria-label="刷新列表"
           >
             <RotateCcw class="h-5 w-5" />
           </button>
@@ -50,6 +52,8 @@
           <button
             @click="$emit('settings')"
             class="app-header-icon-btn hidden sm:block px-3 py-2 rounded-lg focus:outline-none"
+            title="设置"
+            aria-label="设置"
           >
             <Settings class="h-5 w-5" />
           </button>
@@ -111,8 +115,6 @@ import SearchBar from '../common/SearchBar.vue'
 import ThemeToggle from '../common/ThemeToggle.vue'
 
 const { showToast } = useToast()
-
-const titleText = '软件清单'
 
 const props = defineProps<{
   isSignedIn: boolean

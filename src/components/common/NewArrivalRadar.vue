@@ -1,6 +1,6 @@
 <template>
   <section
-    class="new-arrival-card relative overflow-hidden rounded-[22px] border"
+    class="new-arrival-card relative overflow-hidden rounded-xl border"
   >
     <div class="relative px-3.5 py-3.5 sm:px-5 sm:py-4">
       <div class="flex flex-col gap-3.5 sm:gap-4">

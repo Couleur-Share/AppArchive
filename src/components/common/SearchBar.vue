@@ -1,11 +1,12 @@
 <template>
   <div class="relative w-36 sm:w-48 lg:w-56">
+    <SearchIcon class="search-bar-icon absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
     <input
       :value="modelValue"
       @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       type="text"
       placeholder="搜索软件..."
-      class="search-bar-input w-full px-3 sm:px-4 py-2 rounded-xl text-sm transition-all duration-200"
+      class="search-bar-input w-full pl-9 pr-3 sm:pl-10 sm:pr-4 py-2 rounded-xl text-sm transition-all duration-200"
     />
     <button
       v-show="modelValue"
@@ -18,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { XCircle } from 'lucide-vue-next'
+import { Search as SearchIcon, XCircle } from 'lucide-vue-next'
 
 defineProps<{
   modelValue: string
@@ -56,5 +57,11 @@ defineEmits<{
 
 .search-bar-clear:hover {
   color: var(--home-text-strong);
+}
+
+.search-bar-icon {
+  color: var(--home-text-muted);
+  pointer-events: none;
+  transition: color 150ms var(--ease);
 }
 </style>

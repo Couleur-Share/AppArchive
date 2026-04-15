@@ -33,7 +33,7 @@
 
         <!-- 卡片主体 -->
         <div
-          class="software-grid-card relative overflow-hidden rounded-lg
+          class="software-grid-card relative overflow-hidden rounded-xl
                  p-6 cursor-pointer
                  min-h-[280px] flex flex-col z-[1]"
           @click="handleItemClick(item, 'grid')"

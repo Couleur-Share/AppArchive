@@ -105,22 +105,10 @@
           <button
             @click="onPageChange(currentPage - 1)"
             :disabled="currentPage === 0"
-            class="pagination-nav-btn h-10 w-10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
-            :class="currentPage === 0 ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300'"
+            class="pagination-nav-btn inline-flex items-center justify-center h-10 w-10 rounded-lg disabled:cursor-not-allowed group shrink-0"
+            aria-label="上一页"
           >
-            <svg
-              class="w-5 h-5 transform transition-transform group-hover:-translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <ChevronLeft class="w-5 h-5 transition-transform group-hover:-translate-x-0.5" />
           </button>
 
           <!-- 页码按钮 -->
@@ -156,26 +144,10 @@
           <button
             @click="onPageChange(currentPage + 1)"
             :disabled="currentPage >= Math.ceil(totalItems / pageSize) - 1"
-            class="pagination-nav-btn h-10 w-10 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 group shrink-0"
-            :class="
-              currentPage >= Math.ceil(totalItems / pageSize) - 1
-                ? 'text-gray-400'
-                : 'text-gray-700 dark:text-gray-300'
-            "
+            class="pagination-nav-btn inline-flex items-center justify-center h-10 w-10 rounded-lg disabled:cursor-not-allowed group shrink-0"
+            aria-label="下一页"
           >
-            <svg
-              class="w-5 h-5 transform transition-transform group-hover:translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <ChevronRight class="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
           </button>
         </nav>
         </BlurFade>
@@ -240,7 +212,7 @@
 
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
-import { LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BlurFade from './components/animations/BlurFade.vue'
@@ -250,7 +222,6 @@ import AppHeader from './components/layout/AppHeader.vue'
 import SkeletonLoader from './components/SkeletonLoader.vue'
 import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
 import { isSignedIn, logout, openPasswordDialog, showLoginDialog, showPasswordDialog, user } from './lib/auth'
-import { comparisonService } from './services/comparison'
 import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
 import { type LicenseType, type Software, type SoftwareListItem, type SystemType } from './types'
@@ -327,7 +298,6 @@ const Toast = defineAsyncComponent(() => import('./components/common/Toast.vue')
 const DeleteConfirmDialog = defineAsyncComponent(() => import('./components/common/DeleteConfirmDialog.vue'))
 const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsDialog.vue'))
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
-const ComparisonResult = defineAsyncComponent(() => import('./components/ComparisonResult.vue'))
 const LoginDialog = defineAsyncComponent(() => import('./components/auth/LoginDialog.vue'))
 const ChangePasswordDialog = defineAsyncComponent(() => import('./components/auth/ChangePasswordDialog.vue'))
 
@@ -367,7 +337,6 @@ const showSettings = ref(false)
 const filterSystems = ref<string[]>([])
 const sortBy = ref<keyof Software>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
-const showFeedback = ref(false)
 const showDeleteDialog = ref(false)
 const softwareToDelete = ref<SoftwareListItem | null>(null)
 const isDeleting = ref(false)
@@ -375,7 +344,6 @@ const showCompareDialog = ref(false)
 const softwareToCompare = ref<Software | null>(null)
 const softwareComparisons = ref<Record<number, boolean>>({})
 const isLoading = ref(false)
-const query = ref('')
 const isSubmitting = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const gridColumns = ref(4)
@@ -578,52 +546,13 @@ const loadCachedSoftwares = (options: { allowStale?: boolean } = {}) => {
   }
 }
 
-// 监听 filteredSoftwares 变化来更新总数 (移除)
-/*
-watch(filteredSoftwares, (newVal) => {
-  totalItems.value = newVal.length
-})
-*/
-
-// 移除 paginatedBase，直接使用 paginatedSoftwares (已定义为 ref)
-/*
-const paginatedBase = computed(() => { ... })
-const paginatedSoftwares = computed(() => { ... })
-*/
-
-// 监听分页变化，触发数据获取 (移除，改为在 handlePageChange 中手动触发)
-/*
-watch([currentPage, pageSize], () => {
-  fetchSoftwares({ showLoading: true })
-})
-*/
-
 // 包装翻页方法
 const onPageChange = (page: number) => {
   handlePageChange(page)
   fetchSoftwares({ showLoading: true })
 }
 
-// 监听当前页数据，加载对比信息 (已移除无用的 N+1 请求)
-/*
-watch(paginatedSoftwares, async (newSoftwares) => {
-  // ... 移除无用的并行请求逻辑 ...
-}, { immediate: true })
-*/
-
-const getDeviceCoreCount = () => {
-  return navigator.hardwareConcurrency ?? 4
-}
-
-// 移除渐进式渲染相关函数
-/*
-const getBatchSize = () => { ... }
-const getBatchDelay = () => { ... }
-const startProgressiveRender = () => { ... }
-*/
-
 onBeforeUnmount(() => {
-  // if (progressiveTimer !== null) { ... }
   window.removeEventListener('resize', updateGridColumns)
 })
 
@@ -676,17 +605,6 @@ watch([newArrivalMode, showNewOnly], () => {
   persistNewArrivalSettings()
 })
 
-// 移除 watch([paginatedBase, viewMode])
-/*
-watch([paginatedBase, viewMode], () => {
-  startProgressiveRender()
-}, { immediate: true })
-*/
-
-const toggleSortOrder = () => {
-  sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-}
-
 const toggleViewMode = () => {
   viewMode.value = viewMode.value === 'grid' ? 'list' : 'grid'
 }
@@ -725,23 +643,6 @@ const closeDialog = () => {
   showAddDialog.value = false
   showEditDialog.value = false
   editingSoftware.value = undefined
-}
-
-// 添加一个提取原始图片 URL 的函数
-const extractOriginalImageUrl = (notionUrl: string): string => {
-  try {
-    // 1. 从 Notion URL 中提取编码的原始 URL
-    const match = notionUrl.match(/image\/(.*?)\?/)
-    if (!match || !match[1]) return notionUrl
-
-    // 2. 解码 URL
-    const decodedUrl = decodeURIComponent(match[1])
-
-    return decodedUrl
-  } catch (error) {
-    logger.error('提取图片 URL 失败:', error)
-    return notionUrl
-  }
 }
 
 // 修改 handleFormSubmit 方法
@@ -784,42 +685,11 @@ const handleFormSubmit = async (software: Partial<Software>) => {
   }
 }
 
-// 添加删除处理函数
-const handleDelete = (id: number) => {
-  const software = paginatedSoftwares.value.find((s) => s.id === id)
-  if (software) {
-    paginatedSoftwares.value = paginatedSoftwares.value.filter((s) => s.id !== id)
-    showToast(`已删除 "${software.name}"`, 'success')
-  }
-}
-
-// 添加清除搜索的方法
-const clearSearch = () => {
-  searchTerm.value = ''
-  query.value = ''
-}
-
-const tabRefs = ref<HTMLElement[]>([])
-const activeTabWidth = ref(0)
-const activeTabLeft = ref(0)
-
-// 监听 activeCategory 的变化来更新指示条位置
 watch(
   activeCategory,
   () => {
-    // 切换分类时重置到第 1 页
     currentPage.value = 0
-    fetchSoftwares({ showLoading: true }) // 触发重新获取
-    nextTick(() => {
-      const activeIndex = ['all', ...categories].indexOf(activeCategory.value)
-      const activeTab = tabRefs.value[activeIndex]
-      if (activeTab) {
-        const textWidth = activeTab.offsetWidth
-        activeTabWidth.value = textWidth * 0.6
-        activeTabLeft.value =
-          activeTab.offsetLeft + (textWidth - activeTabWidth.value) / 2
-      }
-    })
+    fetchSoftwares({ showLoading: true })
   },
   { immediate: true }
 )
@@ -1070,12 +940,6 @@ const handleSignOut = () => {
 // 登录成功回调
 const handleLoginSuccess = () => {
   showToast('登录成功', 'success')
-}
-
-const handleCategoryChange = (newCategory: string) => {
-  activeCategory.value = newCategory
-  // 重置分页到第一页
-  currentPage.value = 0
 }
 
 const selectedSoftware = ref<SoftwareListItem | null>(null)
@@ -1386,37 +1250,7 @@ button {
   background: none !important;
 }
 
-/* 确保渐变效果不被其他样式覆盖 */
-.bg-gradient-to-br {
-  background-image: linear-gradient(
-    to bottom right,
-    var(--tw-gradient-stops)
-  ) !important;
-}
-
-.category-move, /* 应用于移动中的元素 */
-.category-enter-active,
-.category-leave-active {
-  transition: all 0.5s ease;
-}
-
-.category-enter-from,
-.category-leave-to {
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-/* 确保离的项目不会影响布局 */
-.category-leave-active {
-  position: absolute;
-}
-
-/* 优化移动动画的持续间 */
-.animate__fadeIn {
-  --animate-duration: 0.2s;
-}
-
-/* 优化动画持续时间 */
+/* animate.css 自定义持续时间（Toast 组件使用） */
 .animate__animated {
   --animate-duration: 0.5s;
   --animate-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1426,7 +1260,7 @@ button {
   --animate-duration: 0.3s;
 }
 
-/* 确保动画不会影响性能 */
+
 @media (prefers-reduced-motion: reduce) {
   .animate__animated {
     animation: none !important;
@@ -1447,226 +1281,12 @@ button {
   .top-action-btn:focus-visible,
   .pagination-nav-btn:focus-visible,
   .pagination-page-btn:focus-visible {
+    outline: 2px solid var(--home-tab-badge-active-bg);
+    outline-offset: 2px;
     box-shadow: none !important;
   }
 }
 
-/* 自定义动画持续时间 */
-.animate__duration-200 {
-  --animate-duration: 0.2s;
-}
-
-.animate__duration-300 {
-  --animate-duration: 0.3s;
-}
-
-/* 添加交错动画延迟 */
-.animate__delay-1 {
-  --animate-delay: 0.1s;
-}
-
-.animate__delay-2 {
-  --animate-delay: 0.2s;
-}
-
-/* 自定义淡入上移动画 */
-@keyframes smoothFadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate__smoothFadeInUp {
-  animation-name: smoothFadeInUp;
-}
-
-/* 自定义淡动画 */
-@keyframes smoothFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.animate__smoothFadeIn {
-  animation-name: smoothFadeIn;
-}
-
-/* 添加动态光晕效果 */
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* 更新卡片样式 */
-.bg-white\/30 {
-  backdrop-filter: blur(12px);
-  background: rgba(249, 250, 249, 0.78);
-  border: 1px solid rgba(24, 24, 24, 0.08);
-}
-
-.dark .bg-gray-900\/30 {
-  backdrop-filter: blur(12px);
-  background: rgba(24, 24, 24, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-@keyframes dance {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  25% {
-    transform: translateY(-12px) scale(1.1);
-  }
-  50% {
-    transform: translateY(4px) scale(0.9);
-  }
-  75% {
-    transform: translateY(-6px) scale(1.05);
-  }
-}
-
-@keyframes dot {
-  0%, 20% {
-    opacity: 0;
-    transform: translateY(0);
-  }
-  40% {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  80%, 100% {
-    opacity: 0;
-    transform: translateY(0);
-  }
-}
-
-@keyframes glow {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 0.7;
-    filter: brightness(0.8);
-  }
-}
-
-/* 替换原有的加载点样式 */
-.w-3.h-3 {
-  background: linear-gradient(to right, var(--dot-color-start), var(--dot-color-end));
-  animation: dance 1.5s ease-in-out infinite var(--delay), glow 1.5s ease-in-out infinite;
-}
-
-/* 为每个点设置不同的渐变色 */
-.w-3.h-3:nth-child(1) {
-  --dot-color-start: #334155;
-  --dot-color-end: #64748b;
-  --delay: 0s;
-}
-
-.w-3.h-3:nth-child(2) {
-  --dot-color-start: #475569;
-  --dot-color-end: #94a3b8;
-  --delay: 0.1s;
-}
-
-.w-3.h-3:nth-child(3) {
-  --dot-color-start: #4d4d4d;
-  --dot-color-end: #7c7c7c;
-  --delay: 0.2s;
-}
-
-.w-3.h-3:nth-child(4) {
-  --dot-color-start: #94a3b8;
-  --dot-color-end: #cbd5e1;
-  --delay: 0.3s;
-}
-
-.w-3.h-3:nth-child(5) {
-  --dot-color-start: #b3b3b3;
-  --dot-color-end: #ededed;
-  --delay: 0.4s;
-}
-
-/* 修改 glow 动画以实现更平滑的渐变效果 */
-@keyframes glow {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 0.7;
-    filter: brightness(0.8);
-  }
-}
-
-/* 更新 dance 动画使其更流畅 */
-@keyframes dance {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  25% {
-    transform: translateY(-12px) scale(1.1);
-  }
-  50% {
-    transform: translateY(4px) scale(0.9);
-  }
-  75% {
-    transform: translateY(-6px) scale(1.05);
-  }
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-gradient {
-  background-size: 200% auto;
-  animation: gradient 3s linear infinite;
-}
-
-/* 添加渐变动画 */
-@keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient {
-  animation: gradient 3s linear infinite;
-}
-
-/* 优化分页组件样式 */
-.inline-flex {
-  display: inline-flex;
-}
 
 /* 移除数字输入框的上下箭头 */
 input[type="number"]::-webkit-inner-spin-button,
@@ -1677,19 +1297,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-/* 添加分页按钮的激活状态样式 */
-@media (hover: none) {
-  .pagination-button:active {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
-}
-
-/* 优化省略号的显示 */
-.ellipsis {
-  @apply text-gray-400 dark:text-gray-600 font-medium select-none;
 }
 
 /* 新增雷达展开/收起过渡 */
