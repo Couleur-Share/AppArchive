@@ -26,7 +26,7 @@
         ></div>
 
         <!-- 弹窗容器 -->
-        <div class="flex min-h-full items-center justify-center p-4">
+        <div class="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4">
           <Transition
             enter-active-class="duration-260 ease-[cubic-bezier(0.25,1,0.5,1)]"
             enter-from-class="opacity-0 translate-y-1.5 scale-[0.985]"
@@ -39,153 +39,242 @@
             <div
               ref="dialogPanelRef"
               tabindex="-1"
-              class="relative w-full max-w-6xl h-[min(88dvh,980px)] transform overflow-hidden rounded-2xl app-modal-panel app-modal-panel--interactive transition-all flex flex-col ring-1 ring-gray-900/5 z-10"
+              class="comparison-manager-panel relative z-10 flex h-[96dvh] w-screen transform flex-col overflow-hidden rounded-t-[20px] app-modal-panel app-modal-panel--interactive ring-1 ring-gray-900/5 transition-all sm:h-[min(90dvh,960px)] sm:w-full sm:max-w-[1180px] sm:rounded-2xl"
               @click.stop
             >
               <!-- 顶部标题栏 -->
-<div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181818] z-10">
-                <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
-                    <LayoutDashboard class="w-6 h-6" />
+              <div class="comparison-manager-surface flex-shrink-0 border-b border-gray-200/70 px-4 py-4 dark:border-white/10 sm:px-6 sm:py-5">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div class="flex min-w-0 items-start gap-3 sm:gap-4">
+                    <div class="comparison-manager-icon-shell flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-gray-700 dark:text-gray-200">
+                      <LayoutDashboard class="w-5 h-5" />
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 id="comparison-manager-title" class="text-lg font-bold leading-tight text-gray-900 dark:text-white sm:text-xl">
+                          管理软件对比
+                        </h3>
+                        <TagBadge
+                          size="xs"
+                          variant="neutral"
+                          :label="props.software.category || '未分类'"
+                        />
+                      </div>
+                      <p class="mt-1 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                        围绕
+                        <span class="font-medium text-gray-700 dark:text-gray-200">{{ props.software.name }}</span>
+                        管理对比对象。
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                  <h3 id="comparison-manager-title" class="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-                    管理软件对比
-                  </h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      选择软件进行全方位对比分析，支持智能总结
-                    </p>
+
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                      <BaseButton
+                        variant="primary"
+                        size="sm"
+                        :disabled="!canStartAnalysis"
+                        @click="startAIAnalysis"
+                      >
+                        <Loader2 v-if="isAnalyzing" class="w-4 h-4 animate-spin" />
+                        <Sparkles v-else class="w-4 h-4" />
+                        {{ analysisButtonLabel }}
+                      </BaseButton>
+
+                      <Tooltip content="导出为图片">
+                        <IconButton
+                            type="button"
+                            size="sm"
+                            :disabled="!canExport"
+                            aria-label="导出对比结果为图片"
+                            title="导出为图片"
+                            @click="exportAsImage"
+                        >
+                            <Download class="w-5 h-5" />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip content="关闭 (Esc)">
+                        <IconButton
+                            type="button"
+                            size="sm"
+                            @click="closeDialog"
+                            aria-label="关闭对比管理弹窗"
+                        >
+                            <X class="w-5 h-5" />
+                        </IconButton>
+                      </Tooltip>
+                    </div>
                   </div>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                  <!-- AI 分析按钮 -->
-                  <button
-                    type="button"
-                    @click="startAIAnalysis"
-                    class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm border"
-                    :class="[
-                        isAnalyzing 
-                            ? 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 cursor-wait'
-                            : 'bg-primary text-slate-950 border-primary/40 hover:brightness-[0.98] hover:shadow-md active:scale-[0.985]'
-                    ]"
-                    :disabled="isAnalyzing"
-                  >
-                    <Sparkles class="w-4 h-4" :class="{ 'opacity-70': isAnalyzing }" />
-                    {{ isAnalyzing ? '正在分析...' : '智能分析' }}
-                  </button>
-
-                  <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1 hidden sm:block"></div>
-
-                  <!-- 导出/分享按钮组 -->
-                  <Tooltip content="导出为图片">
-                    <button
-                        type="button"
-                        @click="exportAsImage"
-                        class="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors"
-                    >
-                        <Download class="w-5 h-5" />
-                    </button>
-                  </Tooltip>
-
-                  <Tooltip content="关闭 (Esc)">
-                    <button
-                        type="button"
-                        @click="closeDialog"
-                        class="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white transition-colors app-modal-close-btn"
-                        aria-label="关闭对比管理弹窗"
-                    >
-                        <X class="w-5 h-5" />
-                    </button>
-                  </Tooltip>
                 </div>
               </div>
 
               <!-- 主体内容区：左右分栏 -->
-              <div class="flex-1 flex overflow-hidden">
-                <!-- 左侧：软件选择 (30%) -->
-<div class="w-80 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#181818] z-10">
-                    <!-- 搜索框 -->
-                    <div class="p-4 border-b border-gray-100 dark:border-gray-800">
-                        <div class="relative">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input 
-                                ref="searchInputRef"
-                                v-model="searchQuery"
-                                type="text" 
-                                placeholder="搜索添加软件..." 
-                                class="w-full pl-9 pr-4 py-2 rounded-md bg-gray-100 dark:bg-gray-800 border-none text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-primary/25"
-                            >
+              <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
+                <!-- 左侧：软件选择 -->
+                <aside class="comparison-manager-surface flex min-h-0 flex-col border-b border-gray-200/70 dark:border-white/10 lg:w-[352px] lg:flex-shrink-0 lg:border-b-0 lg:border-r">
+                  <div class="px-4 pt-4 sm:px-5">
+                    <div class="comparison-manager-base-card rounded-xl border p-4">
+                      <div class="flex items-start gap-3">
+                        <img
+                          :src="getIconUrl(props.software.icon)"
+                          :alt="props.software.name"
+                          class="h-12 w-12 shrink-0 rounded-xl border border-gray-200/70 bg-white object-cover shadow-sm dark:border-white/10 dark:bg-[#1f1f1f]"
+                          loading="lazy"
+                          decoding="async"
+                          referrerpolicy="origin"
+                        >
+                        <div class="min-w-0">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <TagBadge size="xs" variant="primary" label="基准软件" />
+                            <TagBadge size="xs" variant="neutral" :label="props.software.category || '未分类'" />
+                          </div>
+                          <h4 class="mt-2 truncate text-sm font-semibold text-gray-900 dark:text-white sm:text-base">
+                            {{ props.software.name }}
+                          </h4>
                         </div>
+                      </div>
                     </div>
-                    
-                    <!-- 软件列表 -->
-                    <div class="flex-1 overflow-hidden relative">
-<div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-[#181818]/60 z-10 backdrop-blur-[1px]">
-                            <Loader2 class="w-6 h-6 animate-spin text-primary" />
-                         </div>
-                         <ComparableSoftwareList
-                            :items="filteredSoftware"
-                            :is-selected="isSelected"
-                            :disabled="isLoading"
-                            :row-height="72"
-                            @toggle="toggleComparison"
-                          />
-                    </div>
-                    
-                    <!-- 底部统计 -->
-<div class="p-3 text-center text-xs text-gray-400 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#181818]">
-                        共 {{ comparableSoftware.length }} 个可选软件
-                    </div>
-                </div>
+                  </div>
 
-                <!-- 右侧：对比结果 (70%) -->
-                <div class="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-transparent relative">
-                    <!-- 已选软件 Chip 栏 -->
-<div class="flex-shrink-0 p-4 bg-white dark:bg-[#181818] border-b border-gray-200/50 dark:border-gray-700/30 overflow-x-auto no-scrollbar">
-                        <div class="flex items-center gap-2">
-                            <div 
-                               v-for="comp in selectedComparisons" 
-                               :key="comp.id"
-                               class="flex-shrink-0 flex items-center gap-2 pl-2 pr-1 py-1 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
-                            >
-                               <img :src="getIconUrl(comp.target.icon)" class="w-5 h-5 rounded-md bg-white object-cover" />
-                               <span class="text-sm font-medium text-gray-900 dark:text-gray-100 max-w-[120px] truncate">{{ comp.target.name }}</span>
-                               <button 
-                                   type="button"
-                                   @click="removeComparison(comp.id)"
-                                   class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex-shrink-0"
-                               >
-                                   <X class="w-3.5 h-3.5" />
-                               </button>
-                            </div>
-                             
-                             <div v-if="selectedComparisons.length === 0" class="text-sm text-gray-400 flex items-center gap-2 px-2">
-                                <ArrowLeft class="w-4 h-4" />
-                                请从左侧列表选择软件进行对比
-                             </div>
-                             
-                             <button
-                                type="button"
-                                v-if="selectedComparisons.length > 0"
-                                @click="clearAllComparisons"
-                                class="ml-auto flex-shrink-0 text-xs text-gray-400 hover:text-red-500 transition-colors px-2"
-                             >
-                                清空全部
-                             </button>
+                  <div class="px-4 pb-4 pt-4 sm:px-5">
+                    <div class="flex items-center justify-between gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                      <label for="comparison-manager-search">搜索候选软件</label>
+                      <span>{{ filteredSoftware.length }} / {{ remainingComparableSoftware.length }}</span>
+                    </div>
+                    <div class="comparison-manager-search mt-2 flex items-center gap-2 rounded-xl border px-3 py-2">
+                      <Search class="h-4 w-4 shrink-0 text-gray-400" />
+                      <input
+                        id="comparison-manager-search"
+                        ref="searchInputRef"
+                        v-model="searchQuery"
+                        type="text"
+                        placeholder="名称、分类或描述"
+                        class="comparison-manager-search-input min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white dark:placeholder:text-gray-500"
+                      >
+                      <button
+                        v-if="hasSearchQuery"
+                        type="button"
+                        class="comparison-manager-inline-btn inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200"
+                        @click="clearSearch"
+                      >
+                        <X class="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="min-h-0 flex-1 overflow-hidden px-2 pb-2 sm:px-3">
+                    <div class="comparison-manager-list-shell comparison-manager-surface comparison-manager-surface--muted relative h-full overflow-hidden rounded-xl">
+                      <div v-if="isLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/80 px-6 text-center backdrop-blur-sm dark:bg-[#181818]/88">
+                        <Loader2 class="h-6 w-6 animate-spin text-primary" />
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ loadingText }}</p>
+                      </div>
+                      <ComparableSoftwareList
+                        :items="filteredSoftware"
+                        :is-selected="isSelected"
+                        :disabled="isLoading"
+                        :row-height="82"
+                        @toggle="toggleComparison"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="comparison-manager-footer flex items-center justify-between gap-3 border-t px-4 py-3 text-xs text-gray-500 dark:text-gray-400 sm:px-5">
+                    <span>{{ listMetaLabel }}</span>
+                  </div>
+                </aside>
+
+                <!-- 右侧：对比结果 -->
+                <section class="flex min-h-0 min-w-0 flex-1 flex-col">
+                  <div class="comparison-manager-surface comparison-manager-selection-strip border-b border-gray-200/70 px-4 py-4 dark:border-white/10 sm:px-6">
+                    <div class="flex flex-col gap-3">
+                      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-1">
+                          <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                            当前比较组
+                          </p>
+                          <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
+                            {{ selectedComparisons.length > 0
+                              ? `已纳入 ${selectedComparisons.length} 款对比对象`
+                              : '先从左侧添加对比对象' }}
+                          </p>
                         </div>
-                    </div>
+                        <button
+                          v-if="selectedComparisons.length > 0"
+                          type="button"
+                          class="comparison-manager-inline-btn inline-flex items-center justify-center self-start rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                          @click="clearAllComparisons"
+                        >
+                          清空全部
+                        </button>
+                      </div>
 
-                    <!-- 编辑器区域 -->
-                    <div class="flex-1 overflow-hidden" ref="exportContentRef">
-                        <ComparisonEditor
-                          v-model="summary"
-                          :preview-html="formattedSummary"
-                          :saving-state="savingState"
-                          :disabled="isSaving"
-                        />
+                      <div
+                        v-if="selectedComparisons.length > 0"
+                        class="comparison-manager-selection-scroll flex max-h-[128px] flex-wrap gap-2 overflow-y-auto pr-1"
+                      >
+                        <div
+                          v-for="comp in selectedComparisons"
+                          :key="comp.id"
+                          class="comparison-manager-chip grid min-h-[72px] min-w-0 grid-cols-[auto,minmax(0,1fr),auto] items-center gap-3 rounded-xl border px-3 py-2.5"
+                        >
+                          <img
+                            :src="getIconUrl(comp.target.icon)"
+                            :alt="comp.target.name"
+                            class="h-9 w-9 shrink-0 rounded-lg border border-gray-200/70 bg-white object-cover dark:border-white/10 dark:bg-[#1f1f1f]"
+                          >
+                          <div class="min-w-0 self-center">
+                            <p class="truncate text-sm font-medium leading-5 text-gray-900 dark:text-gray-100">
+                              {{ comp.target.name }}
+                            </p>
+                            <p class="mt-0.5 truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400">
+                              {{ comp.target.category || '未分类' }}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            class="comparison-manager-inline-btn inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                            :aria-label="`移除 ${comp.target.name}`"
+                            @click="removeComparison(comp.id)"
+                          >
+                            <X class="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        v-else
+                        class="comparison-manager-empty flex items-start gap-3 rounded-xl border border-dashed px-4 py-4"
+                      >
+                        <div class="comparison-manager-empty-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-gray-500 dark:text-gray-300">
+                          <ArrowLeft class="h-4 w-4" />
+                        </div>
+                        <div class="space-y-1">
+                          <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            还没有加入对比对象
+                          </p>
+                          <p class="text-xs leading-5 text-gray-500 dark:text-gray-400">
+                            从左侧选择软件后即可开始分析。
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                </div>
+                  </div>
+
+                  <!-- 编辑器区域 -->
+                  <div ref="exportContentRef" class="min-h-0 flex-1 overflow-hidden">
+                    <ComparisonEditor
+                      v-model="summary"
+                      :preview-html="formattedSummary"
+                      :saving-state="savingState"
+                      :disabled="isSaving"
+                      :selected-count="selectedComparisons.length"
+                      :base-software-name="props.software.name"
+                      :is-analyzing="isAnalyzing"
+                      @request-analysis="startAIAnalysis"
+                    />
+                  </div>
+                </section>
               </div>
             </div>
           </Transition>
@@ -208,6 +297,9 @@ import { getIconUrl } from '../services/localIconCache'
 import type { Software, SoftwareListItem } from '../types'
 import logger from '../utils/logger'
 import ComparisonAIOverlay from './ComparisonAIOverlay.vue'
+import BaseButton from './common/BaseButton.vue'
+import IconButton from './common/IconButton.vue'
+import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
 import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
 import ComparisonEditor from './comparison/ComparisonEditor.vue'
@@ -257,6 +349,7 @@ const {
   comparableSoftware,
   selectedComparisons,
   isLoading,
+  loadingText,
   summary,
   savingState,
   isSaving,
@@ -336,25 +429,48 @@ const handleWindowKeydown = (event: KeyboardEvent) => {
   }
   trapTabKey(event)
 }
-const filteredSoftware = computed(() => {
-    let items = comparableSoftware.value || []
-    if (searchQuery.value) {
-        const q = searchQuery.value.toLowerCase()
-        items = items.filter(s => 
-            s.name.toLowerCase().includes(q) || 
-            s.category.toLowerCase().includes(q) ||
-            s.description?.toLowerCase().includes(q)
-        )
-    }
-    // 排序：已选的在前
-    const selectedIds = new Set(selectedComparisons.value.map(c => c.target_id))
-    return [...items].sort((a, b) => {
-        const aSelected = selectedIds.has(a.id)
-        const bSelected = selectedIds.has(b.id)
-        if (aSelected === bSelected) return 0
-        return aSelected ? -1 : 1
-    })
+const remainingComparableSoftware = computed(() => {
+  const selectedIds = new Set(selectedComparisons.value.map((c) => c.target_id))
+  return (comparableSoftware.value || []).filter((s) => !selectedIds.has(s.id))
 })
+
+const filteredSoftware = computed(() => {
+  let items = remainingComparableSoftware.value
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    items = items.filter((s) =>
+      s.name.toLowerCase().includes(q) ||
+      s.category.toLowerCase().includes(q) ||
+      s.description?.toLowerCase().includes(q)
+    )
+  }
+  return items
+})
+
+const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0)
+const canStartAnalysis = computed(() =>
+  selectedComparisons.value.length > 0 && !isAnalyzing.value && !isLoading.value && !isSaving.value
+)
+const canExport = computed(() =>
+  Boolean(summary.value.trim()) && !isLoading.value && !isAnalyzing.value
+)
+const analysisButtonLabel = computed(() => {
+  if (isAnalyzing.value) return '正在分析...'
+  if (selectedComparisons.value.length === 0) return '先选择软件'
+  return '智能分析'
+})
+const listMetaLabel = computed(() => {
+  if (hasSearchQuery.value) {
+    return `当前筛出 ${filteredSoftware.value.length} 个候选项`
+  }
+  return `共 ${remainingComparableSoftware.value.length} 个候选项`
+})
+
+const clearSearch = async () => {
+  searchQuery.value = ''
+  await nextTick()
+  searchInputRef.value?.focus()
+}
 
 const clearAllComparisons = async () => {
   if (selectedComparisons.value.length === 0) return
@@ -406,25 +522,25 @@ const formattedSummary = computed(() => {
 // 导出功能
 const exportContentRef = ref<HTMLElement | null>(null)
 const exportAsImage = async () => {
-    if (!exportContentRef.value) return
-    try {
-        const dataUrl = await toPng(exportContentRef.value, {
-            cacheBust: true,
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#111827' : '#ffffff',
-            style: {
-                height: 'auto',
-                overflow: 'visible' // 确保导出全部内容
-            }
-        })
-        const a = document.createElement('a')
-        a.href = dataUrl
-        a.download = `对比分析-${props.software.name}.png`
-        a.click()
-        showToast('导出成功', 'success')
-    } catch (error) {
-        logger.error('导出失败:', error)
-        showToast('导出图片失败', 'error')
-    }
+  if (!exportContentRef.value || !canExport.value) return
+  try {
+    const dataUrl = await toPng(exportContentRef.value, {
+      cacheBust: true,
+      backgroundColor: document.documentElement.classList.contains('dark') ? '#181818' : '#f7f9fb',
+      style: {
+        height: 'auto',
+        overflow: 'visible' // 确保导出全部内容
+      }
+    })
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `对比分析-${props.software.name}.png`
+    a.click()
+    showToast('导出成功', 'success')
+  } catch (error) {
+    logger.error('导出失败:', error)
+    showToast('导出图片失败', 'error')
+  }
 }
 
 </script>
@@ -436,5 +552,150 @@ const exportAsImage = async () => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.comparison-manager-panel {
+  container-type: inline-size;
+}
+
+.comparison-manager-surface {
+  background: var(--modal-card-bg-light);
+}
+
+.dark .comparison-manager-surface {
+  background: var(--modal-card-bg-dark);
+}
+
+.comparison-manager-surface--muted {
+  background: var(--modal-card-subtle-bg-light);
+}
+
+.dark .comparison-manager-surface--muted {
+  background: var(--modal-card-subtle-bg-dark);
+}
+
+.comparison-manager-list-shell {
+  border: 1px solid color-mix(in srgb, var(--modal-card-border-light) 55%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.26);
+}
+
+.dark .comparison-manager-list-shell {
+  border-color: color-mix(in srgb, var(--modal-card-border-dark) 72%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.comparison-manager-footer {
+  border-color: color-mix(in srgb, var(--modal-card-border-light) 52%, transparent);
+}
+
+.dark .comparison-manager-footer {
+  border-color: color-mix(in srgb, var(--modal-card-border-dark) 66%, transparent);
+}
+
+.comparison-manager-icon-shell,
+.comparison-manager-base-card,
+.comparison-manager-chip,
+.comparison-manager-search,
+.comparison-manager-empty,
+.comparison-manager-empty-icon {
+  border-color: var(--modal-card-border-light);
+  box-shadow: var(--modal-card-shadow-light);
+}
+
+.dark .comparison-manager-icon-shell,
+.dark .comparison-manager-base-card,
+.dark .comparison-manager-chip,
+.dark .comparison-manager-search,
+.dark .comparison-manager-empty,
+.dark .comparison-manager-empty-icon {
+  border-color: var(--modal-card-border-dark);
+  box-shadow: var(--modal-card-shadow-dark);
+}
+
+.comparison-manager-icon-shell,
+.comparison-manager-empty-icon {
+  background: var(--modal-card-subtle-bg-light);
+}
+
+.dark .comparison-manager-icon-shell,
+.dark .comparison-manager-empty-icon {
+  background: var(--modal-card-subtle-bg-dark);
+}
+
+.comparison-manager-base-card,
+.comparison-manager-chip {
+  background: var(--modal-card-bg-light);
+}
+
+.dark .comparison-manager-base-card,
+.dark .comparison-manager-chip {
+  background: var(--modal-card-bg-dark);
+}
+
+.comparison-manager-chip {
+  min-width: min(100%, 220px);
+}
+
+.comparison-manager-empty {
+  background: var(--modal-card-subtle-bg-light);
+}
+
+.dark .comparison-manager-empty {
+  background: color-mix(in srgb, var(--modal-card-subtle-bg-dark) 84%, transparent);
+}
+
+.comparison-manager-search {
+  background: color-mix(in srgb, var(--modal-card-subtle-bg-light) 72%, white);
+}
+
+.dark .comparison-manager-search {
+  background: color-mix(in srgb, var(--modal-card-subtle-bg-dark) 92%, #181818);
+}
+
+.comparison-manager-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.comparison-manager-search:focus-within {
+  border-color: rgb(30 215 96 / 0.3);
+  box-shadow:
+    0 0 0 4px rgb(30 215 96 / 0.12),
+    var(--modal-card-shadow-light);
+}
+
+.dark .comparison-manager-search:focus-within {
+  box-shadow:
+    0 0 0 4px rgb(30 215 96 / 0.16),
+    var(--modal-card-shadow-dark);
+}
+
+.comparison-manager-selection-scroll,
+.no-scrollbar {
+  scrollbar-width: thin;
+}
+
+.comparison-manager-selection-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comparison-manager-selection-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.comparison-manager-selection-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(148 163 184 / 0.22);
+  border-radius: 999px;
+}
+
+.comparison-manager-inline-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(30 215 96 / 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comparison-manager-search,
+  .comparison-manager-chip {
+    transition: none !important;
+  }
 }
 </style>
