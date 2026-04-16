@@ -3,7 +3,7 @@
     <AppHeader
       :is-signed-in="isSignedIn"
       :user="user"
-      :is-loading="isLoading"
+      :is-loading="isLoading || isListRefreshing"
       v-model:is-dark="isDark"
       @refresh="handleRefresh"
       @settings="showSettings = true"
@@ -291,7 +291,7 @@ const SoftwareDetail = defineAsyncComponent({
     return module
   },
   loadingComponent: SoftwareDetailLoading,
-  delay: 0,
+  delay: 150,
 })
 const LoadingOverlay = defineAsyncComponent(() => import('./components/layout/LoadingOverlay.vue'))
 const Toast = defineAsyncComponent(() => import('./components/common/Toast.vue'))
@@ -344,6 +344,8 @@ const showCompareDialog = ref(false)
 const softwareToCompare = ref<Software | null>(null)
 const softwareComparisons = ref<Record<number, boolean>>({})
 const isLoading = ref(false)
+const isListRefreshing = ref(false)
+const isInitialized = ref(false)
 const isSubmitting = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const gridColumns = ref(4)
@@ -360,8 +362,8 @@ const shouldShowSkeleton = computed(() => {
   // 1. 如果组件还没加载完，必须显示骨架（避免空白）
   if (!isSoftwareGridReady.value) return true
   
-  // 2. 如果正在加载且当前没有显示数据，显示骨架
-  if (isLoading.value && paginatedSoftwares.value.length === 0) return true
+  // 2. 如果正在加载（全屏冷启动或列表内联刷新）且当前没有数据，显示骨架
+  if ((isLoading.value || isListRefreshing.value) && paginatedSoftwares.value.length === 0) return true
   
   return false
 })
@@ -549,7 +551,7 @@ const loadCachedSoftwares = (options: { allowStale?: boolean } = {}) => {
 // 包装翻页方法
 const onPageChange = (page: number) => {
   handlePageChange(page)
-  fetchSoftwares({ showLoading: true })
+  fetchSoftwares()
 }
 
 onBeforeUnmount(() => {
@@ -566,33 +568,38 @@ watch(() => route.name, (newName, oldName) => {
 
 // 监听搜索词变化
 watch(searchTerm, () => {
+  if (!isInitialized.value) return
   currentPage.value = 0
-  fetchSoftwares({ showLoading: true })
+  fetchSoftwares()
 })
 
 // 监听系统过滤变化
 watch(filterSystems, () => {
+  if (!isInitialized.value) return
   currentPage.value = 0
-  fetchSoftwares({ showLoading: true })
+  fetchSoftwares()
 })
 
 // 监听排序变化
 watch([sortBy, sortOrder], () => {
+  if (!isInitialized.value) return
   currentPage.value = 0
-  fetchSoftwares({ showLoading: true })
+  fetchSoftwares()
 })
 
 watch(newArrivalMode, () => {
   void fetchNewArrivalsCount()
+  if (!isInitialized.value) return
   if (showNewOnly.value) {
     currentPage.value = 0
-    fetchSoftwares({ showLoading: true })
+    fetchSoftwares()
   }
 })
 
 watch(showNewOnly, () => {
+  if (!isInitialized.value) return
   currentPage.value = 0
-  fetchSoftwares({ showLoading: true })
+  fetchSoftwares()
 })
 
 watch(newArrivalsCount, (count) => {
@@ -615,15 +622,12 @@ const editSoftware = async (software: SoftwareListItem) => {
     return
   }
   try {
-    isLoading.value = true
     const details = await softwareService.getSoftwareById(software.id)
     editingSoftware.value = { ...details }
     showEditDialog.value = true
   } catch (error) {
     logger.error('获取软件详情失败:', error)
     showToast(error instanceof Error ? error.message : '获取详情失败', 'error')
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -672,7 +676,7 @@ const handleFormSubmit = async (software: Partial<Software>) => {
 
     // 写操作后先失效缓存，再强制刷新，避免命中旧数据导致列表不更新
     invalidateSoftwareCaches()
-    await fetchSoftwares({ forceRefresh: true })
+    await fetchSoftwares({ forceRefresh: true, loadingMode: 'silent' })
     void fetchNewArrivalsCount()
     
     // 关闭对话框
@@ -685,14 +689,11 @@ const handleFormSubmit = async (software: Partial<Software>) => {
   }
 }
 
-watch(
-  activeCategory,
-  () => {
-    currentPage.value = 0
-    fetchSoftwares({ showLoading: true })
-  },
-  { immediate: true }
-)
+watch(activeCategory, () => {
+  if (!isInitialized.value) return
+  currentPage.value = 0
+  fetchSoftwares()
+})
 
 // 修改 confirmDelete 函数
 const confirmDelete = async () => {
@@ -704,7 +705,7 @@ const confirmDelete = async () => {
         (s) => s.id !== softwareToDelete.value?.id
       )
       invalidateSoftwareCaches()
-      await fetchSoftwares({ forceRefresh: true })
+      await fetchSoftwares({ forceRefresh: true, loadingMode: 'silent' })
       void fetchNewArrivalsCount()
       showToast(`已删除 "${softwareToDelete.value.name}"`, 'success')
       showDeleteDialog.value = false
@@ -789,9 +790,10 @@ onMounted(async () => {
   const hasCachedSoftwares = loadCachedSoftwares({ allowStale: true })
   // 初始化图片缓存放到后台，不阻塞首屏数据
   void initImageCache()
-  // 有缓存时后台更新数据，无缓存则正常加载
-  await fetchSoftwares({ showLoading: !hasCachedSoftwares })
-  
+  // 有缓存时后台更新数据，无缓存则全屏加载（冷启动唯一使用场景）
+  await fetchSoftwares({ loadingMode: hasCachedSoftwares ? 'silent' : 'fullscreen' })
+  isInitialized.value = true
+
   // 直接链接访问：URL 包含软件 ID 时自动打开详情弹窗
   if (route.name === 'software-detail' && route.params.id) {
     const targetId = Number(route.params.id)
@@ -820,8 +822,8 @@ onMounted(async () => {
 })
 
 // 添加获取数据的方法
-async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: boolean } = {}) {
-  const { showLoading = true, forceRefresh = false } = options
+async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' | 'silent', forceRefresh?: boolean } = {}) {
+  const { loadingMode = 'inline', forceRefresh = false } = options
 
   // 生成缓存 key
   const params = {
@@ -863,9 +865,15 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
   }
 
   try {
-    if (showLoading && !usedCache) {
-      isLoading.value = true
-      isIconsDeferred.value = true
+    if (!usedCache) {
+      if (loadingMode === 'fullscreen') {
+        isLoading.value = true
+        isIconsDeferred.value = true
+      } else if (loadingMode === 'inline') {
+        paginatedSoftwares.value = []
+        isListRefreshing.value = true
+        isIconsDeferred.value = true
+      }
     }
     logger.debug('开始加载软件列表...')
     
@@ -903,18 +911,14 @@ async function fetchSoftwares (options: { showLoading?: boolean, forceRefresh?: 
     }
 
     await loadData()
-    if (showLoading) {
-      isLoading.value = false
-    }
-    
   } catch (error) {
     logger.error('获取数据失败:', error)
     if (!usedCache) {
       showToast('获取数据失败', 'error')
     }
-    if (showLoading) {
-      isLoading.value = false
-    }
+  } finally {
+    isLoading.value = false
+    isListRefreshing.value = false
   }
 }
 

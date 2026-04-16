@@ -12,7 +12,7 @@ export function usePagination(initialPageSize: number = 12) {
 	const handlePageChange = (newPage: number) => {
 		if (newPage >= 0 && newPage < pageCount.value) {
 			currentPage.value = newPage;
-			window.scrollTo({ top: 0, behavior: "smooth" });
+			window.scrollTo({ top: 0, behavior: "instant" });
 		}
 	};
 
