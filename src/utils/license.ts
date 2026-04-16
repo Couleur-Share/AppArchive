@@ -5,6 +5,7 @@ export type LicenseTagVariant =
 	| "primary"
 	| "info"
 	| "success"
+	| "warning"
 	| "violet";
 
 export const getLicenseTagVariant = (
@@ -12,11 +13,11 @@ export const getLicenseTagVariant = (
 ): LicenseTagVariant => {
 	switch (license) {
 		case "免费":
-			return "info";
-		case "收费":
-			return "primary";
-		case "开源":
 			return "success";
+		case "收费":
+			return "warning";
+		case "开源":
+			return "info";
 		case "已购":
 			return "violet";
 		default:

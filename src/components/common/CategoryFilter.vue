@@ -520,9 +520,9 @@ onBeforeUnmount(() => {
 }
 
 .tab-badge--active {
-  background: var(--home-tab-badge-active-bg);
-  color: var(--home-tab-badge-active-text);
-  box-shadow: var(--home-tab-badge-active-shadow);
+  background: color-mix(in srgb, var(--home-accent-soft) 80%, var(--home-surface-strong));
+  color: var(--home-nav-btn-color);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-accent-border) 52%, transparent);
 }
 
 .tab-badge--inactive {

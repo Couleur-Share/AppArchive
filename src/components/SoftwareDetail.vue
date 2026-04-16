@@ -150,7 +150,7 @@
                       <div class="mt-5 flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
                          <div class="flex flex-wrap items-center justify-center gap-2">
                             <!-- 授权标签 -->
-                            <TagBadge size="sm" variant="neutral" strong>
+                            <TagBadge size="sm" :variant="getLicenseVariant(software.license)" strong>
                               {{ licenseLabel }}
                             </TagBadge>
                             

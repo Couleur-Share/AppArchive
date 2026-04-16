@@ -14,7 +14,7 @@
 - **Icons**: `lucide-vue-next` (tree-shakable, import individual icons)
 - **Animation**: GSAP for complex motion; CSS transitions for micro-interactions
 - **Build**: Vite 5 · Biome (lint + format)
-- **Token files**: `src/style.css` (global tokens) · `src/styles/base.css` (base resets & backgrounds)
+- **Token files**: `src/style.css` (global tokens — design tokens, scrollbar, modal system)
 
 ### Brand Personality
 - Three-word personality: precise, immersive, functional.
@@ -33,10 +33,11 @@
 - Color strategy:
   - Brand accent: green (`#1ed760`, `--primary-h: 141`, `--primary-s: 75%`, `--primary-l: 48%`), inspired by Spotify's palette.
   - Green is functional only — active states, CTAs, state indicators. Never decorative or used on large surfaces.
-  - Dark surfaces: near-black (`#121212` → `#181818` → `#1f1f1f`), depth via shade variation.
-  - Light surfaces: soft gray-greens (`#f3f5f4` → `#e8ece9`) with subtle green-tinted radial accents.
-  - Text: white (`#ffffff`) primary / silver (`#b3b3b3`) secondary on dark; slate spectrum on light.
-  - Semantic: negative red (`#f3727f`), warning orange (`#ffa42b`), announcement blue (`#539df5`).
+  - Dark surfaces: cold blue-tinted near-black (`#0f1115` → `#12151b` → `#161a21`), depth via shade variation. Cards: `#1a2029`.
+  - Light surfaces: soft blue-grays (`#f7f8fb` → `#eef1f5` → `#e5eaf0`) with subtle radial accents.
+  - Text: white (`#ffffff`) primary / `rgb(226 232 240)` secondary / `rgb(140 150 165)` subtle on dark; slate spectrum on light.
+  - Semantic tags: free=green (`success`), paid=amber (`warning`), open-source=blue (`info`), purchased=violet (`violet`).
+  - Semantic states: negative red (`#f3727f`), warning orange (`#ffa42b`), announcement blue (`#539df5`).
   - Avoid warm high-saturation dominant palettes (large red/orange/yellow fields).
 - Visual language:
   - Uniform moderate rounding: buttons, cards, inputs, tags all share a cohesive radius around `--radius: 12px`. No pill (500px+) or circle (50%) shapes.
@@ -54,9 +55,9 @@
 
 ### Component Patterns
 - **Buttons**: rounded rectangle (`--radius: 12px`), dark surface (`#1f1f1f`), white text. Same rounding as cards.
-- **Cards**: `#181818` or `#1f1f1f` on dark, `#f7f9fb` on light. Radius `--radius`. Hover: background lightening + shadow intensification.
-- **Inputs**: rounded rectangle (8px), `#1f1f1f` on dark with inset border-shadow combo.
-- **Elevation**: 4 levels — Base (`#121212`) → Surface (`#181818`) → Elevated (shadow 0.3 opacity) → Dialog (shadow 0.5 opacity, 24px blur).
+- **Cards**: `#1a2029` on dark, `#f7f9fb` on light. Radius `--radius`. Hover: background lightening + shadow intensification. Border: `rgb(255 255 255 / 0.10)` on dark.
+- **Inputs**: rounded rectangle (8px), dark surface with inset border-shadow combo.
+- **Elevation**: 4 levels — Base (`#0f1115`) → Surface (`#12151b`) → Card (`#1a2029`) → Dialog (blue-tinted gradient panel, shadow 0.5 opacity, 24px blur).
 - **Scrollbars**: thin (5px), rounded, muted thumb colors matching theme.
 - **Modals**: backdrop blur, gradient panel backgrounds, green-tinted emphasis borders, radius 12px (16px on mobile).
 
@@ -68,16 +69,19 @@
 ### Quick Color Reference
 | Role | Token / Dark | Light |
 |------|-------------|-------|
-| Background | `#121212` | `#f3f5f4` |
-| Surface | `#181818` | `#f7f9fb` |
-| Interactive | `#1f1f1f` | `#ffffff` |
+| Background | `#0f1115` → `#12151b` → `#161a21` | `#f7f8fb` → `#eef1f5` → `#e5eaf0` |
+| Card | `#1a2029` | `#f7f9fb` |
+| Card hover | `#202733` | `#f1f4f8` |
 | Accent 400 | `--theme-primary-400: #4de17e` | same |
 | Accent 500 | `--theme-primary-500: #1ed760` | same |
 | Accent 600 | `--theme-primary-600: #1db954` | same |
 | Accent 700 | `--theme-primary-700: #169c46` | same |
-| Text primary | `#ffffff` | `rgb(17 24 39)` |
-| Text secondary | `#b3b3b3` | `rgb(100 116 139)` |
-| Border | `rgb(255 255 255 / 0.08)` | `rgb(15 23 42 / 0.08)` |
+| Text primary | `rgb(248 250 252)` | `rgb(17 24 39)` |
+| Text body | `rgb(226 232 240)` | `rgb(51 65 85)` |
+| Text muted | `rgb(160 169 182)` | `rgb(100 116 139)` |
+| Text subtle | `rgb(140 150 165)` | `rgb(132 145 163)` |
+| Border | `rgb(255 255 255 / 0.10)` | `rgb(15 23 42 / 0.08)` |
+| Modal panel | blue-tinted gradient `rgb(28 33 41)` → `rgb(22 26 33)` | gradient `rgb(248 250 248)` → `rgb(241 244 241)` |
 | Error | `#f3727f` | `#f3727f` |
 
 ### Design Principles

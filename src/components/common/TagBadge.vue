@@ -71,11 +71,11 @@ const variantClass = computed(() => {
     case 'danger':
       return 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-900/35 dark:text-rose-300 dark:border-rose-700/70'
     case 'violet':
-      return 'bg-stone-100/85 text-stone-700 border-stone-200/80 dark:bg-[#252525] dark:text-stone-200 dark:border-white/10'
+      return 'bg-violet-50 text-violet-700 border-violet-200/80 dark:bg-violet-900/35 dark:text-violet-300 dark:border-violet-700/70'
     case 'fuchsia':
-      return 'bg-zinc-100/85 text-zinc-700 border-zinc-200/80 dark:bg-[#252525] dark:text-zinc-200 dark:border-white/10'
+      return 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80 dark:bg-fuchsia-900/35 dark:text-fuchsia-300 dark:border-fuchsia-700/70'
     default:
-      return 'bg-gray-100/85 text-gray-700 border-gray-200/80 dark:bg-[#252525] dark:text-gray-300 dark:border-white/10'
+      return 'bg-gray-100/85 text-gray-700 border-gray-200/80 dark:bg-white/[0.06] dark:text-gray-300 dark:border-white/10'
   }
 })
 

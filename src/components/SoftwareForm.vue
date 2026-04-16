@@ -272,7 +272,7 @@
                 :class="[
                   (formData.systems || []).includes(sys)
                     ? 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
                 ]"
               >
                 <SystemIcon :system="sys" class="w-8 h-8 mb-2 transition-transform group-hover:scale-110" />
@@ -698,7 +698,7 @@ whenever(Ctrl_Enter, () => {
 
 const getLicenseCardClass = (license: string, selected: boolean) => {
   if (!selected) {
-    return 'border-gray-200 dark:border-gray-700 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
+    return 'border-gray-200 dark:border-gray-600 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
   }
   return 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
 }
