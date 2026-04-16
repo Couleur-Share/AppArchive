@@ -80,7 +80,13 @@
                          </button>
                        </MenuItem>
                        <MenuItem v-if="canEdit" v-slot="{ active }">
-                         <button @click.stop="$emit('delete', item.id)" :class="[active ? 'bg-red-50/50 dark:bg-red-900/20' : '', 'text-red-600 dark:text-red-400 w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
+                        <button
+                          @click.stop="$emit('delete', item.id)"
+                          :class="[
+                            active ? 'software-card-action software-card-action--danger-active' : 'software-card-action',
+                            'text-red-600 dark:text-red-400 w-full text-left px-3 py-2 text-sm flex items-center gap-2'
+                          ]"
+                        >
                            <Trash class="w-3.5 h-3.5" /> <span>删除</span>
                          </button>
                        </MenuItem>
@@ -361,18 +367,51 @@ const handleMouseLeave = (e: MouseEvent) => {
 }
 
 .software-card-action {
+  position: relative;
   color: var(--home-text);
-  border-radius: 0.75rem;
+  border-radius: 0;
   transition:
     color 150ms ease,
     background-color 150ms ease,
     box-shadow 180ms ease;
 }
 
+.software-card-action::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  background: transparent;
+  transition:
+    opacity 150ms ease,
+    background-color 150ms ease,
+    box-shadow 180ms ease;
+}
+
 .software-card-action--active {
   color: var(--home-text-strong);
-  background: color-mix(in srgb, var(--home-accent-soft) 86%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--home-accent-border) 76%, transparent);
+  background: color-mix(in srgb, var(--theme-primary-500) 18%, var(--home-card-menu-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary-600) 20%, transparent);
+}
+
+.software-card-action--active::before {
+  opacity: 1;
+  background: var(--theme-primary-700);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-primary-700) 24%, transparent);
+}
+
+.software-card-action--danger-active {
+  background: color-mix(in srgb, rgb(243 114 127 / 0.18) 82%, transparent);
+}
+
+.software-card-action--danger-active::before {
+  opacity: 1;
+  background: rgb(243 114 127 / 0.78);
+  box-shadow: 0 0 0 1px rgb(243 114 127 / 0.2);
 }
 
 .software-card-menu-panel {
