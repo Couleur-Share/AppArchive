@@ -4,6 +4,7 @@ export const normalizeSystem = (s: string): SystemType | null => {
 	const v = (s || "").trim().toLowerCase();
 	if (!v) return null;
 	if (/(^|\b)win(dows)?(\b|\d)/.test(v)) return "Windows";
+	if (/macos|mac\s?os\s?x?|osx|darwin/.test(v)) return "macOS";
 	if (/linux|ubuntu|debian|fedora|arch|manjaro/.test(v)) return "Linux";
 	if (/android|安卓/.test(v)) return "Android";
 	if (/ios|iphone|ipad|ipados/.test(v)) return "iOS";
@@ -15,6 +16,8 @@ export const inferSupportedSystemsFromText = (text: string): SystemType[] => {
 	const candidates = new Set<SystemType>();
 	const t = (text || "").toLowerCase();
 	if (/\bwindows\b|\bwin10\b|\bwin11\b/.test(t)) candidates.add("Windows");
+	if (/\bmacos\b|\bmac\s?os\b|\bosx\b|\bos\s?x\b|\.dmg\b|\bhomebrew\b|\bbrew\b/.test(t))
+		candidates.add("macOS");
 	if (/\blinux\b|ubuntu|debian|fedora|arch|manjaro/.test(t))
 		candidates.add("Linux");
 	if (/android|安卓|apk|google\s?play|play\s?store/.test(t))
@@ -33,6 +36,8 @@ export const inferFromWebsite = (url?: string): SystemType[] => {
 	if (u.includes("play.google.com")) found.add("Android");
 	if (u.includes("apps.apple.com") || u.includes("itunes.apple.com"))
 		found.add("iOS");
+	if (u.includes("formulae.brew.sh") || u.includes("homebrew"))
+		found.add("macOS");
 	if (u.includes("appgallery.huawei.com") || u.includes("appgallery"))
 		found.add("HarmonyOS");
 	if (

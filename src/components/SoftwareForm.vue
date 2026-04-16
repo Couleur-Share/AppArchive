@@ -20,7 +20,7 @@
     <div
       ref="dialogPanelRef"
       tabindex="-1"
-      class="relative z-10 w-full max-w-4xl rounded-2xl app-modal-panel app-modal-panel--interactive flex flex-col max-h-[min(92dvh,920px)] overflow-hidden border border-gray-100 dark:border-gray-700"
+      class="relative z-10 w-full max-w-4xl rounded-2xl app-modal-panel app-modal-panel--interactive flex flex-col max-h-[min(92dvh,920px)] overflow-hidden"
       v-gsap="{
         from: { y: 20, opacity: 0, scale: 0.98 },
         to: { y: 0, opacity: 1, scale: 1 },
@@ -29,7 +29,7 @@
       }"
     >
       <!-- 顶部栏：标题 + 工具栏 -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-20">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-black/[0.06] dark:border-white/[0.08] bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-20">
         <div class="flex items-center gap-3">
           <h2 id="software-form-title" class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
             {{ software ? '编辑软件' : '添加软件' }}
@@ -59,8 +59,8 @@
         </div>
         
         <div class="flex items-center gap-2">
-           <div class="text-xs text-gray-400 hidden sm:block mr-2">
-             <span class="px-1.5 py-0.5 border border-gray-200 dark:border-gray-600 rounded text-[10px]">ESC</span> 关闭
+           <div class="text-xs text-gray-400 dark:text-gray-500 hidden sm:block mr-2">
+             <kbd class="px-1.5 py-0.5 border border-gray-200 dark:border-gray-600 rounded bg-white dark:bg-gray-700 font-mono text-[10px] text-gray-500 dark:text-gray-400">ESC</kbd> 关闭
            </div>
            <button
             type="button"
@@ -76,7 +76,7 @@
       <form
         @submit.prevent="handleSubmit"
         id="softwareForm"
-        class="flex-1 overflow-y-auto scroll-smooth"
+        class="flex-1 overflow-y-auto scroll-smooth custom-scrollbar"
       >
         <div class="p-6 space-y-8 max-w-3xl mx-auto">
           
@@ -97,7 +97,7 @@
 
           <!-- Section 1: 核心信息 -->
           <section class="space-y-6">
-            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <LayoutGrid class="w-4 h-4" />
               </div>
@@ -115,7 +115,6 @@
                   <input
                     v-model="formData.name"
                     @blur="validateField('name')"
-                    @input="handleInput('name', $event.target.value)"
                     ref="nameInputRef"
                     class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
                     :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.name}"
@@ -195,17 +194,18 @@
                     @blur="validateField('description')"
                     rows="3"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 text-sm leading-relaxed"
+                    :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.description}"
                     placeholder="简要描述该软件的主要功能和特点..."
                   ></textarea>
                 </div>
-                <p v-if="errors.description" class="text-xs text-red-500">{{ errors.description }}</p>
+                <p v-if="errors.description" class="text-xs text-red-500 animate-in slide-in-from-top-1">{{ errors.description }}</p>
               </div>
             </div>
           </section>
 
           <!-- Section 2: 视觉与授权 -->
           <section class="space-y-6">
-            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Sparkles class="w-4 h-4" />
               </div>
@@ -217,7 +217,7 @@
                <div class="space-y-2">
                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">软件图标</label>
                  <IconUploader v-model="formData.icon" :disabled="isSubmitting" />
-                 <p v-if="errors.icon" class="text-xs text-red-500">{{ errors.icon }}</p>
+                 <p v-if="errors.icon" class="text-xs text-red-500 animate-in slide-in-from-top-1">{{ errors.icon }}</p>
                </div>
 
                <!-- 授权类型 -->
@@ -255,7 +255,7 @@
 
           <!-- Section 3: 系统支持 -->
           <section class="space-y-6">
-            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Monitor class="w-4 h-4" />
               </div>
@@ -287,12 +287,12 @@
                 <div v-if="(formData.systems || []).includes(sys)" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary"></div>
               </button>
             </div>
-            <p v-if="errors.systems" class="text-xs text-red-500">{{ errors.systems }}</p>
+            <p v-if="errors.systems" class="text-xs text-red-500 animate-in slide-in-from-top-1">{{ errors.systems }}</p>
           </section>
 
           <!-- Section 4: 链接与资源 -->
           <section class="space-y-6">
-            <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Link2 class="w-4 h-4" />
               </div>
@@ -306,12 +306,13 @@
                     <input
                       v-model="formData.website"
                       @blur="validateField('website')"
-                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 dark:text-white"
+                      class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                      :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.website}"
                       placeholder="https://..."
                     />
                     <Globe class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                  </div>
-                 <p v-if="errors.website" class="text-xs text-red-500">{{ errors.website }}</p>
+                 <p v-if="errors.website" class="text-xs text-red-500 animate-in slide-in-from-top-1">{{ errors.website }}</p>
                </div>
 
                <!-- 关联文章 -->
@@ -327,7 +328,7 @@
 
           <!-- Section 5: 评价 (Pros & Cons) -->
           <section class="space-y-6">
-             <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700">
+             <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
                <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                  <ThumbsUp class="w-4 h-4" />
                </div>
@@ -344,14 +345,20 @@
           </section>
 
           <!-- 高级选项折叠 -->
-          <div class="pt-4">
+          <div class="pt-2">
              <button
                type="button"
                @click="showAdvanced = !showAdvanced"
-               class="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+               class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all group"
              >
-               <ChevronRight class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-90': showAdvanced }" />
-               <span>高级选项 (下载链接、私密信息)</span>
+               <div class="w-8 h-8 rounded-lg bg-gray-200/60 dark:bg-gray-700/50 flex items-center justify-center text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+                 <Lock class="w-4 h-4" />
+               </div>
+               <div class="flex-1 text-left">
+                 <div class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">高级选项</div>
+                 <div class="text-xs text-gray-400 dark:text-gray-500">下载链接、私密信息</div>
+               </div>
+               <ChevronRight class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-90': showAdvanced }" />
              </button>
              
              <div v-show="showAdvanced" class="mt-4 animate-in slide-in-from-top-2 fade-in duration-200">
@@ -372,9 +379,9 @@
       </form>
 
       <!-- 底部栏：操作按钮 -->
-      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur flex items-center justify-between z-20">
-         <div class="text-xs text-gray-500 hidden sm:block">
-            <span class="font-medium text-gray-700 dark:text-gray-300">Tip:</span> 使用 <kbd class="px-1 py-0.5 rounded border bg-white dark:bg-gray-700 font-mono text-[10px]">Ctrl</kbd> + <kbd class="px-1 py-0.5 rounded border bg-white dark:bg-gray-700 font-mono text-[10px]">Enter</kbd> 快速提交
+      <div class="px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.08] bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur flex items-center justify-between z-20">
+         <div class="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+            <span class="font-medium text-gray-700 dark:text-gray-300">Tip:</span> 使用 <kbd class="px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-[10px] text-gray-600 dark:text-gray-300">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 font-mono text-[10px] text-gray-600 dark:text-gray-300">Enter</kbd> 快速提交
          </div>
          <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
             <BaseButton
@@ -420,6 +427,7 @@ import {
   LayoutGrid,
   Link2,
   Loader2,
+  Lock,
   Monitor,
   Redo2,
   Sparkles,
@@ -434,17 +442,12 @@ import {
   nextTick,
   onUnmounted,
   ref,
-  toRefs,
   watch,
 } from 'vue'
 import { useAIAnalysis } from '@/composables/useAIAnalysis'
 import { useSoftwareValidation } from '@/composables/useSoftwareValidation'
 import { LICENSES, SYSTEMS } from '@/types/constants'
-import {
-  inferFromWebsite,
-  inferSupportedSystemsFromText,
-  normalizeSystem,
-} from '@/utils/system'
+import { normalizeSystem } from '@/utils/system'
 import { mergeUnique, normalizeList } from '@/utils/text'
 import {
   type DownloadLink,
@@ -501,7 +504,7 @@ const defaultFormData: Partial<Software> = {
 const formData = ref<Partial<Software>>({ ...defaultFormData })
 
 // ====== 历史记录 (Undo/Redo) ======
-const { history, undo, redo, canUndo, canRedo, commit, clear } = useManualRefHistory(formData, {
+const { undo, redo, canUndo, canRedo, commit, clear } = useManualRefHistory(formData, {
   capacity: 20,
   clone: (v) => JSON.parse(JSON.stringify(v)), // Deep clone for history
 })
@@ -696,14 +699,14 @@ whenever(Ctrl_Enter, () => {
 
 // ====== 业务逻辑 ======
 
-const getLicenseCardClass = (license: string, selected: boolean) => {
+const getLicenseCardClass = (_license: string, selected: boolean) => {
   if (!selected) {
     return 'border-gray-200 dark:border-gray-600 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'
   }
   return 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
 }
 
-const getLicenseIndicatorClass = (license: string, selected: boolean) => {
+const getLicenseIndicatorClass = (_license: string, selected: boolean) => {
   if (!selected) return 'border-gray-300 dark:border-gray-600'
   return 'border-primary bg-primary'
 }
@@ -786,10 +789,6 @@ const scrollToField = (field: string) => {
         advancedSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
      })
   }
-}
-
-const handleInput = (_field: keyof Software, _value: any) => {
-   // just helper if needed for non-v-model
 }
 
 const onDescriptionInput = () => {

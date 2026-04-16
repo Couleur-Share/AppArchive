@@ -1,88 +1,265 @@
 <template>
-  <div>
-    <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">安装包链接（仅自己可见）</label>
+  <div class="space-y-6">
 
-    <div v-for="(link, idx) in localLinks" :key="link.id" class="mb-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-      <!-- URL -->
-      <input
-        :value="link.url"
-        :disabled="disabled"
-        @input="onLinkUrlChange(idx, ($event.target as HTMLInputElement).value)"
-        @blur="emit('validate')"
-        :aria-invalid="Boolean(fieldErrors[`download_links.${idx}.url`])"
-        :aria-describedby="fieldErrors[`download_links.${idx}.url`] ? `dl-url-${idx}-error` : undefined"
-        placeholder="粘贴链接，如 https://pan.baidu.com/s/xxxx 或官方直链"
-        class="w-full mb-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100"
-      />
-      <div v-if="fieldErrors[`download_links.${idx}.url`]" :id="`dl-url-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500">
-        <span>{{ fieldErrors[`download_links.${idx}.url`] }}</span>
+    <!-- ====== 安装包链接 ====== -->
+    <section class="space-y-3">
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700/50">
+        <Download class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">安装包链接</h4>
+        <span class="text-xs text-gray-400 dark:text-gray-500">仅自己可见</span>
       </div>
-      <!-- 提取码/密码/版本说明 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-        <input v-model="localLinks[idx].code" :disabled="disabled" placeholder="提取码（可选）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
-        <input v-model="localLinks[idx].password" :disabled="disabled" placeholder="解压密码（可选）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
-        <input v-model="localLinks[idx].versionLabel" :disabled="disabled" placeholder="版本说明（如 v1.2.3 便携/破解版）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
-      </div>
-      <!-- 备注 -->
-      <input v-model="localLinks[idx].notes" :disabled="disabled" placeholder="备注（可选）" class="w-full mb-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
-      <!-- 操作 -->
-      <div class="mt-2 flex gap-2">
-        <button type="button" class="px-3 py-2 rounded-lg border text-gray-700 dark:text-gray-100" :disabled="disabled" @click="copyShareText(link)">复制分享文本</button>
-        <button type="button" class="px-3 py-2 rounded-lg border border-red-300 text-red-500 dark:text-red-300" :disabled="disabled" @click="removeDownloadLink(idx)">删除</button>
-      </div>
-    </div>
 
-    <button type="button" class="w-full px-4 py-2 border border-dashed rounded-lg text-gray-500 dark:text-gray-400" :disabled="disabled" @click="addDownloadLink">+ 添加一个链接</button>
-    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-      支持：百度网盘、夸克网盘、蓝奏云、阿里云盘、115网盘、磁力链接（magnet）、ED2K、电驴、以及官方直链（保存为私密，仅自己可见）。
-    </div>
+      <!-- 空状态 -->
+      <div v-if="localLinks.length === 0" class="py-5 flex flex-col items-center gap-1.5">
+        <Package class="w-7 h-7 text-gray-300 dark:text-gray-600" />
+        <p class="text-xs text-gray-400 dark:text-gray-500">添加百度网盘、蓝奏云等下载链接</p>
+      </div>
 
-    <div class="mt-6">
-      <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">私密信息（仅自己可见）</label>
-      <div v-for="(sec, idx) in localSecrets" :key="sec.id" class="mb-3 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-          <select v-model="localSecrets[idx].kind" :disabled="disabled" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100">
-            <option value="license">激活码</option>
-            <option value="account">账号</option>
-            <option value="config">配置</option>
-            <option value="other">其他</option>
-          </select>
-          <div class="flex items-center">
-            <span class="text-xs text-gray-600 dark:text-gray-400">类型预览：</span>
+      <!-- 链接卡片列表 -->
+      <div
+        v-for="(link, idx) in localLinks"
+        :key="link.id"
+        class="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 space-y-3 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
+      >
+        <!-- URL + provider反馈 -->
+        <div>
+          <input
+            :value="link.url"
+            :disabled="disabled"
+            @input="onLinkUrlChange(idx, ($event.target as HTMLInputElement).value)"
+            @blur="emit('validate')"
+            :aria-invalid="Boolean(fieldErrors[`download_links.${idx}.url`])"
+            :aria-describedby="fieldErrors[`download_links.${idx}.url`] ? `dl-url-${idx}-error` : undefined"
+            placeholder="粘贴链接，如 https://pan.baidu.com/s/xxxx 或官方直链"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <div
+            v-if="fieldErrors[`download_links.${idx}.url`] || (link.url && link.provider && link.provider !== 'other')"
+            class="mt-1.5 flex items-center gap-2"
+          >
+            <span
+              v-if="fieldErrors[`download_links.${idx}.url`]"
+              :id="`dl-url-${idx}-error`"
+              class="text-xs text-red-500"
+            >{{ fieldErrors[`download_links.${idx}.url`] }}</span>
             <TagBadge
+              v-if="link.url && link.provider && link.provider !== 'other'"
               size="xs"
-              radius="full"
-              class="ml-2"
-              :variant="getSecretKindVariant(localSecrets[idx].kind)"
+              :variant="getProviderBadgeVariant(link.provider)"
             >
-              {{ getSecretKindLabel(localSecrets[idx].kind) }}
+              {{ PROVIDER_LABELS[link.provider] || link.provider }}
             </TagBadge>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-          <input v-model="(localSecrets[idx] as any).value" :disabled="disabled" placeholder="值（新增必填；已有项留空=不修改）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
-          <input v-model="localSecrets[idx].expiresAt" :disabled="disabled" type="date" placeholder="到期时间（可选）" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100" />
+
+        <!-- 提取码 / 密码 / 版本 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input
+            v-model="localLinks[idx].code"
+            :disabled="disabled"
+            placeholder="提取码（可选）"
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <input
+            v-model="localLinks[idx].password"
+            :disabled="disabled"
+            placeholder="解压密码（可选）"
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <input
+            v-model="localLinks[idx].versionLabel"
+            :disabled="disabled"
+            placeholder="版本说明（如 v1.2.3 便携/破解版）"
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
         </div>
-        <div v-if="fieldErrors[`secrets.${idx}.value`]" :id="`sec-val-${idx}-error`" class="-mt-1 mb-2 text-xs text-red-500">
-          <span>{{ fieldErrors[`secrets.${idx}.value`] }}</span>
-        </div>
-        <input v-model="localSecrets[idx].notes" :disabled="disabled" placeholder="备注（可选）" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 mb-2" />
-        <div class="flex gap-2">
-          <button type="button" class="px-3 py-2 rounded-lg border border-red-300 text-red-500 dark:text-red-300" :disabled="disabled" @click="removeSecret(idx)">删除</button>
+
+        <!-- 备注 -->
+        <input
+          v-model="localLinks[idx].notes"
+          :disabled="disabled"
+          placeholder="备注（可选）"
+          class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+        />
+
+        <!-- 操作按钮 -->
+        <div class="flex items-center gap-2 pt-0.5">
+          <button
+            type="button"
+            :disabled="disabled"
+            @click="copyShareText(link)"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+          >
+            <Copy class="w-3.5 h-3.5" />
+            复制分享文本
+          </button>
+          <button
+            type="button"
+            :disabled="disabled"
+            @click="removeDownloadLink(idx)"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <Trash2 class="w-3.5 h-3.5" />
+            删除
+          </button>
         </div>
       </div>
-      <button type="button" class="w-full px-4 py-2 border border-dashed rounded-lg text-gray-500 dark:text-gray-400" :disabled="disabled" @click="addSecret">+ 添加一条私密信息</button>
-      <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">提示：新增条目必须填写值；已有条目留空表示不修改。私密信息仅会在服务端加密保存，前端不缓存明文。</div>
-    </div>
+
+      <!-- 添加链接按钮 -->
+      <button
+        type="button"
+        :disabled="disabled"
+        @click="addDownloadLink"
+        class="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-all flex items-center justify-center gap-2 text-sm"
+      >
+        <Plus class="w-4 h-4" />
+        <span>添加一个链接</span>
+      </button>
+
+      <p class="text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
+        支持：百度网盘、夸克网盘、蓝奏云、阿里云盘、115网盘、磁力链接（magnet）、ED2K、电驴、以及官方直链。
+      </p>
+    </section>
+
+    <!-- ====== 私密信息 ====== -->
+    <section class="space-y-3">
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-700/50">
+        <KeyRound class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">私密信息</h4>
+        <span class="text-xs text-gray-400 dark:text-gray-500">仅自己可见</span>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-if="localSecrets.length === 0" class="py-5 flex flex-col items-center gap-1.5">
+        <Shield class="w-7 h-7 text-gray-300 dark:text-gray-600" />
+        <p class="text-xs text-gray-400 dark:text-gray-500">添加激活码、账号等私密信息</p>
+      </div>
+
+      <!-- 私密信息卡片 -->
+      <div
+        v-for="(sec, idx) in localSecrets"
+        :key="sec.id"
+        class="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 space-y-3 transition-colors hover:border-gray-300 dark:hover:border-gray-600"
+      >
+        <!-- 类型 + 值 + 删除 -->
+        <div class="flex items-start gap-2">
+          <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div class="flex items-center gap-2">
+              <select
+                v-model="localSecrets[idx].kind"
+                :disabled="disabled"
+                class="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              >
+                <option value="license">激活码</option>
+                <option value="account">账号</option>
+                <option value="config">配置</option>
+                <option value="other">其他</option>
+              </select>
+              <TagBadge
+                size="xs"
+                radius="full"
+                :variant="getSecretKindVariant(localSecrets[idx].kind)"
+              >
+                {{ getSecretKindLabel(localSecrets[idx].kind) }}
+              </TagBadge>
+            </div>
+            <input
+              v-model="(localSecrets[idx] as any).value"
+              :disabled="disabled"
+              placeholder="值（新增必填；已有项留空=不修改）"
+              class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+          </div>
+          <IconButton
+            size="xs"
+            variant="danger"
+            :disabled="disabled"
+            @click="removeSecret(idx)"
+            title="删除"
+            class="mt-1.5"
+          >
+            <Trash2 class="w-3.5 h-3.5" />
+          </IconButton>
+        </div>
+
+        <!-- 校验错误 -->
+        <div
+          v-if="fieldErrors[`secrets.${idx}.value`]"
+          :id="`sec-val-${idx}-error`"
+          class="text-xs text-red-500"
+        >{{ fieldErrors[`secrets.${idx}.value`] }}</div>
+
+        <!-- 到期时间 + 备注 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <input
+            v-model="localSecrets[idx].expiresAt"
+            :disabled="disabled"
+            type="date"
+            placeholder="到期时间（可选）"
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          <input
+            v-model="localSecrets[idx].notes"
+            :disabled="disabled"
+            placeholder="备注（可选）"
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 text-sm placeholder-gray-400 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- 添加按钮 -->
+      <button
+        type="button"
+        :disabled="disabled"
+        @click="addSecret"
+        class="w-full py-2.5 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-all flex items-center justify-center gap-2 text-sm"
+      >
+        <Plus class="w-4 h-4" />
+        <span>添加一条私密信息</span>
+      </button>
+
+      <p class="text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
+        新增条目必须填写值；已有条目留空表示不修改。私密信息仅会在服务端加密保存，前端不缓存明文。
+      </p>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import {
+  Copy,
+  Download,
+  KeyRound,
+  Package,
+  Plus,
+  Shield,
+  Trash2,
+} from 'lucide-vue-next'
 import { nextTick, ref, watch } from 'vue'
 import TagBadge from '@/components/common/TagBadge.vue'
+import IconButton from '@/components/common/IconButton.vue'
 import type { DownloadLink, SecretItem } from '@/types'
 import { copyToClipboard } from '@/utils/clipboard'
 import { getSecretKindLabel } from '@/utils/secret'
+
+const PROVIDER_LABELS: Record<string, string> = {
+  baidu: '百度网盘',
+  quark: '夸克网盘',
+  lanzou: '蓝奏云',
+  aliyun: '阿里云盘',
+  '115': '115网盘',
+  magnet: '磁力链接',
+  ed2k: 'ED2K',
+  official: '官方直链',
+}
+
+const getProviderBadgeVariant = (provider: string) => {
+  switch (provider) {
+    case 'official': return 'success' as const
+    case 'magnet': case 'ed2k': return 'warning' as const
+    default: return 'info' as const
+  }
+}
 
 const props = defineProps<{
   downloadLinks: DownloadLink[] | undefined
@@ -100,7 +277,6 @@ const emit = defineEmits<{
 const localLinks = ref<DownloadLink[]>(Array.isArray(props.downloadLinks) ? [...props.downloadLinks] : [])
 const localSecrets = ref<SecretItem[]>(Array.isArray(props.secrets) ? [...props.secrets] : [])
 
-// 避免父 -> 子同步时触发子级的变更回传
 const syncingLinks = ref(false)
 const syncingSecrets = ref(false)
 
@@ -117,14 +293,12 @@ watch(() => props.secrets, async (v) => {
   syncingSecrets.value = false
 })
 
-// 监听本地 secrets 的任何字段变更，自动向父组件回传
 watch(localSecrets, (v) => {
   if (syncingSecrets.value) return
   emit('update:secrets', [...v])
   emit('validate')
 }, { deep: true })
 
-// 监听本地 download_links 的任何字段变更，自动回传
 watch(localLinks, (v) => {
   if (syncingLinks.value) return
   emit('update:downloadLinks', [...v])
@@ -208,30 +382,12 @@ const removeSecret = (idx: number) => {
   emit('validate')
 }
 
-// 清空某条私密值：置为 null，以便后端识别为“删除密文”
-const clearSecretValue = (idx: number) => {
-  const target = localSecrets.value[idx] as any
-  if (!target) return
-  target.value = null
-  emit('update:secrets', [...localSecrets.value])
-  emit('validate')
-}
-
 const getSecretKindVariant = (kind?: string) => {
   switch (kind) {
-    case 'license':
-      return 'primary'
-    case 'account':
-      return 'warning'
-    case 'config':
-      return 'info'
-    default:
-      return 'neutral'
+    case 'license': return 'primary' as const
+    case 'account': return 'warning' as const
+    case 'config': return 'info' as const
+    default: return 'neutral' as const
   }
 }
 </script>
-
-<style scoped>
-</style>
-
-
