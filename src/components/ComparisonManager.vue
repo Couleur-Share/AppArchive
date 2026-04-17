@@ -265,7 +265,8 @@
                   <div ref="exportContentRef" class="min-h-0 flex-1 overflow-hidden">
                     <ComparisonEditor
                       v-model="summary"
-                      :preview-html="formattedSummary"
+                      :parsed-analysis="parsedAnalysis"
+                      :comparison-softwares="comparisonSoftwareList"
                       :saving-state="savingState"
                       :disabled="isSaving"
                       :selected-count="selectedComparisons.length"
@@ -285,16 +286,15 @@
 </template>
 
 <script setup lang="ts">
-import DOMPurify from 'dompurify'
 // @ts-expect-error: html-to-image 类型声明缺失
 import { toPng } from 'html-to-image'
 import { ArrowLeft, Download, LayoutDashboard, Loader2, Search, Sparkles, X } from 'lucide-vue-next'
-import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, Transition, watch } from 'vue'
 import { useComparisonManager } from '../composables/useComparisonManager'
 import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software, SoftwareListItem } from '../types'
+import { parseComparisonContent } from '../utils/comparison-parser'
 import logger from '../utils/logger'
 import ComparisonAIOverlay from './ComparisonAIOverlay.vue'
 import BaseButton from './common/BaseButton.vue'
@@ -303,37 +303,6 @@ import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
 import ComparableSoftwareList from './comparison/ComparableSoftwareList.vue'
 import ComparisonEditor from './comparison/ComparisonEditor.vue'
-
-// Markdown 配置
-let md: MarkdownIt | null = null
-const getMarkdownRenderer = () => {
-  if (!md) md = new MarkdownIt({ html: false, breaks: true, linkify: true })
-  return md
-}
-
-// ... DOMPurify hook (保持原有逻辑) ...
-let dompurifyLinkHookInstalled = false
-if (!dompurifyLinkHookInstalled && typeof DOMPurify?.addHook === 'function') {
-  DOMPurify.addHook('afterSanitizeAttributes', (node: Element) => {
-    if (node.tagName === 'A') {
-      node.setAttribute('target', '_blank')
-      node.setAttribute('rel', 'noopener noreferrer')
-    }
-  })
-  dompurifyLinkHookInstalled = true
-}
-
-const mdToSafeHtml = (content: string): string => {
-  // 预处理 Markdown 内容，修复常见格式问题 (与 SoftwareDetail.vue 保持一致)
-  let processed = content
-  processed = processed.replace(/([^\n])\s*(#{1,6}\s)/g, '$1\n\n$2')
-  processed = processed.replace(/([^\n])\s*-\s*(\*\*)/g, '$1\n- $2')
-  processed = processed.replace(/([^\n])\s*-\s*(优点|缺点)/g, '$1\n  - $2')
-  processed = processed.replace(/(#{1,6}\s+.*?)(\s*-\s)/g, '$1\n$2')
-
-  const rawHtml = getMarkdownRenderer().render(processed)
-  return DOMPurify.sanitize(rawHtml, { RETURN_DOM_FRAGMENT: false, RETURN_DOM: false })
-}
 
 const props = defineProps<{
   isOpen: boolean
@@ -514,9 +483,18 @@ onBeforeUnmount(() => {
   flushDebouncedSave()
 })
 
-const formattedSummary = computed(() => {
-  if (!summary.value) return ''
-  return mdToSafeHtml(summary.value)
+// 结构化对比分析：解析数据库中保存的 JSON
+const parsedAnalysis = computed(() => {
+  if (!summary.value) return null
+  return parseComparisonContent(summary.value)
+})
+
+// 传给结构化视图的软件列表
+const comparisonSoftwareList = computed(() => {
+  return [props.software, ...selectedComparisons.value.map((c) => c.target)].map((sw) => ({
+    name: sw?.name || '',
+    icon: (sw as any)?.icon || '',
+  }))
 })
 
 // 导出功能

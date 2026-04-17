@@ -41,28 +41,23 @@
                 </div>
               </div>
               <div class="p-4 flex flex-col gap-4">
-                <!-- 主题/显示/背景 控制（点击不关闭） -->
+                <!-- 主题/显示控制（点击不关闭） -->
                 <div class="flex flex-wrap items-center gap-2" @click.stop @mousedown.stop @mouseup.stop @pointerdown.stop @pointerup.stop>
                   <span class="text-sm text-gray-600 dark:text-gray-300 mr-2">风格：</span>
                   <button type="button" @click.stop="theme = 'classic'" :class="['px-3 py-1.5 rounded-lg text-sm border', theme === 'classic' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600']">经典</button>
                   <button type="button" @click.stop="theme = 'dark'" :class="['px-3 py-1.5 rounded-lg text-sm border', theme === 'dark' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600']">暗色</button>
                   <button type="button" @click.stop="theme = 'gradient'" :class="['px-3 py-1.5 rounded-lg text-sm border', theme === 'gradient' ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600']">渐变</button>
 
-                  <template v-if="mode === 'detail'">
-                    <span class="mx-3 h-5 w-px bg-gray-200 dark:bg-gray-700"></span>
-                    <span class="text-sm text-gray-600 dark:text-gray-300">显示：</span>
-                    <button type="button" @click.stop="showWebsite = !showWebsite" :class="['px-2.5 py-1 rounded-lg text-xs border', showWebsite ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300']">网站</button>
-                    <button type="button" @click.stop="showSystems = !showSystems" :class="['px-2.5 py-1 rounded-lg text-xs border', showSystems ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300']">系统</button>
-                  </template>
-
+                  <span class="mx-3 h-5 w-px bg-gray-200 dark:bg-gray-700"></span>
+                  <span class="text-sm text-gray-600 dark:text-gray-300">显示：</span>
+                  <button type="button" @click.stop="showWebsite = !showWebsite" :class="['px-2.5 py-1 rounded-lg text-xs border', showWebsite ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300']">网站</button>
+                  <button type="button" @click.stop="showSystems = !showSystems" :class="['px-2.5 py-1 rounded-lg text-xs border', showSystems ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300']">系统</button>
                 </div>
 
                 <!-- 预览区域 -->
                 <div class="flex justify-center">
                   <div ref="previewRef" :class="['w-[920px] rounded-2xl p-8 shadow-2xl relative overflow-hidden', themeClass]">
-
-                    <!-- detail 卡片 -->
-                    <template v-if="mode === 'detail' && detail?.software">
+                    <template v-if="detail?.software">
                       <div class="flex items-center gap-4 mb-6">
                         <div class="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/20">
                           <img :src="getIconUrl(detail.software.icon || '')" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
@@ -94,83 +89,13 @@
                       </div>
                       <div :class="['mt-8 text-xs', theme === 'classic' ? 'text-gray-400' : 'text-white/80']">由 AppArchive 生成 · {{ new Date().toLocaleDateString() }}</div>
                     </template>
-
-                    <!-- comparison 卡片 -->
-                    <template v-else-if="mode === 'comparison' && comparison">
-                      <div class="mb-6">
-                        <div class="text-3xl font-bold">软件对比分析</div>
-                        <div :class="['text-base mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ new Date().toLocaleDateString() }}</div>
-                      </div>
-                      <div class="flex flex-wrap items-center gap-4 mb-6">
-                        <TagBadge
-                          v-for="sw in comparison.softwares"
-                          :key="sw.id"
-                          size="md"
-                          :variant="theme === 'classic' ? 'neutral' : 'primary'"
-                          :class="theme === 'classic'
-                            ? 'h-auto gap-2 py-2 text-sm text-gray-900 bg-gray-100 border-gray-200'
-                            : 'h-auto gap-2 py-2 text-sm text-white bg-white/10 border-white/20'"
-                        >
-                          <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
-                            <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
-                          </div>
-                          <span class="text-base font-medium leading-tight">{{ sw.name }}</span>
-                        </TagBadge>
-                      </div>
-                      <div class="mb-6">
-                        <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">对比要点</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div v-for="sw in comparison.softwares" :key="'kp-'+sw.id" class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
-                            <div class="flex items-center gap-2 mb-2">
-                              <div class="w-6 h-6 rounded-lg overflow-hidden ring-2" :class="theme === 'classic' ? 'ring-gray-200' : 'ring-white/30'">
-                                <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
-                              </div>
-                              <div class="text-sm font-semibold">{{ sw.name }}</div>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                              <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-primary' : 'text-primary/90'">优点</div>
-                                <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                                  <li v-for="(p, i) in (sw.pros || []).slice(0,5)" :key="'pro-'+sw.id+'-'+i">{{ p }}</li>
-                                  <li v-if="!(sw.pros||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
-                                </ul>
-                              </div>
-                              <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-red-600' : 'text-red-200'">缺点</div>
-                                <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                                  <li v-for="(c, i) in (sw.cons || []).slice(0,5)" :key="'con-'+sw.id+'-'+i">{{ c }}</li>
-                                  <li v-if="!(sw.cons||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div v-if="comparison.recommendationLines?.length" class="mb-6">
-                        <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">选择建议</div>
-                        <div class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
-                          <ul class="space-y-3">
-                            <li v-for="(line, idx) in comparison.recommendationLines" :key="'rec-'+idx" class="text-sm leading-7 flex items-baseline gap-2" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-primary' : 'bg-white/80'"></span>
-                              <span>{{ line }}</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      <div class="mt-2">
-                        <div :class="['text-base leading-7 markdown-content', theme === 'classic' ? 'text-gray-700' : 'text-white']" v-html="comparison.summaryHtml"></div>
-                      </div>
-                      <div :class="['mt-8 text-xs', theme === 'classic' ? 'text-gray-400' : 'text-white/80']">由 AppArchive 生成 · {{ new Date().toLocaleDateString() }}</div>
-                    </template>
                   </div>
                 </div>
 
                 <!-- 离屏导出容器（与上方同结构） -->
                 <div class="fixed -left-[9999px] top-0">
                   <div ref="exportRef" :class="['w-[920px] rounded-2xl p-8 relative overflow-hidden', themeClass]">
-                    <!-- 复用相同片段 -->
-                    <template v-if="mode === 'detail' && detail?.software">
-                      <!-- 简化：与预览相同结构 -->
+                    <template v-if="detail?.software">
                       <div class="flex items-center gap-4 mb-6">
                         <div class="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-white/20">
                           <img :src="getIconUrl(detail.software.icon || '')" alt="icon" class="w-full h-full object-cover" referrerpolicy="origin" />
@@ -202,72 +127,6 @@
                       </div>
                       <div :class="['mt-8 text-xs', theme === 'classic' ? 'text-gray-400' : 'text-white/80']">由 AppArchive 生成 · {{ new Date().toLocaleDateString() }}</div>
                     </template>
-                    <template v-else-if="mode === 'comparison' && comparison">
-                      <div class="mb-6">
-                        <div class="text-3xl font-bold">软件对比分析</div>
-                        <div :class="['text-base mt-1', theme === 'classic' ? 'text-gray-500' : 'text-white/80']">{{ new Date().toLocaleDateString() }}</div>
-                      </div>
-                      <div class="flex flex-wrap items-center gap-4 mb-6">
-                        <TagBadge
-                          v-for="sw in comparison.softwares"
-                          :key="'exp-b-'+sw.id"
-                          size="md"
-                          :variant="theme === 'classic' ? 'neutral' : 'primary'"
-                          :class="theme === 'classic'
-                            ? 'h-auto gap-2 py-2 text-sm text-gray-900 bg-gray-100 border-gray-200'
-                            : 'h-auto gap-2 py-2 text-sm text-white bg-white/10 border-white/20'"
-                        >
-                          <div class="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-white/20">
-                            <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
-                          </div>
-                          <span class="text-base font-medium leading-tight">{{ sw.name }}</span>
-                        </TagBadge>
-                      </div>
-                      <div class="mb-6">
-                        <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">对比要点</div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div v-for="sw in comparison.softwares" :key="'exp-kp-'+sw.id" class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
-                            <div class="flex items-center gap-2 mb-2">
-                              <div class="w-6 h-6 rounded-lg overflow-hidden ring-2" :class="theme === 'classic' ? 'ring-gray-200' : 'ring-white/30'">
-                                <img :src="getIconUrl(sw.icon || '')" :alt="sw.name" class="w-full h-full object-cover" referrerpolicy="origin" />
-                              </div>
-                              <div class="text-sm font-semibold">{{ sw.name }}</div>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                              <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-primary' : 'text-primary/90'">优点</div>
-                                <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                                  <li v-for="(p, i) in (sw.pros || []).slice(0,5)" :key="'exp-prok-'+sw.id+'-'+i">{{ p }}</li>
-                                  <li v-if="!(sw.pros||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
-                                </ul>
-                              </div>
-                              <div>
-                                <div class="text-sm font-medium mb-1" :class="theme === 'classic' ? 'text-red-600' : 'text-red-200'">缺点</div>
-                                <ul class="list-disc list-inside text-sm leading-7" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                                  <li v-for="(c, i) in (sw.cons || []).slice(0,5)" :key="'exp-conk-'+sw.id+'-'+i">{{ c }}</li>
-                                  <li v-if="!(sw.cons||[]).length" :class="theme === 'classic' ? 'text-gray-400' : 'text-white/70'">暂无</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div v-if="comparison.recommendationLines?.length" class="mb-6">
-                        <div class="text-lg font-semibold mb-3" :class="theme === 'classic' ? 'text-gray-800' : 'text-white'">选择建议</div>
-                        <div class="rounded-xl p-4" :class="theme === 'classic' ? 'bg-gray-50 border border-gray-200' : 'bg-white/10 border border-white/10'">
-                          <ul class="space-y-3">
-                            <li v-for="(line, idx) in comparison.recommendationLines" :key="'exp-rec-'+idx" class="text-sm leading-7 flex items-baseline gap-2" :class="theme === 'classic' ? 'text-gray-700' : 'text-white'">
-                              <span class="w-2 h-2 rounded-full flex-shrink-0" :class="theme === 'classic' ? 'bg-primary' : 'bg-white/80'"></span>
-                              <span>{{ line }}</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                      <div class="mt-2">
-                        <div :class="['text-base leading-7 markdown-content', theme === 'classic' ? 'text-gray-700' : 'text-white']" v-html="comparison.summaryHtml"></div>
-                      </div>
-                      <div :class="['mt-8 text-xs', theme === 'classic' ? 'text-gray-400' : 'text-white/80']">由 AppArchive 生成 · {{ new Date().toLocaleDateString() }}</div>
-                    </template>
                   </div>
                 </div>
               </div>
@@ -281,7 +140,6 @@
 
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-// @ts-expect-error
 import { toBlob } from 'html-to-image'
 import { X } from 'lucide-vue-next'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
@@ -289,13 +147,10 @@ import { useToast } from '../composables/useToast'
 import { getIconUrl } from '../services/localIconCache'
 import type { Software, SoftwareListItem } from '../types'
 import BaseButton from './common/BaseButton.vue'
-import TagBadge from './common/TagBadge.vue'
 
 const props = defineProps<{
   isOpen: boolean
-  mode: 'detail' | 'comparison'
   detail?: { software: Software | SoftwareListItem }
-  comparison?: { softwares: (Software | SoftwareListItem)[]; recommendationLines?: string[]; summaryHtml: string }
   defaultTheme?: 'classic' | 'dark' | 'gradient'
   defaultShowWebsite?: boolean
   defaultShowSystems?: boolean
@@ -329,7 +184,7 @@ const handleDialogClose = () => {
 }
 
 const metaLine = computed(() => {
-  if (props.mode !== 'detail' || !props.detail?.software) return ''
+  if (!props.detail?.software) return ''
   const s = props.detail.software
   const base = `${s.category || '未分类'} · ${s.license || '未知'}`
   const sys = Array.isArray(s.systems) ? s.systems.join(' / ') : ''
@@ -361,7 +216,7 @@ const onSave = async () => {
   await ensureAssetsReady(el)
 
   try {
-    const blob = await toBlob(el, { cacheBust: true, pixelRatio: Math.max(2, window.devicePixelRatio || 1), style: { transform: 'none', zoom: '1' } })
+    const blob = await toBlob(el, { cacheBust: true, pixelRatio: Math.max(2, window.devicePixelRatio || 1), style: { transform: 'none', zoom: '1' } as any })
     if (!blob) {
       showToast('生成图片失败，请重试', 'error')
       return
@@ -398,11 +253,3 @@ onUnmounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.markdown-content {
-  @apply text-gray-700 dark:text-gray-300;
-}
-</style>
-
-

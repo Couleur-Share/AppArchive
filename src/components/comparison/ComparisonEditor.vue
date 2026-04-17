@@ -66,27 +66,31 @@
         <textarea
           v-model="modelValue"
           class="comparison-editor-input flex-1 w-full resize-none rounded-xl border px-5 py-4 text-sm leading-7 text-gray-800 shadow-sm transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-200"
-          placeholder="# 开始编写对比分析...&#10;&#10;支持 Markdown 格式&#10;- 列表&#10;**加粗**"
+          placeholder='{ "verdict": "...", "dimensions": [...], "key_differences": [...], "scenarios": [...] }'
           :disabled="disabled"
           spellcheck="false"
         ></textarea>
         <div class="mt-3 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
-            <span>支持 Markdown 语法，建议直接整理选型结论与适用场景。</span>
+            <span>对比分析为结构化 JSON，建议通过 AI 生成后再做微调。</span>
             <span>{{ modelValue?.length || 0 }} 字符</span>
         </div>
       </div>
 
       <!-- 预览模式 -->
       <div v-else class="h-full p-4 sm:p-6">
-        <div 
-          v-if="previewHtml"
-          class="comparison-editor-preview mx-auto max-w-[78ch] rounded-2xl border p-5 sm:p-8"
-          v-html="previewHtml"
-          @click="handlePreviewClick"
-        ></div>
-        
+        <!-- 结构化视图 -->
+        <div
+          v-if="parsedAnalysis"
+          class="comparison-editor-structured mx-auto max-w-[880px]"
+        >
+          <ComparisonStructuredView
+            :analysis="parsedAnalysis"
+            :softwares="comparisonSoftwares"
+          />
+        </div>
+
         <!-- 空状态 -->
-        <div 
+        <div
           v-else
           class="comparison-editor-empty group flex h-full flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center"
         >
@@ -132,12 +136,20 @@
 <script setup lang="ts">
 import { AlertCircle, CheckCircle2, Edit2, Edit3, Eye, Loader2, Sparkles } from 'lucide-vue-next'
 import { ref } from 'vue'
+import type { ComparisonAnalysis } from '../../types/comparison'
 import BaseButton from '../common/BaseButton.vue'
 import TagBadge from '../common/TagBadge.vue'
+import ComparisonStructuredView from './ComparisonStructuredView.vue'
+
+interface SoftwareMinimal {
+  name: string
+  icon?: string | null
+}
 
 const props = defineProps<{
   modelValue: string
-  previewHtml: string
+  parsedAnalysis?: ComparisonAnalysis | null
+  comparisonSoftwares?: SoftwareMinimal[]
   savingState: 'saving' | 'saved' | 'error' | null
   selectedCount: number
   baseSoftwareName: string
@@ -159,25 +171,6 @@ const isEditMode = ref(false)
 const setMode = (mode: 'preview' | 'edit') => {
   if (props.disabled) return
   isEditMode.value = mode === 'edit'
-}
-
-// 处理预览区域点击：如果点击的是链接，不切换模式；否则切换
-const handlePreviewClick = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
-  let current: HTMLElement | null = target
-  while (current) {
-    if (current.tagName === 'A') {
-      return // 点击的是链接，不切换模式
-    }
-    // 也不响应表格内的点击，方便复制
-    if (current.tagName === 'TABLE') {
-        return 
-    }
-    current = current.parentElement
-  }
-  // 点击其他区域，切换到编辑模式
-  // 暂时禁用点击即编辑，防止误触，改为必须点击按钮切换
-  // isEditMode.value = true
 }
 </script>
 
@@ -212,7 +205,6 @@ const handlePreviewClick = (event: MouseEvent) => {
 
 .comparison-editor-segmented,
 .comparison-editor-input,
-.comparison-editor-preview,
 .comparison-editor-empty,
 .comparison-editor-empty-icon {
   border-color: var(--modal-card-border-light);
@@ -221,7 +213,6 @@ const handlePreviewClick = (event: MouseEvent) => {
 
 .dark .comparison-editor-segmented,
 .dark .comparison-editor-input,
-.dark .comparison-editor-preview,
 .dark .comparison-editor-empty,
 .dark .comparison-editor-empty-icon {
   border-color: var(--modal-card-border-dark);
@@ -241,19 +232,18 @@ const handlePreviewClick = (event: MouseEvent) => {
 }
 
 .comparison-editor-segmented-active,
-.comparison-editor-input,
-.comparison-editor-preview {
+.comparison-editor-input {
   background: var(--modal-card-bg-light);
 }
 
 .dark .comparison-editor-segmented-active,
-.dark .comparison-editor-input,
-.dark .comparison-editor-preview {
+.dark .comparison-editor-input {
   background: var(--modal-card-bg-dark);
 }
 
 .comparison-editor-input {
   border-color: var(--modal-card-border-light);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .dark .comparison-editor-input {
@@ -266,57 +256,6 @@ const handlePreviewClick = (event: MouseEvent) => {
 
 .dark .comparison-editor-empty:hover {
   border-color: var(--modal-card-border-emphasis-dark);
-}
-
-/* 优化 Markdown 样式，与 SoftwareDetail.vue 保持一致 */
-.comparison-editor-preview :deep(h1),
-.comparison-editor-preview :deep(h2),
-.comparison-editor-preview :deep(h3) {
-  @apply my-3 font-bold text-gray-900 dark:text-white;
-}
-
-.comparison-editor-preview :deep(p) {
-  @apply my-2 leading-7 text-gray-700 dark:text-gray-300;
-}
-
-.comparison-editor-preview :deep(ul) {
-  @apply my-2 list-disc pl-5 text-gray-700 dark:text-gray-300;
-}
-
-.comparison-editor-preview :deep(li) {
-  @apply my-1;
-}
-
-.comparison-editor-preview :deep(a) {
-  @apply text-primary hover:opacity-80;
-}
-
-.comparison-editor-preview :deep(table) {
-  @apply my-4 w-full border-collapse overflow-hidden rounded-xl text-sm;
-}
-
-.comparison-editor-preview :deep(th) {
-  @apply border-b border-gray-200 px-4 py-3 text-left font-semibold text-gray-900 dark:border-gray-700 dark:text-white;
-  background: color-mix(in srgb, var(--modal-card-subtle-bg-light) 84%, white);
-}
-
-.dark .comparison-editor-preview :deep(th) {
-  background: color-mix(in srgb, var(--modal-card-subtle-bg-dark) 92%, #181818);
-}
-
-.comparison-editor-preview :deep(td) {
-  @apply border-b border-gray-200 px-4 py-3 align-top text-gray-700 dark:border-gray-700 dark:text-gray-300;
-}
-
-.comparison-editor-preview :deep(blockquote) {
-  @apply my-4 rounded-xl border px-4 py-3 text-gray-600 italic dark:text-gray-300;
-  background: color-mix(in srgb, var(--modal-card-subtle-bg-light) 80%, white);
-  border-color: var(--modal-card-border-light);
-}
-
-.dark .comparison-editor-preview :deep(blockquote) {
-  background: color-mix(in srgb, var(--modal-card-subtle-bg-dark) 92%, #181818);
-  border-color: var(--modal-card-border-dark);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,3 +7,6 @@
 /database
 /.shared
 /.waylog
+# 本项目使用 pnpm（packageManager 字段已锁定），禁止提交 npm/yarn 锁文件
+/package-lock.json
+/yarn.lock

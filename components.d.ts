@@ -24,7 +24,7 @@ declare module 'vue' {
     ComparisonAIOverlay: typeof import('./src/components/ComparisonAIOverlay.vue')['default']
     ComparisonEditor: typeof import('./src/components/comparison/ComparisonEditor.vue')['default']
     ComparisonManager: typeof import('./src/components/ComparisonManager.vue')['default']
-    ComparisonResult: typeof import('./src/components/ComparisonResult.vue')['default']
+    ComparisonStructuredView: typeof import('./src/components/comparison/ComparisonStructuredView.vue')['default']
     DeleteConfirmDialog: typeof import('./src/components/common/DeleteConfirmDialog.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     FieldMessage: typeof import('./src/components/common/FieldMessage.vue')['default']

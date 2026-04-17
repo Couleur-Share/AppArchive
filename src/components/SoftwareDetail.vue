@@ -487,11 +487,14 @@
                         </div>
 
                         <!-- 综合分析 -->
-                        <div v-if="comparisonSummary" class="software-detail-card rounded-lg p-6 sm:p-8">
+                        <div v-if="parsedComparisonAnalysis" class="software-detail-card rounded-lg p-6 sm:p-8">
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                                 综合分析
                             </h3>
-                            <div v-html="renderedSummary" class="prose prose-blue dark:prose-invert max-w-none markdown-content"></div>
+                            <ComparisonStructuredView
+                                :analysis="parsedComparisonAnalysis"
+                                :softwares="comparisonSoftwareList"
+                            />
                         </div>
                    </template>
                 </div>
@@ -613,7 +616,6 @@
   
   <ShareCardPreview
     v-model:is-open="showSharePreview"
-    mode="detail"
     :detail="{ software }"
     default-theme="classic"
     :default-show-website="false"
@@ -656,7 +658,6 @@ import {
   X,
   XCircle
 } from 'lucide-vue-next'
-import MarkdownIt from 'markdown-it'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { copyToClipboard } from '@/utils/clipboard'
 import { isSignedIn } from '../lib/auth'
@@ -666,12 +667,14 @@ import { githubService } from '../services/github'
 import { getIconUrl } from '../services/localIconCache'
 import { softwareService } from '../services/software'
 import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../types'
+import { parseComparisonContent } from '../utils/comparison-parser'
 import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
 import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
 import SystemIcon from './SystemIcon.vue'
+import ComparisonStructuredView from './comparison/ComparisonStructuredView.vue'
 import GitHubReleases from './software/GitHubReleases.vue'
 import InlineToast from './InlineToast.vue'
 
@@ -930,11 +933,6 @@ const cardScrollRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 let dragStartX = 0
 let dragStartScrollLeft = 0
-let md: MarkdownIt | null = null
-const getMarkdownRenderer = () => {
-  if (!md) md = new MarkdownIt({ html: false, breaks: true, linkify: true })
-  return md
-}
 const loadComparisons = async () => {
   try {
     isLoadingComparison.value = true
@@ -948,14 +946,18 @@ const loadComparisons = async () => {
   } catch (error) { logger.error('加载对比数据失败:', error) } 
   finally { isLoadingComparison.value = false }
 }
-const renderedSummary = computed(() => {
-  if (!comparisonSummary.value) return ''
-  let content = comparisonSummary.value
-  content = content.replace(/([^\n])\s*(#{1,6}\s)/g, '$1\n\n$2')
-  content = content.replace(/([^\n])\s*-\s*(\*\*)/g, '$1\n- $2')
-  content = content.replace(/([^\n])\s*-\s*(优点|缺点)/g, '$1\n  - $2')
-  content = content.replace(/(#{1,6}\s+.*?)(\s*-\s)/g, '$1\n$2')
-  return getMarkdownRenderer().render(content)
+// 结构化对比分析：解析数据库中保存的 JSON
+const parsedComparisonAnalysis = computed(() => {
+  if (!comparisonSummary.value) return null
+  return parseComparisonContent(comparisonSummary.value)
+})
+
+// 传给结构化视图的软件列表：基础软件 + 已比较软件，用于匹配图标
+const comparisonSoftwareList = computed(() => {
+  return [software.value, ...comparedSoftwares.value].map((sw) => ({
+    name: sw?.name || '',
+    icon: (sw as any)?.icon || '',
+  }))
 })
 watch(activeTab, (newTab) => {
   if (newTab === 'comparison' && !comparedSoftwares.value.length && !isLoadingComparison.value) loadComparisons()
@@ -1100,12 +1102,6 @@ const afterLeave = () => {
 </script>
 
 <style>
-.markdown-content h1, .markdown-content h2, .markdown-content h3 { @apply font-bold text-gray-900 dark:text-white my-3; }
-.markdown-content p { @apply my-2 leading-relaxed text-gray-700 dark:text-gray-300; }
-.markdown-content ul { @apply list-disc pl-5 my-2 text-gray-700 dark:text-gray-300; }
-.markdown-content li { @apply my-1; }
-.markdown-content a { @apply text-primary hover:underline; }
-
 .software-detail-card {
   border: 1px solid var(--modal-card-border-light);
   background: var(--modal-card-bg-light);
