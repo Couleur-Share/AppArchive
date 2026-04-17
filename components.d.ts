@@ -39,6 +39,7 @@ declare module 'vue' {
     IUilWindows: typeof import('~icons/uil/windows')['default']
     LoadingOverlay: typeof import('./src/components/layout/LoadingOverlay.vue')['default']
     LoginDialog: typeof import('./src/components/auth/LoginDialog.vue')['default']
+    MarkdownRenderer: typeof import('./src/components/common/MarkdownRenderer.vue')['default']
     NewArrivalRadar: typeof import('./src/components/common/NewArrivalRadar.vue')['default']
     ProsConsEditor: typeof import('./src/components/ProsConsEditor.vue')['default']
     RelatedArticlesEditor: typeof import('./src/components/RelatedArticlesEditor.vue')['default']

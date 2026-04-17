@@ -133,13 +133,17 @@
                 </span>
               </div>
 
-              <!-- Release 正文（Markdown 渲染） -->
+              <!-- Release 正文（Markdown 渲染，异步管线） -->
               <div v-if="release.body" class="relative">
                 <div
-                  v-html="renderMarkdown(release.body)"
-                  class="prose prose-sm prose-gray dark:prose-invert max-w-none release-markdown"
                   :class="{ 'max-h-[200px] overflow-hidden': !expandedReleases.has(release.tag_name) && isLongBody(release.body) }"
-                />
+                >
+                  <MarkdownRenderer
+                    :source="release.body"
+                    :context="markdownContext"
+                    container-class="prose prose-sm prose-gray dark:prose-invert max-w-none release-markdown"
+                  />
+                </div>
                 <!-- 渐变遮罩 -->
                 <div
                   v-if="!expandedReleases.has(release.tag_name) && isLongBody(release.body)"
@@ -209,13 +213,17 @@ import {
   AlertCircle, ChevronDown, Clock, Download,
   ExternalLink, GitBranch, Package, RefreshCw, Tag
 } from 'lucide-vue-next'
-import MarkdownIt from 'markdown-it'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { isSignedIn } from '../../lib/auth'
 import { githubService } from '../../services/github'
 import type { GitHubRelease } from '../../types/software'
 import logger from '../../utils/logger'
 import TagBadge from '../common/TagBadge.vue'
+
+// 异步加载 MarkdownRenderer：首次进入 release tab 才触发 markdown chunk（shiki + unified）下载
+const MarkdownRenderer = defineAsyncComponent(
+  () => import('../common/MarkdownRenderer.vue'),
+)
 
 const props = defineProps<{
   softwareId: number
@@ -233,24 +241,20 @@ const visibleCount = ref(5)
 const expandedReleases = ref(new Set<string>())
 const showAllAssets = ref(new Set<string>())
 
-// Markdown renderer (lazy init)
-let md: MarkdownIt | null = null
-const getMarkdownRenderer = () => {
-  if (!md) {
-    md = new MarkdownIt({
-      html: false,
-      breaks: true,
-      linkify: true,
-    })
-  }
-  return md
-}
-
 // Computed
+const parsedRepo = computed(() => githubService.parseRepo(props.website))
+
 const repoUrl = computed(() => {
-  const parsed = githubService.parseRepo(props.website)
+  const parsed = parsedRepo.value
   if (!parsed) return props.website
   return `https://github.com/${parsed.owner}/${parsed.repo}`
+})
+
+// Markdown 渲染上下文：用于 remark-github 把 @user/#123/SHA 解析为对应仓库的链接
+const markdownContext = computed(() => {
+  const parsed = parsedRepo.value
+  if (!parsed) return undefined
+  return { owner: parsed.owner, repo: parsed.repo }
 })
 
 const visibleReleases = computed(() => releases.value.slice(0, visibleCount.value))
@@ -262,11 +266,6 @@ const getReleaseVersionVariant = (index: number, prerelease: boolean) => {
 }
 
 // Methods
-const renderMarkdown = (body: string) => {
-  if (!body) return ''
-  return getMarkdownRenderer().render(body)
-}
-
 const isLongBody = (body: string) => {
   if (!body) return false
   return body.length > 500 || body.split('\n').length > 10
@@ -369,6 +368,16 @@ watch(() => props.softwareId, () => {
 </script>
 
 <style>
+/* ============================================================
+ * Release Notes Markdown 样式
+ * 依赖输出结构：unified/remark + rehype + shiki + remark-github-blockquote-alert
+ * 约定：
+ *   - 所有容器均带 .release-markdown 类，避免污染项目其他地方
+ *   - 暗色模式统一通过 html.dark 选择器切换（tailwind darkMode: "class"）
+ * ============================================================ */
+
+/* ---------- 基础排版 ---------- */
+
 .release-markdown h1,
 .release-markdown h2,
 .release-markdown h3 {
@@ -387,29 +396,29 @@ watch(() => props.softwareId, () => {
 .release-markdown ol {
   @apply list-decimal pl-5 my-1.5 text-sm text-gray-700 dark:text-gray-300;
 }
-
 .release-markdown li {
   @apply my-0.5;
 }
 
-.release-markdown code {
+/* 行内代码：Shiki 不处理行内 code，这里保留轻量样式 */
+.release-markdown :not(pre) > code {
   @apply px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs font-mono text-gray-800 dark:text-gray-200;
 }
 
-.release-markdown pre {
-  @apply my-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 overflow-x-auto border border-gray-100 dark:border-gray-700;
-}
-.release-markdown pre code {
-  @apply bg-transparent p-0;
-}
-
 .release-markdown a {
-  @apply text-primary hover:underline;
+  @apply text-primary hover:underline underline-offset-2;
 }
 
-.release-markdown blockquote {
-  @apply my-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 italic text-gray-600 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-400;
+.release-markdown strong {
+  @apply font-semibold text-gray-900 dark:text-white;
 }
+
+/* 普通 blockquote（非 alert） */
+.release-markdown blockquote {
+  @apply my-2 rounded-lg border-l-4 border-gray-300 bg-gray-50 px-4 py-2 text-gray-600
+         dark:border-gray-600 dark:bg-gray-900/50 dark:text-gray-400;
+}
+.release-markdown blockquote p { @apply my-1; }
 
 .release-markdown hr {
   @apply my-4 border-gray-200 dark:border-gray-700;
@@ -420,7 +429,7 @@ watch(() => props.softwareId, () => {
 }
 
 .release-markdown table {
-  @apply w-full text-sm my-2;
+  @apply w-full text-sm my-2 border-collapse;
 }
 .release-markdown th,
 .release-markdown td {
@@ -429,4 +438,170 @@ watch(() => props.softwareId, () => {
 .release-markdown th {
   @apply bg-gray-50 dark:bg-gray-800 font-medium;
 }
+
+/* ---------- Shiki 代码块（双主题切换） ---------- */
+/* Shiki 的 <pre> 会自带内联 background/color，这里只补外层装饰 */
+
+.release-markdown pre {
+  @apply my-3 p-3 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 text-xs leading-relaxed;
+}
+.release-markdown pre code {
+  @apply bg-transparent p-0 text-xs font-mono;
+  /* 保留 shiki 的行高/letter-spacing */
+  display: block;
+}
+
+/* 双主题：暗色下用 --shiki-dark / --shiki-dark-bg 覆盖内联浅色 */
+html.dark .release-markdown .shiki,
+html.dark .release-markdown .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  /* 加粗/斜体等 token 样式的暗色变体 */
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+/* Shiki 未识别的 <pre>（无 .shiki 类）兜底背景 */
+.release-markdown pre:not(.shiki) {
+  @apply bg-gray-50;
+}
+html.dark .release-markdown pre:not(.shiki) {
+  @apply bg-gray-900/50;
+}
+
+/* ---------- GFM 任务列表 ---------- */
+
+.release-markdown ul.contains-task-list {
+  @apply list-none pl-1;
+}
+.release-markdown li.task-list-item {
+  @apply flex items-start gap-2 my-1;
+}
+.release-markdown li.task-list-item input[type="checkbox"] {
+  @apply mt-[3px] w-3.5 h-3.5 shrink-0 appearance-none rounded-[3px]
+         border border-gray-300 dark:border-gray-600
+         bg-white dark:bg-gray-800
+         cursor-default relative;
+}
+.release-markdown li.task-list-item input[type="checkbox"]:checked {
+  @apply bg-primary border-primary;
+}
+.release-markdown li.task-list-item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/* ---------- GitHub Alerts ---------- */
+/* remark-github-blockquote-alert 输出结构：
+ *   <div class="markdown-alert markdown-alert-{type}">
+ *     <p class="markdown-alert-title"><svg class="octicon">...</svg>TYPE</p>
+ *     <p>body</p>
+ *   </div>
+ */
+
+.release-markdown .markdown-alert {
+  @apply my-3 px-4 py-2 rounded-r-lg border-l-4 border-solid;
+}
+.release-markdown .markdown-alert > p {
+  @apply my-1 text-sm leading-relaxed;
+}
+.release-markdown .markdown-alert-title {
+  @apply flex items-center gap-1.5 text-[13px] font-semibold uppercase tracking-wide !my-1;
+}
+.release-markdown .markdown-alert-title .octicon {
+  @apply w-4 h-4 shrink-0;
+  /* octicon 默认用 currentColor，所以继承父级 color 即可 */
+  fill: currentColor;
+}
+
+/* NOTE - 蓝色 */
+.release-markdown .markdown-alert-note {
+  @apply border-blue-400 bg-blue-50 dark:border-blue-500/60 dark:bg-blue-500/10;
+}
+.release-markdown .markdown-alert-note .markdown-alert-title {
+  @apply text-blue-700 dark:text-blue-300;
+}
+
+/* TIP - 绿色（映射到项目 primary 色系更自然） */
+.release-markdown .markdown-alert-tip {
+  @apply border-emerald-400 bg-emerald-50 dark:border-emerald-500/60 dark:bg-emerald-500/10;
+}
+.release-markdown .markdown-alert-tip .markdown-alert-title {
+  @apply text-emerald-700 dark:text-emerald-300;
+}
+
+/* IMPORTANT - 紫色 */
+.release-markdown .markdown-alert-important {
+  @apply border-purple-400 bg-purple-50 dark:border-purple-500/60 dark:bg-purple-500/10;
+}
+.release-markdown .markdown-alert-important .markdown-alert-title {
+  @apply text-purple-700 dark:text-purple-300;
+}
+
+/* WARNING - 琥珀色 */
+.release-markdown .markdown-alert-warning {
+  @apply border-amber-400 bg-amber-50 dark:border-amber-500/60 dark:bg-amber-500/10;
+}
+.release-markdown .markdown-alert-warning .markdown-alert-title {
+  @apply text-amber-700 dark:text-amber-300;
+}
+
+/* CAUTION - 红色 */
+.release-markdown .markdown-alert-caution {
+  @apply border-red-400 bg-red-50 dark:border-red-500/60 dark:bg-red-500/10;
+}
+.release-markdown .markdown-alert-caution .markdown-alert-title {
+  @apply text-red-700 dark:text-red-300;
+}
+
+/* ---------- <details> / <summary> ---------- */
+
+.release-markdown details {
+  @apply my-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 overflow-hidden;
+}
+.release-markdown details > summary {
+  @apply px-3 py-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300
+         flex items-center gap-2 list-none select-none
+         hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors;
+}
+/* 去掉默认三角标记，使用自定义箭头 */
+.release-markdown details > summary::-webkit-details-marker { display: none; }
+.release-markdown details > summary::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+.release-markdown details[open] > summary::before {
+  transform: rotate(90deg);
+}
+.release-markdown details > *:not(summary) {
+  @apply px-3 py-2;
+}
+
+/* ---------- <kbd> 按键外观 ---------- */
+
+.release-markdown kbd {
+  @apply inline-flex items-center px-1.5 py-[1px] mx-[1px]
+         rounded border border-gray-300 dark:border-gray-600
+         bg-gray-50 dark:bg-gray-800
+         text-[11px] font-mono font-medium
+         text-gray-700 dark:text-gray-300
+         shadow-[inset_0_-1px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]
+         align-baseline;
+}
+
+/* ---------- 空 Markdown 兜底 ---------- */
+.release-markdown:empty { display: none; }
 </style>

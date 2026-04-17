@@ -44,9 +44,46 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					vendor: ["vue", "@headlessui/vue"],
-					icons: ["lucide-vue-next"],
+				// 分包策略：
+				//   - markdown：shiki + unified/remark/rehype 管线（仅 release tab 用到，懒加载）
+				//   - icons：lucide-vue-next 图标库
+				//   - vendor：vue 运行时 + headlessui
+				manualChunks(id) {
+					if (!id.includes("node_modules")) return;
+
+					// 为 shiki 每种语言/主题生成独立 chunk（Vite 对动态 import 默认会合并小 chunk）
+					// 真实语法/主题数据实际在 @shikijs/langs 与 @shikijs/themes 子包
+					const shikiLang = id.match(
+						/[\\/]@shikijs[\\/]langs[\\/]dist[\\/]([^\\/]+?)\.m?js/,
+					);
+					if (shikiLang) return `shiki-lang-${shikiLang[1]}`;
+
+					const shikiTheme = id.match(
+						/[\\/]@shikijs[\\/]themes[\\/]dist[\\/]([^\\/]+?)\.m?js/,
+					);
+					if (shikiTheme) return `shiki-theme-${shikiTheme[1]}`;
+
+					// shiki 主包 langs/themes 代理文件本身很小，归入 markdown 核心 chunk
+					if (/[\\/]shiki[\\/]dist[\\/](langs|themes)[\\/]/.test(id)) {
+						return "markdown";
+					}
+
+					// markdown 渲染管线：unified/remark/rehype + shiki 核心运行时
+					if (
+						/[\\/]node_modules[\\/](shiki|@shikijs[\\/]|unified[\\/]|remark-[^\\/]+[\\/]|rehype-[^\\/]+[\\/]|mdast-[^\\/]+[\\/]|hast-[^\\/]+[\\/]|micromark[^\\/]*[\\/]|unist-[^\\/]+[\\/]|vfile[^\\/]*[\\/]|bail[\\/]|trough[\\/]|decode-named-character-reference[\\/]|property-information[\\/]|zwitch[\\/]|stringify-entities[\\/]|parse-entities[\\/]|character-entities[^\\/]*[\\/]|ccount[\\/]|markdown-table[\\/]|is-plain-obj[\\/])/.test(
+							id,
+						)
+					) {
+						return "markdown";
+					}
+
+					if (id.includes("/lucide-vue-next/")) return "icons";
+
+					if (
+						/[\\/]node_modules[\\/](vue|@vue[\\/]|@headlessui[\\/])/.test(id)
+					) {
+						return "vendor";
+					}
 				},
 			},
 		},
