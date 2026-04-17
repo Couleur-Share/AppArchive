@@ -6,6 +6,7 @@ import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import rehypeStringify from "rehype-stringify";
+import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkGithub from "remark-github";
 import { remarkAlert } from "remark-github-blockquote-alert";
@@ -316,7 +317,11 @@ export async function renderReleaseMarkdown(
 
 		// unified 链式类型参数过深，这里统一降级为 any（插件运行时无影响）
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let processor: any = unified().use(remarkParse).use(remarkGfm);
+		let processor: any = unified()
+			.use(remarkParse)
+			.use(remarkGfm)
+			// 与 GitHub issue/release 页面一致：把单换行视为 <br>（对齐原先 markdown-it breaks:true 行为）
+			.use(remarkBreaks);
 
 		if (ctx?.owner && ctx?.repo) {
 			processor = processor.use(remarkGithub, {
