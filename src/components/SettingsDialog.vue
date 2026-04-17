@@ -53,8 +53,8 @@
                     </button>
                   </div>
 
-                  <!-- 底部按钮 -->
-                  <div class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <!-- 底部按钮（维护工具 Tab 内置自己的操作按钮，故隐藏全局 Save/Reset） -->
+                  <div v-if="activeTab !== 'maintenance'" class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     <BaseButton
                       @click="resetSettings"
                       variant="secondary"
@@ -443,6 +443,11 @@
                       </template>
                     </div>
 
+                    <!-- 维护工具：批量重跑 AI 分析 -->
+                    <div v-if="activeTab === 'maintenance'">
+                      <BatchRerunPanel />
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -462,6 +467,7 @@ import { SYSTEMS } from '@/types/constants'
 import { isSignedIn, updateProfile, user } from '../lib/auth'
 import { type AIConfig, type AIProvider, aiConfigService, type SearchConfig, searchConfigService } from '../services/aiConfig'
 import { uploadService } from '../services/upload'
+import BatchRerunPanel from './BatchRerunPanel.vue'
 import BaseButton from './common/BaseButton.vue'
 
 const props = defineProps<{
@@ -493,7 +499,7 @@ const emit = defineEmits<{
 }>();
 
 // 导航标签页
-type TabId = 'account' | 'systems' | 'sort' | 'view' | 'ai'
+type TabId = 'account' | 'systems' | 'sort' | 'view' | 'ai' | 'maintenance'
 const tabs = computed(() => {
   const list: { id: TabId; label: string }[] = []
   if (isSignedIn.value) {
@@ -505,7 +511,10 @@ const tabs = computed(() => {
     { id: 'view', label: '布局设置' },
   )
   if (isSignedIn.value) {
-    list.push({ id: 'ai', label: 'AI 设置' })
+    list.push(
+      { id: 'ai', label: 'AI 设置' },
+      { id: 'maintenance', label: '维护工具' },
+    )
   }
   return list
 })
@@ -596,6 +605,9 @@ const toggleSystem = (system: string) => {
 
 // 重置设置
 const resetSettings = () => {
+  if (activeTab.value === 'maintenance') {
+    return
+  }
   if (activeTab.value === 'account') {
     editDisplayName.value = user.value?.displayName || ''
     editAvatar.value = user.value?.avatar || ''
@@ -617,6 +629,9 @@ const resetSettings = () => {
 
 // 保存设置
 const saveSettings = async () => {
+  if (activeTab.value === 'maintenance') {
+    return
+  }
   if (activeTab.value === 'account') {
     await saveProfile()
     if (profileError.value) return

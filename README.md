@@ -191,6 +191,8 @@ pnpm server
   - `UPLOAD_MAX` — 上传请求上限
   - `AI_MAX` — AI 请求上限
   - `WRITE_MAX` — 写请求上限
+  - `BATCH_MAX` / `BATCH_WINDOW_MS` — 批量重跑控制接口（start / cancel / reset）上限，默认 60 秒 10 次
+  - `RERUN_SLEEP_MS` — 批量重跑任务内部条目间节流，默认 20000ms（20 秒）
 - 上传 MIME 类型及文件大小在后端复核，日志会记录耗时与失败原因。
 
 ---
@@ -220,6 +222,10 @@ Perplexity · OpenAI · Moonshot (Kimi) · DeepSeek · 自定义 (OpenAI 兼容)
 | `GET`  | `/api/ai/config`      | 获取当前 AI 配置（脱敏）          |
 | `PUT`  | `/api/ai/config`      | 保存 AI 配置                |
 | `POST` | `/api/ai/config/test` | 测试 AI 配置连通性             |
+| `POST` | `/api/admin/rerun/start`  | 启动批量重跑 `{ mode, ids? }`，mode 为 `all` / `missing_structured` / `selected`；返回当前 status 快照，409 表示已有任务在跑 |
+| `GET`  | `/api/admin/rerun/status` | 查询当前批量重跑任务状态（前端 2 秒轮询，不限流） |
+| `POST` | `/api/admin/rerun/cancel` | 协作式取消，当前条目处理完后停止 |
+| `POST` | `/api/admin/rerun/reset`  | 清空累计 `processedIds` 与磁盘进度文件，仅 idle 状态允许 |
 
 ### 迁移说明（AI 分析模型追溯）
 
@@ -244,14 +250,27 @@ node scripts/migrate-software-analysis-meta.js
 # 1) 新增 tagline / highlights / best_for / avoid_if 列
 pnpm migrate:structured
 
-# 2)（可选）为存量软件批量刷新结构化洞察
-#    需要一个有效的登录 JWT（登录后从浏览器 localStorage 或后端生成）
+# 2) 为存量软件批量刷新结构化洞察 —— 任选其一：
+
+# 方式 A（推荐）：Web 入口
+#    登录后打开「设置 → 维护工具」，选择运行模式（全部 / 只补缺失 / 手动多选），点击开始。
+#    任务在后端运行，关闭浏览器、切换设备都不会中断；完成进度可在页面实时观察。
+
+# 方式 B：CLI（适合服务器后台跑或自动化）
+#    AUTH_TOKEN 为登录后浏览器 localStorage 中的 auth_token：
+#    DevTools → Application → Local Storage → 复制 auth_token 的 Value
 AUTH_TOKEN=<your-jwt> pnpm rerun:analyze
 ```
 
-`rerun:analyze` 采用串行调用 + 默认 2 秒节流，进度写入 `logs/rerun-progress.json`，
-中途中断后再次执行会自动续跑。仅回写新字段与 `analysis_*` 元数据，
-不会覆盖用户手动编辑过的 `description / pros / cons`。
+无论 Web 还是 CLI，都共用 `logs/rerun-progress.json` 进度文件，相互可以续跑：
+- 串行调用 + 默认 20 秒节流（CLI 默认 2 秒，可用 `SLEEP_MS` / `RERUN_SLEEP_MS` 调整）
+- 中途中断后再次启动会自动跳过已处理的软件
+- 仅回写 `tagline / highlights / best_for / avoid_if / warnings` 与 `analysis_*` 元数据，
+  绝不覆盖用户手动编辑过的 `description / pros / cons / 链接 / 图标` 等字段
+- Web 维护工具支持三种运行模式：
+  - **全部软件**：为所有软件刷新分析结果
+  - **只补缺失**：仅处理 `tagline / highlights / best_for / avoid_if` 任一为空的软件
+  - **手动多选**：从软件列表勾选指定条目（每条都附带字段完整度徽章方便挑选）
 
 
 > API Key 在数据库中以 **AES-256-GCM** 加密存储，前端不会接触明文密钥。
@@ -326,6 +345,16 @@ interface RelatedArticle {
 - 新增软件 AI 分析完成后，详情页概览 Tab 顶部显示 tagline hero 卡，核心亮点按分类带图标卡片渲染
 - 历史软件未配置 `highlights` 时概览页降级为 split 兜底的「核心特性」卡片，不出现空状态报错
 - 在表单「结构化洞察」区块手动增删 highlights / best_for / avoid_if 后，保存并重新打开详情页可正确渲染
+- 登录后打开「设置 → 维护工具」可见 Tab 与面板；未登录时该 Tab 不出现
+- 未登录情况下直接 `curl POST /api/admin/rerun/start` 返回 `401`
+- `mode: 'all'` 启动后跑 2-3 条点取消，再次启动自动跳过这些条目（继续运行按钮）
+- `mode: 'missing_structured'` 启动时 total 数量恰好等于结构化字段任一为空的软件数
+- `mode: 'selected'` 勾选 2 条，启动后 total === 2，且仅这 2 条被刷新
+- 任务运行中关闭浏览器标签 1 分钟后重开，进度条数字仍在前进（后端继续在跑）
+- 模拟 Node 重启（`Ctrl+C` 后 `pnpm server`），UI 提示「上次任务保留了 N 条已处理记录」
+- CLI `AUTH_TOKEN=... pnpm rerun:analyze` 在 Web Job 完成后运行时，自动跳过所有已处理条目
+- ETA 在前 2 条显示「计算中…」，从第 3 条开始稳定显示 `mm:ss`
+- 单条 AI 调用失败后，错误折叠面板出现该条记录，任务继续推进而非中断
 
 ---
 

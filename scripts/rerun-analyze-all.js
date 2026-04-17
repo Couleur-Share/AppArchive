@@ -18,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { pool } from "../server/database.js";
+import { buildRerunPatch } from "../server/rerunPatch.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -141,25 +142,7 @@ async function patchSoftware(id, patch) {
 	return await res.json();
 }
 
-function buildPatch(parsed, meta) {
-	// 只挑选新字段 + analysis 元数据，避免覆盖用户手动编辑过的 description/pros/cons
-	const patch = {};
-	if (typeof parsed.tagline === "string") patch.tagline = parsed.tagline;
-	if (Array.isArray(parsed.highlights)) patch.highlights = parsed.highlights;
-	if (Array.isArray(parsed.best_for)) patch.best_for = parsed.best_for;
-	if (Array.isArray(parsed.avoid_if)) patch.avoid_if = parsed.avoid_if;
-	// 安全风险也一并刷新（历史数据可能缺失，刷新后更准确）
-	if (Array.isArray(parsed.warnings)) patch.warnings = parsed.warnings;
-	if (meta) {
-		if (typeof meta.provider === "string")
-			patch.analysis_provider = meta.provider;
-		if (typeof meta.model === "string") patch.analysis_model = meta.model;
-		if (typeof meta.analysis_at === "string")
-			patch.analysis_at = meta.analysis_at;
-		if (Array.isArray(meta.sources)) patch.analysis_sources = meta.sources;
-	}
-	return patch;
-}
+// 补丁构造逻辑已抽到 server/rerunPatch.js，CLI 与 Web Job 共用
 
 async function main() {
 	if (!AUTH_TOKEN) {
@@ -191,7 +174,7 @@ async function main() {
 				throw new Error("软件详情为空或缺 name");
 			}
 			const { parsed, meta } = await callAnalyze(software);
-			const patch = buildPatch(parsed, meta);
+			const patch = buildRerunPatch(parsed, meta);
 			await patchSoftware(row.id, patch);
 			okCount++;
 			processedSet.add(row.id);

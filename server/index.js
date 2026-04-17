@@ -17,6 +17,7 @@ import {
 	saveAIConfig,
 	testAIConfig,
 } from "./ai.js";
+import { runSoftwareAnalyze } from "./analyzeCore.js";
 import authRouter, { JWT_SECRET } from "./auth.js";
 import {
 	deleteFileFromCOS,
@@ -27,7 +28,8 @@ import {
 	uploadToCOS,
 } from "./cos.js";
 import { handleDatabaseError, pool, testConnection } from "./database.js";
-import { buildAnalyzeMessages, buildCompareMessages } from "./prompts.js";
+import { buildCompareMessages } from "./prompts.js";
+import * as rerunJob from "./rerunJob.js";
 import {
 	generateRobotsTxt,
 	generateSitemap,
@@ -39,11 +41,8 @@ import {
 import {
 	getTavilyConfigForClient,
 	saveTavilyConfig,
-	searchTavily,
-	searchTavilySafety,
 	testTavilyApiKey,
 } from "./tavilySearch.js";
-import { fetchWebsiteContext } from "./websiteContext.js";
 
 // 加载环境变量（允许覆盖已存在的变量，避免系统级 PG* 干扰）
 dotenv.config({ override: true }); // 默认读取 .env
@@ -454,6 +453,16 @@ const writeRateLimiter = rateLimit({
 	keyGenerator: rateLimitKey,
 });
 
+// 批量重跑任务的控制接口（start / cancel / reset）专用限流器
+// status 不限流（前端 2 秒轮询）
+const batchRateLimiter = rateLimit({
+	windowMs: Number(process.env.BATCH_WINDOW_MS || 60 * 1000),
+	max: Number(process.env.BATCH_MAX || 10),
+	standardHeaders: true,
+	legacyHeaders: false,
+	keyGenerator: rateLimitKey,
+});
+
 // 使用内存存储，文件将上传到COS而不是本地
 const upload = multer({
 	storage: multer.memoryStorage(),
@@ -537,7 +546,7 @@ app.post(
 );
 
 // ===== AI 代理路由 =====
-// 软件优缺点分析
+// 软件优缺点分析（核心流程委派给 server/analyzeCore.js，CLI 与批量 Job 共用）
 app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 	const startedAt = Date.now();
 	const userId = req.userId || "anonymous";
@@ -549,99 +558,7 @@ app.post("/api/ai/analyze", requireAuth, aiRateLimiter, async (req, res) => {
 				.json({ error: "缺少必要信息", message: "软件名称不能为空" });
 		}
 
-		// 并行执行：官网爬取 + Tavily 网络搜索
-		const tasks = [];
-
-		// 官网爬取
-		if (software.website) {
-			tasks.push(
-				fetchWebsiteContext(software.website).catch((err) => {
-					console.error("[WEBSITE_CONTEXT] 爬取异常:", err?.message);
-					return null;
-				}),
-			);
-		} else {
-			tasks.push(Promise.resolve(null));
-		}
-
-		// Tavily 搜索（始终尝试，模块内部判断是否配置）
-		tasks.push(
-			searchTavily(software.name, {
-				category: software.category,
-				website: software.website,
-			}).catch((err) => {
-				console.error("[TAVILY] 搜索异常:", err?.message);
-				return { searched: false, error: err?.message };
-			}),
-		);
-
-		// Tavily 安全风险专项搜索
-		tasks.push(
-			searchTavilySafety(software.name, {
-				website: software.website,
-			}).catch((err) => {
-				console.error("[TAVILY_SAFETY] 搜索异常:", err?.message);
-				return { searched: false, error: err?.message };
-			}),
-		);
-
-		const [websiteContext, searchResults, safetySearchResults] =
-			await Promise.all(tasks);
-
-		const messages = buildAnalyzeMessages(software, {
-			websiteContext,
-			searchResults,
-			safetySearchResults,
-		});
-		const data = await callAI(messages);
-
-		// 收集本次分析的数据来源标签
-		const sources = [];
-		const hasWebsiteInput =
-			typeof software.website === "string" && software.website.trim();
-		if (websiteContext?.fetched) {
-			sources.push("website");
-		} else if (hasWebsiteInput) {
-			sources.push("website-error");
-		}
-		if (searchResults?.searched) {
-			sources.push("tavily");
-			if (
-				!Array.isArray(searchResults.results) ||
-				searchResults.results.length === 0
-			) {
-				sources.push("tavily-empty");
-			}
-		} else if (searchResults?.error) {
-			sources.push("tavily-error");
-		}
-		if (safetySearchResults?.searched) sources.push("tavily-safety");
-		if (data.analysis_meta) {
-			data.analysis_meta.sources = sources;
-		}
-		// 附加官网校验元数据
-		if (websiteContext) {
-			data.website_context = {
-				fetched: Boolean(websiteContext.fetched),
-				resolved_url:
-					websiteContext.resolved_url ||
-					websiteContext.requested_url ||
-					software.website,
-				error: websiteContext.error || "",
-			};
-		}
-
-		// 附加 Tavily 搜索元数据
-		if (searchResults) {
-			data.search_context = {
-				searched: Boolean(searchResults.searched),
-				query: searchResults.query || "",
-				result_count: searchResults.results?.length || 0,
-				response_time: searchResults.response_time || 0,
-				error: searchResults.error || searchResults.reason || "",
-			};
-		}
-
+		const { data } = await runSoftwareAnalyze(software);
 		return res.json(data);
 	} catch (error) {
 		console.error("AI分析错误:", error);
@@ -680,6 +597,95 @@ app.post("/api/ai/compare", requireAuth, aiRateLimiter, async (req, res) => {
 		console.log(`[AI_COMPARE_METRIC] user=${userId} duration=${duration}ms`);
 	}
 });
+
+// ========== 批量重跑 AI 分析 Job 控制 API ==========
+// 适用于"结构化字段迁移后"或"AI Prompt 升级后"为存量软件刷新分析数据
+// Job 在后端 Node 进程内运行，关闭浏览器、切换设备都不影响进度
+
+// 启动批量重跑任务
+// body: { mode: 'all' | 'missing_structured' | 'selected', ids?: number[] }
+app.post(
+	"/api/admin/rerun/start",
+	requireAuth,
+	batchRateLimiter,
+	async (req, res) => {
+		try {
+			const { mode = "all", ids = [] } = req.body || {};
+			const allowedModes = new Set(["all", "missing_structured", "selected"]);
+			if (!allowedModes.has(mode)) {
+				return res.status(400).json({
+					error: "参数错误",
+					message: `mode 必须是 ${[...allowedModes].join(" / ")} 之一`,
+				});
+			}
+			const status = await rerunJob.startJob({
+				mode,
+				ids,
+				userId: req.userId,
+			});
+			res.json({ success: true, data: status });
+		} catch (err) {
+			if (err instanceof rerunJob.JobBusyError) {
+				return res.status(409).json({
+					error: "任务已在运行",
+					message: err.message,
+					data: err.status,
+				});
+			}
+			console.error("[RERUN_JOB] 启动失败:", err);
+			res.status(500).json({
+				error: "启动失败",
+				message: err?.message || "未知错误",
+			});
+		}
+	},
+);
+
+// 查询当前 Job 状态（前端 2 秒轮询此接口；不限流以避免误伤）
+app.get("/api/admin/rerun/status", requireAuth, (_req, res) => {
+	res.json({ success: true, data: rerunJob.getStatus() });
+});
+
+// 协作式取消：仅设置 cancelRequested 标记，下一条不再开跑
+app.post(
+	"/api/admin/rerun/cancel",
+	requireAuth,
+	batchRateLimiter,
+	(_req, res) => {
+		const cancelled = rerunJob.requestCancel();
+		res.json({
+			success: true,
+			data: rerunJob.getStatus(),
+			cancelled,
+		});
+	},
+);
+
+// 重置历史进度（清空 processedIds 与磁盘文件）
+// 仅在 idle 状态下允许；运行中返回 409
+app.post(
+	"/api/admin/rerun/reset",
+	requireAuth,
+	batchRateLimiter,
+	(_req, res) => {
+		try {
+			rerunJob.resetProgress();
+			res.json({ success: true, data: rerunJob.getStatus() });
+		} catch (err) {
+			if (err instanceof rerunJob.JobBusyError) {
+				return res.status(409).json({
+					error: "任务运行中，无法重置",
+					message: err.message,
+					data: err.status,
+				});
+			}
+			res.status(500).json({
+				error: "重置失败",
+				message: err?.message || "未知错误",
+			});
+		}
+	},
+);
 
 // ========== AI 配置 API ==========
 
@@ -2169,6 +2175,9 @@ const getLocalIPAddress = () => {
 	}
 	return "localhost";
 };
+
+// 启动前从磁盘恢复批量重跑任务的进度（不会自动续跑，仅供前端展示"上次中断"）
+rerunJob.restoreFromDisk();
 
 // 启动服务器
 app.listen(PORT, "0.0.0.0", () => {
