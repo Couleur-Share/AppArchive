@@ -109,11 +109,9 @@
 	--home-accent-border: rgb(29 185 84 / 0.26);
 	--home-accent-shadow: 0 18px 42px -28px rgb(30 215 96 / 0.3);
 	--home-focus-ring:
-		0 0 0 2px rgb(255 255 255 / 0.3),
-		0 0 0 5px rgb(30 215 96 / 0.18);
+		0 0 0 2px rgb(255 255 255 / 0.3), 0 0 0 5px rgb(30 215 96 / 0.18);
 	--home-focus-ring-soft:
-		0 0 0 4px rgb(30 215 96 / 0.14),
-		0 18px 30px -24px rgb(15 23 42 / 0.22);
+		0 0 0 4px rgb(30 215 96 / 0.14), 0 18px 30px -24px rgb(15 23 42 / 0.22);
 	--home-text-strong: rgb(17 24 39);
 	--home-text: rgb(51 65 85);
 	--home-text-muted: rgb(100 116 139);
@@ -236,7 +234,7 @@
 	);
 	--home-card-bg: #1a2029;
 	--home-card-bg-hover: #202733;
-	--home-card-border: rgb(255 255 255 / 0.10);
+	--home-card-border: rgb(255 255 255 / 0.1);
 	--home-card-border-hover: rgb(30 215 96 / 0.22);
 	--home-card-shadow:
 		0 18px 34px -28px rgb(0 0 0 / 0.66), inset 0 1px 0 rgb(255 255 255 / 0.05);
@@ -258,11 +256,9 @@
 	--home-accent-border: rgb(30 215 96 / 0.28);
 	--home-accent-shadow: 0 20px 44px -28px rgb(30 215 96 / 0.24);
 	--home-focus-ring:
-		0 0 0 2px rgb(255 255 255 / 0.12),
-		0 0 0 5px rgb(30 215 96 / 0.2);
+		0 0 0 2px rgb(255 255 255 / 0.12), 0 0 0 5px rgb(30 215 96 / 0.2);
 	--home-focus-ring-soft:
-		0 0 0 4px rgb(30 215 96 / 0.14),
-		0 18px 30px -24px rgb(0 0 0 / 0.48);
+		0 0 0 4px rgb(30 215 96 / 0.14), 0 18px 30px -24px rgb(0 0 0 / 0.48);
 	--home-text-strong: rgb(248 250 252);
 	--home-text: rgb(226 232 240);
 	--home-text-muted: rgb(160 169 182);
@@ -429,7 +425,8 @@ html {
 	--modal-card-border-emphasis-light: rgb(29 185 84 / 0.16);
 	--modal-card-border-emphasis-dark: rgb(30 215 96 / 0.16);
 	--modal-card-shadow-light:
-		0 18px 36px -30px rgb(15 23 42 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.74);
+		0 18px 36px -30px rgb(15 23 42 / 0.12), inset 0 1px 0
+		rgb(255 255 255 / 0.74);
 	--modal-card-shadow-dark:
 		0 18px 32px -24px rgb(0 0 0 / 0.46), inset 0 1px 0 rgb(255 255 255 / 0.03);
 	--modal-card-shadow-hover-light:

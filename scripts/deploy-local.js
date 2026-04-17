@@ -1,4 +1,3 @@
-
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -9,7 +8,7 @@ const CONFIG = {
 	port: "55555",
 	user: "root",
 	remotePath: "/data/projects/AppArchive",
-	identityFile: "E:/Tools/腾讯云服务器SSH密钥/Pass", 
+	identityFile: "E:/Tools/腾讯云服务器SSH密钥/Pass",
 };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,7 +46,9 @@ function buildSshOptionsArgs() {
 
 async function main() {
 	console.log("🚀 开始自动部署流程 (本地构建 -> 远程上传)");
-	console.log(`Target: ${CONFIG.user}@${CONFIG.host}:${CONFIG.port} ${CONFIG.remotePath}\n`);
+	console.log(
+		`Target: ${CONFIG.user}@${CONFIG.host}:${CONFIG.port} ${CONFIG.remotePath}\n`,
+	);
 
 	// 1. 本地构建
 	if (!runCommand("npm", ["run", "build"], "执行本地构建")) {
@@ -69,7 +70,13 @@ async function main() {
 	// 3. 一次性上传所有文件 (dist, server, package.json)
 	// 使用 -r 递归上传目录，同时指定多个源文件，只需要建立一次连接，输入一次密码
 	const sources = ["dist", "server", "package.json"];
-	if (!runCommand("scp", [...scpBaseArgs, "-r", ...sources, `${remoteDest}/`], "上传项目文件 (dist, server, package.json)")) {
+	if (
+		!runCommand(
+			"scp",
+			[...scpBaseArgs, "-r", ...sources, `${remoteDest}/`],
+			"上传项目文件 (dist, server, package.json)",
+		)
+	) {
 		process.exit(1);
 	}
 

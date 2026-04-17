@@ -1,4 +1,9 @@
-import type { Software } from "../types";
+import type {
+	Software,
+	SoftwareAvoidIf,
+	SoftwareBestFor,
+	SoftwareHighlight,
+} from "../types";
 import { AppError, ErrorCode } from "../types/error";
 import {
 	extractProsConsFromContent,
@@ -17,6 +22,10 @@ export interface AIAnalyzeResult {
 	cons: string[];
 	systems?: string[];
 	warnings?: string[];
+	tagline?: string;
+	highlights?: SoftwareHighlight[];
+	best_for?: SoftwareBestFor[];
+	avoid_if?: SoftwareAvoidIf[];
 	analysis_provider?: string;
 	analysis_model?: string;
 	analysis_at?: string;

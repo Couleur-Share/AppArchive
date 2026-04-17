@@ -335,7 +335,9 @@ async function testTavilyApiKey(apiKey) {
 			throw new Error("Tavily API 请求频率超限");
 		}
 		const text = await response.text().catch(() => "");
-		throw new Error(`Tavily 连接测试失败: ${response.status} ${text.slice(0, 100)}`);
+		throw new Error(
+			`Tavily 连接测试失败: ${response.status} ${text.slice(0, 100)}`,
+		);
 	}
 
 	return { success: true, message: "Tavily 连接测试成功" };

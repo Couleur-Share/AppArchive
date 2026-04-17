@@ -132,6 +132,9 @@ node scripts/migrate-ai-config.js
 
 # 补齐 related_articles 字段（按需）
 node scripts/migrate-related-articles.js
+
+# 补齐结构化洞察字段（tagline / highlights / best_for / avoid_if）
+node scripts/migrate-software-structured-fields.js
 ```
 
 > 若后端日志出现 `[SCHEMA]` 提示，请按日志中的缺失字段执行对应迁移脚本或手动 SQL。
@@ -172,6 +175,8 @@ pnpm server
 | `pnpm format`       | Biome 代码格式化 |
 | `pnpm deploy:local` | 本地部署脚本      |
 | `pnpm full-rebuild` | 全量重建脚本      |
+| `pnpm migrate:structured` | 执行结构化字段迁移（tagline / highlights / best_for / avoid_if） |
+| `pnpm rerun:analyze` | 批量为存量软件刷新结构化洞察（需要 `AUTH_TOKEN` 环境变量） |
 
 
 ---
@@ -230,6 +235,24 @@ node scripts/migrate-software-analysis-meta.js
 - `analysis_model`（分析模型名）
 - `analysis_at`（分析时间，`TIMESTAMPTZ`）
 
+### 结构化洞察迁移（概览与详细信息页升级）
+
+概览页的「核心亮点」与详细信息页的「适合谁用」「什么情况下别用」依赖以下结构化字段。
+首次部署本特性时需要执行迁移并批量刷新：
+
+```bash
+# 1) 新增 tagline / highlights / best_for / avoid_if 列
+pnpm migrate:structured
+
+# 2)（可选）为存量软件批量刷新结构化洞察
+#    需要一个有效的登录 JWT（登录后从浏览器 localStorage 或后端生成）
+AUTH_TOKEN=<your-jwt> pnpm rerun:analyze
+```
+
+`rerun:analyze` 采用串行调用 + 默认 2 秒节流，进度写入 `logs/rerun-progress.json`，
+中途中断后再次执行会自动续跑。仅回写新字段与 `analysis_*` 元数据，
+不会覆盖用户手动编辑过的 `description / pros / cons`。
+
 
 > API Key 在数据库中以 **AES-256-GCM** 加密存储，前端不会接触明文密钥。
 
@@ -261,6 +284,16 @@ interface Software {
   website: string
   pros: string[]
   cons: string[]
+  warnings?: string[]
+  // 结构化洞察（详情页概览/详细信息 Tab 直接渲染）
+  tagline?: string
+  highlights?: Array<{
+    title: string
+    detail: string
+    kind?: 'performance' | 'privacy' | 'security' | 'ecosystem' | 'ux' | 'integration' | 'pricing' | 'other'
+  }>
+  best_for?: Array<{ persona: string; reason: string }>
+  avoid_if?: Array<{ situation: string; reason: string }>
   analysis_provider?: string
   analysis_model?: string
   analysis_at?: string
@@ -290,6 +323,9 @@ interface RelatedArticle {
 - 编辑软件重新 AI 分析并保存后，详情页模型信息会更新
 - 切换全局 AI 设置后，历史软件仍显示各自记录的分析模型（不串号）
 - 历史旧数据（无分析元数据）详情页显示“未记录”，且页面不报错
+- 新增软件 AI 分析完成后，详情页概览 Tab 顶部显示 tagline hero 卡，核心亮点按分类带图标卡片渲染
+- 历史软件未配置 `highlights` 时概览页降级为 split 兜底的「核心特性」卡片，不出现空状态报错
+- 在表单「结构化洞察」区块手动增删 highlights / best_for / avoid_if 后，保存并重新打开详情页可正确渲染
 
 ---
 

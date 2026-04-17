@@ -7,7 +7,9 @@ const router = Router();
 
 const JWT_SECRET =
 	process.env.JWT_SECRET ||
-	(process.env.APP_SECRET_KEY || "dev-jwt-secret-key").padEnd(32, "0").slice(0, 32);
+	(process.env.APP_SECRET_KEY || "dev-jwt-secret-key")
+		.padEnd(32, "0")
+		.slice(0, 32);
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 // POST /api/auth/login
@@ -79,7 +81,9 @@ router.get("/me", async (req, res) => {
 			decoded = jwt.verify(token, JWT_SECRET);
 		} catch (err) {
 			const message =
-				err.name === "TokenExpiredError" ? "登录已过期，请重新登录" : "无效的认证令牌";
+				err.name === "TokenExpiredError"
+					? "登录已过期，请重新登录"
+					: "无效的认证令牌";
 			return res.status(401).json({ error: "未授权", message });
 		}
 
@@ -122,7 +126,9 @@ router.put("/password", async (req, res) => {
 			decoded = jwt.verify(authHeader.slice(7), JWT_SECRET);
 		} catch (err) {
 			const message =
-				err.name === "TokenExpiredError" ? "登录已过期，请重新登录" : "无效的认证令牌";
+				err.name === "TokenExpiredError"
+					? "登录已过期，请重新登录"
+					: "无效的认证令牌";
 			return res.status(401).json({ error: "未授权", message });
 		}
 
@@ -146,14 +152,21 @@ router.put("/password", async (req, res) => {
 		);
 
 		if (result.rows.length === 0) {
-			return res.status(404).json({ error: "用户不存在", message: "当前用户已被删除" });
+			return res
+				.status(404)
+				.json({ error: "用户不存在", message: "当前用户已被删除" });
 		}
 
 		const userRow = result.rows[0];
-		const passwordMatch = await bcrypt.compare(oldPassword, userRow.password_hash);
+		const passwordMatch = await bcrypt.compare(
+			oldPassword,
+			userRow.password_hash,
+		);
 
 		if (!passwordMatch) {
-			return res.status(401).json({ error: "认证失败", message: "旧密码不正确" });
+			return res
+				.status(401)
+				.json({ error: "认证失败", message: "旧密码不正确" });
 		}
 
 		const newHash = await bcrypt.hash(newPassword, 10);
@@ -182,7 +195,9 @@ router.put("/profile", async (req, res) => {
 			decoded = jwt.verify(authHeader.slice(7), JWT_SECRET);
 		} catch (err) {
 			const message =
-				err.name === "TokenExpiredError" ? "登录已过期，请重新登录" : "无效的认证令牌";
+				err.name === "TokenExpiredError"
+					? "登录已过期，请重新登录"
+					: "无效的认证令牌";
 			return res.status(401).json({ error: "未授权", message });
 		}
 
@@ -226,7 +241,9 @@ router.put("/profile", async (req, res) => {
 		);
 
 		if (result.rows.length === 0) {
-			return res.status(404).json({ error: "用户不存在", message: "当前用户已被删除" });
+			return res
+				.status(404)
+				.json({ error: "用户不存在", message: "当前用户已被删除" });
 		}
 
 		const userRow = result.rows[0];

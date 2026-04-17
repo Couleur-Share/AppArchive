@@ -35,35 +35,40 @@ const apiRequest = async (
 
 export const softwareService = {
 	// 获取软件列表 (支持分页、筛选、排序)
-	async getSoftwareList(params: {
-		page?: number;
-		limit?: number;
-		search?: string;
-		category?: string;
-		systems?: string[];
-		sortField?: string;
-		sortOrder?: "asc" | "desc";
-		addedSince?: string;
-	} = {}) {
+	async getSoftwareList(
+		params: {
+			page?: number;
+			limit?: number;
+			search?: string;
+			category?: string;
+			systems?: string[];
+			sortField?: string;
+			sortOrder?: "asc" | "desc";
+			addedSince?: string;
+		} = {},
+	) {
 		try {
 			logger.debug("开始从 API 获取数据...", params);
-			
+
 			const queryParams = new URLSearchParams();
 			if (params.page) queryParams.append("page", params.page.toString());
 			if (params.limit) queryParams.append("limit", params.limit.toString());
 			if (params.search) queryParams.append("search", params.search);
-			if (params.category && params.category !== 'all') queryParams.append("category", params.category);
-			if (params.systems && params.systems.length > 0) queryParams.append("systems", params.systems.join(","));
+			if (params.category && params.category !== "all")
+				queryParams.append("category", params.category);
+			if (params.systems && params.systems.length > 0)
+				queryParams.append("systems", params.systems.join(","));
 			if (params.sortField) queryParams.append("sortField", params.sortField);
 			if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
-			if (params.addedSince) queryParams.append("addedSince", params.addedSince);
+			if (params.addedSince)
+				queryParams.append("addedSince", params.addedSince);
 
 			const result = await apiRequest(`/software?${queryParams.toString()}`);
 
 			logger.debug("成功获取数据，当前页数量:", result.data?.length ?? 0);
 			return {
 				data: result.data as SoftwareListItem[],
-				pagination: result.pagination
+				pagination: result.pagination,
 			};
 		} catch (error) {
 			logger.error("获取数据失败:", error);
@@ -214,5 +219,4 @@ export const softwareService = {
 	},
 
 	// 移除 getAllSoftwareWithPagination
-
 };

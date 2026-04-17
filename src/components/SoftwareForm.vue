@@ -344,6 +344,76 @@
              />
           </section>
 
+          <!-- Section 6: 结构化洞察 -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+              <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
+                <Lightbulb class="w-4 h-4" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">结构化洞察</h3>
+            </div>
+
+            <!-- 标语 tagline -->
+            <div class="space-y-2">
+              <label class="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span>一句话标语</span>
+                <span class="text-xs text-gray-400 tabular-nums">{{ (formData.tagline || '').length }}/40</span>
+              </label>
+              <input
+                v-model="formData.tagline"
+                type="text"
+                maxlength="40"
+                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400 text-sm"
+                placeholder="15-25 字的核心价值主张，如：让代码片段像笔记一样好管理"
+              />
+              <p class="text-xs text-gray-400 dark:text-gray-500">
+                展示于详情页概览顶部，作为软件身份识别的 hero 标语
+              </p>
+            </div>
+
+            <!-- 核心亮点 highlights -->
+            <StructuredPairListEditor
+              v-model="highlightsModel"
+              label="核心亮点"
+              add-label="添加核心亮点"
+              empty-title="暂无核心亮点"
+              empty-hint="AI 分析后自动填充，也可手动添加 2-4 条"
+              :empty-icon="Sparkles"
+              :max-items="6"
+              :disabled="isSubmitting"
+              :fields="HIGHLIGHT_FIELDS"
+              kind-field="kind"
+              kind-label="亮点类别"
+              :kind-options="HIGHLIGHT_KIND_OPTIONS"
+            />
+
+            <!-- 适合谁用 best_for -->
+            <StructuredPairListEditor
+              v-model="bestForModel"
+              label="适合谁用"
+              add-label="添加适用场景"
+              empty-title="暂无适用场景"
+              empty-hint="推荐 2-4 条，描述目标人群与推荐理由"
+              :empty-icon="UserCheck"
+              :max-items="6"
+              :disabled="isSubmitting"
+              :fields="BEST_FOR_FIELDS"
+            />
+
+            <!-- 什么情况别用 avoid_if -->
+            <StructuredPairListEditor
+              v-model="avoidIfModel"
+              label="什么情况下别用"
+              add-label="添加规避场景"
+              empty-title="暂无规避场景"
+              empty-hint="选填 0-3 条，帮助用户提前避雷"
+              :empty-icon="ShieldAlert"
+              :max-items="5"
+              :disabled="isSubmitting"
+              :fields="AVOID_IF_FIELDS"
+            />
+          </section>
+
           <!-- 高级选项折叠 -->
           <div class="pt-2">
              <button
@@ -425,16 +495,19 @@ import {
   ChevronRight,
   Globe,
   LayoutGrid,
+  Lightbulb,
   Link2,
   Loader2,
   Lock,
   Monitor,
   Redo2,
+  ShieldAlert,
   Sparkles,
   Tag,
   ThumbsUp,
   Type,
   Undo2,
+  UserCheck,
   X,
 } from 'lucide-vue-next'
 import {
@@ -454,6 +527,9 @@ import {
   type RelatedArticle,
   type SecretItem,
   type Software,
+  type SoftwareAvoidIf,
+  type SoftwareBestFor,
+  type SoftwareHighlight,
   type SystemType,
 } from '../types'
 import { AppError, ErrorCode } from '../types/error'
@@ -464,6 +540,10 @@ import AdvancedSection from './AdvancedSection.vue'
 import AIOverlay from './AIOverlay.vue'
 import BlurFade from './animations/BlurFade.vue'
 import BaseButton from './common/BaseButton.vue'
+import StructuredPairListEditor, {
+  type PairListFieldDef,
+  type PairListKindOption,
+} from './common/StructuredPairListEditor.vue'
 import TagBadge from './common/TagBadge.vue'
 import IconUploader from './IconUploader.vue'
 import ProsConsEditor from './ProsConsEditor.vue'
@@ -484,6 +564,51 @@ const emit = defineEmits<{
   'import-success': [message: string]
 }>()
 
+// 结构化洞察的字段定义（与 server/prompts.js 的 Schema 严格对应）
+const HIGHLIGHT_FIELDS: PairListFieldDef[] = [
+  { key: 'title', label: '亮点标题', placeholder: '6-14 字，短而有力', maxLength: 30 },
+  {
+    key: 'detail',
+    label: '具体说明',
+    placeholder: '20-45 字，说清楚「是什么 / 能解决啥问题」',
+    maxLength: 80,
+    multiline: true,
+  },
+]
+
+const HIGHLIGHT_KIND_OPTIONS: PairListKindOption[] = [
+  { value: 'performance', label: '性能' },
+  { value: 'privacy', label: '隐私' },
+  { value: 'security', label: '安全' },
+  { value: 'ecosystem', label: '生态' },
+  { value: 'ux', label: '体验' },
+  { value: 'integration', label: '集成' },
+  { value: 'pricing', label: '价格' },
+  { value: 'other', label: '其他' },
+]
+
+const BEST_FOR_FIELDS: PairListFieldDef[] = [
+  { key: 'persona', label: '目标人群/场景', placeholder: '10-20 字，如：需要跨设备同步的独立开发者', maxLength: 40 },
+  {
+    key: 'reason',
+    label: '推荐理由',
+    placeholder: '20-45 字，说清为什么特别适合',
+    maxLength: 80,
+    multiline: true,
+  },
+]
+
+const AVOID_IF_FIELDS: PairListFieldDef[] = [
+  { key: 'situation', label: '不适合的场景', placeholder: '10-20 字，如：对数据主权要求严格的企业', maxLength: 40 },
+  {
+    key: 'reason',
+    label: '规避原因',
+    placeholder: '20-45 字，说清为什么不适合',
+    maxLength: 80,
+    multiline: true,
+  },
+]
+
 // 默认表单数据
 const defaultFormData: Partial<Software> = {
   name: '',
@@ -495,6 +620,10 @@ const defaultFormData: Partial<Software> = {
   website: '',
   pros: [] as string[],
   cons: [] as string[],
+  tagline: '',
+  highlights: [] as SoftwareHighlight[],
+  best_for: [] as SoftwareBestFor[],
+  avoid_if: [] as SoftwareAvoidIf[],
   download_links: [] as DownloadLink[],
   secrets: [] as SecretItem[],
   related_articles: [] as RelatedArticle[],
@@ -519,6 +648,10 @@ watch(
         ...newSoftware,
         pros: newSoftware.pros || [],
         cons: newSoftware.cons || [],
+        tagline: newSoftware.tagline || '',
+        highlights: Array.isArray(newSoftware.highlights) ? newSoftware.highlights : [],
+        best_for: Array.isArray(newSoftware.best_for) ? newSoftware.best_for : [],
+        avoid_if: Array.isArray(newSoftware.avoid_if) ? newSoftware.avoid_if : [],
         download_links: newSoftware.download_links || [],
         secrets: newSoftware.secrets || [],
         related_articles: newSoftware.related_articles || [],
@@ -736,6 +869,48 @@ const toggleSystem = (sys: SystemType) => {
   validateField('systems')
 }
 
+// 结构化洞察：双向绑定 computed（StructuredPairListEditor 使用 Record<string,string>[]，
+// 运行时与类型化接口兼容，通过 computed 显式转换避免类型推断告警）
+const highlightsModel = computed({
+  get: () =>
+    ((formData.value.highlights as unknown as Array<Record<string, string>>) || []).map(
+      (x) => ({ ...(x || {}) }),
+    ),
+  set: (v) => {
+    formData.value.highlights = (v || []).map((x) => ({
+      title: typeof x.title === 'string' ? x.title : '',
+      detail: typeof x.detail === 'string' ? x.detail : '',
+      kind: typeof x.kind === 'string' && x.kind ? x.kind : 'other',
+    })) as SoftwareHighlight[]
+  },
+})
+
+const bestForModel = computed({
+  get: () =>
+    ((formData.value.best_for as unknown as Array<Record<string, string>>) || []).map(
+      (x) => ({ ...(x || {}) }),
+    ),
+  set: (v) => {
+    formData.value.best_for = (v || []).map((x) => ({
+      persona: typeof x.persona === 'string' ? x.persona : '',
+      reason: typeof x.reason === 'string' ? x.reason : '',
+    })) as SoftwareBestFor[]
+  },
+})
+
+const avoidIfModel = computed({
+  get: () =>
+    ((formData.value.avoid_if as unknown as Array<Record<string, string>>) || []).map(
+      (x) => ({ ...(x || {}) }),
+    ),
+  set: (v) => {
+    formData.value.avoid_if = (v || []).map((x) => ({
+      situation: typeof x.situation === 'string' ? x.situation : '',
+      reason: typeof x.reason === 'string' ? x.reason : '',
+    })) as SoftwareAvoidIf[]
+  },
+})
+
 // 提交
 const handleSubmit = async () => {
   if (isSubmitting.value) return
@@ -833,6 +1008,19 @@ const startAIFromName = async () => {
   formData.value.analysis_at = result.analysis_at || new Date().toISOString()
   formData.value.analysis_sources = Array.isArray(result.analysis_sources) ? result.analysis_sources : []
   formData.value.warnings = Array.isArray(result.warnings) ? result.warnings : []
+
+  // 结构化洞察：编辑态一律覆盖（以最新 AI 结果为准）；
+  // 新建态也直接用 AI 结果（这些字段是 AI 生成导向，用户手填概率低）
+  if (result.tagline) formData.value.tagline = result.tagline
+  if (Array.isArray(result.highlights)) {
+    formData.value.highlights = result.highlights as SoftwareHighlight[]
+  }
+  if (Array.isArray(result.best_for)) {
+    formData.value.best_for = result.best_for as SoftwareBestFor[]
+  }
+  if (Array.isArray(result.avoid_if)) {
+    formData.value.avoid_if = result.avoid_if as SoftwareAvoidIf[]
+  }
 
   if (isEditing) {
     // 编辑态：使用全新分析结果，直接覆盖旧内容

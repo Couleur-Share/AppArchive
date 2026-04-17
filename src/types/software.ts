@@ -54,7 +54,12 @@ export type SoftwareCategory =
 	| "编程";
 
 // 关联文章类型
-export type RelatedArticleType = "document" | "tips" | "faq" | "changelog" | "other";
+export type RelatedArticleType =
+	| "document"
+	| "tips"
+	| "faq"
+	| "changelog"
+	| "other";
 
 // 关联文章记录
 export interface RelatedArticle {
@@ -65,6 +70,36 @@ export interface RelatedArticle {
 	description?: string;
 	sortOrder: number;
 	createdAt: string;
+}
+
+// 核心亮点分类：用于概览页按语义选取图标与强调色
+export type HighlightKind =
+	| "performance"
+	| "privacy"
+	| "security"
+	| "ecosystem"
+	| "ux"
+	| "integration"
+	| "pricing"
+	| "other";
+
+// 核心亮点：标题 + 详情 + 分类
+export interface SoftwareHighlight {
+	title: string;
+	detail: string;
+	kind?: HighlightKind | string;
+}
+
+// 适用场景：目标人群/场景 + 推荐理由
+export interface SoftwareBestFor {
+	persona: string;
+	reason: string;
+}
+
+// 规避场景：不适合的情况 + 原因
+export interface SoftwareAvoidIf {
+	situation: string;
+	reason: string;
 }
 
 // 软件接口
@@ -82,6 +117,14 @@ export interface Software extends BaseEntity {
 	pros: string[];
 	cons: string[];
 	warnings?: string[];
+	// 一句话价值主张（15-25 字），用于概览页 hero 标语
+	tagline?: string;
+	// 核心亮点（2-4 条），概览页结构化卡片数据源
+	highlights?: SoftwareHighlight[];
+	// 适用场景（2-4 条），详细信息页「适合谁用」
+	best_for?: SoftwareBestFor[];
+	// 规避场景（0-3 条），详细信息页「什么情况别用」
+	avoid_if?: SoftwareAvoidIf[];
 	// 最近一次 AI 分析元数据（用于详情页溯源展示）
 	analysis_provider?: string;
 	analysis_model?: string;
@@ -110,6 +153,10 @@ export interface SoftwareListItem extends BaseEntity {
 	pros?: string[];
 	cons?: string[];
 	warnings?: string[];
+	tagline?: string;
+	highlights?: SoftwareHighlight[];
+	best_for?: SoftwareBestFor[];
+	avoid_if?: SoftwareAvoidIf[];
 	analysis_provider?: string;
 	analysis_model?: string;
 	analysis_at?: string;

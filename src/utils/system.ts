@@ -16,7 +16,11 @@ export const inferSupportedSystemsFromText = (text: string): SystemType[] => {
 	const candidates = new Set<SystemType>();
 	const t = (text || "").toLowerCase();
 	if (/\bwindows\b|\bwin10\b|\bwin11\b/.test(t)) candidates.add("Windows");
-	if (/\bmacos\b|\bmac\s?os\b|\bosx\b|\bos\s?x\b|\.dmg\b|\bhomebrew\b|\bbrew\b/.test(t))
+	if (
+		/\bmacos\b|\bmac\s?os\b|\bosx\b|\bos\s?x\b|\.dmg\b|\bhomebrew\b|\bbrew\b/.test(
+			t,
+		)
+	)
 		candidates.add("macOS");
 	if (/\blinux\b|ubuntu|debian|fedora|arch|manjaro/.test(t))
 		candidates.add("Linux");

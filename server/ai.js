@@ -9,8 +9,15 @@ const SECRET_KEY = (process.env.APP_SECRET_KEY || "dev-secret-key")
 function encryptValue(plainText) {
 	if (!plainText) return null;
 	const iv = crypto.randomBytes(12);
-	const cipher = crypto.createCipheriv("aes-256-gcm", Buffer.from(SECRET_KEY), iv);
-	const encrypted = Buffer.concat([cipher.update(String(plainText), "utf8"), cipher.final()]);
+	const cipher = crypto.createCipheriv(
+		"aes-256-gcm",
+		Buffer.from(SECRET_KEY),
+		iv,
+	);
+	const encrypted = Buffer.concat([
+		cipher.update(String(plainText), "utf8"),
+		cipher.final(),
+	]);
 	const tag = cipher.getAuthTag();
 	return Buffer.concat([iv, tag, encrypted]).toString("base64");
 }
@@ -21,7 +28,11 @@ function decryptValue(payload) {
 	const iv = raw.slice(0, 12);
 	const tag = raw.slice(12, 28);
 	const data = raw.slice(28);
-	const decipher = crypto.createDecipheriv("aes-256-gcm", Buffer.from(SECRET_KEY), iv);
+	const decipher = crypto.createDecipheriv(
+		"aes-256-gcm",
+		Buffer.from(SECRET_KEY),
+		iv,
+	);
 	decipher.setAuthTag(tag);
 	const decrypted = Buffer.concat([decipher.update(data), decipher.final()]);
 	return decrypted.toString("utf8");
@@ -35,13 +46,20 @@ const PROVIDER_PRESETS = {
 		models: ["sonar", "sonar-pro", "sonar-reasoning", "sonar-reasoning-pro"],
 		default_model: "sonar",
 		temperature: 0.6,
-		max_tokens: 1024,
+		max_tokens: 2048,
 		supports_search: true,
 	},
 	openai: {
 		name: "OpenAI",
 		api_base: "https://api.openai.com/v1",
-		models: ["gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "o3-mini"],
+		models: [
+			"gpt-4o",
+			"gpt-4o-mini",
+			"gpt-4.1",
+			"gpt-4.1-mini",
+			"gpt-4.1-nano",
+			"o3-mini",
+		],
 		default_model: "gpt-4o-mini",
 		temperature: 0.7,
 		max_tokens: 2048,
@@ -112,9 +130,10 @@ async function getAIConfigForClient() {
 
 	const row = rows[0];
 	const rawKey = decryptValue(row.api_key_cipher);
-	const maskedKey = rawKey.length > 8
-		? `${rawKey.slice(0, 4)}${"*".repeat(Math.min(rawKey.length - 8, 20))}${rawKey.slice(-4)}`
-		: "****";
+	const maskedKey =
+		rawKey.length > 8
+			? `${rawKey.slice(0, 4)}${"*".repeat(Math.min(rawKey.length - 8, 20))}${rawKey.slice(-4)}`
+			: "****";
 
 	return {
 		id: row.id,
@@ -150,10 +169,8 @@ async function saveAIConfig({ provider, api_base, api_key, model }) {
 	const incomingApiKey = typeof api_key === "string" ? api_key.trim() : "";
 	const isSwitchingTarget = Boolean(
 		existingConfig &&
-		(
-			existingConfig.provider !== provider ||
-			(existingConfig.api_base || "").trim() !== finalBase.trim()
-		),
+			(existingConfig.provider !== provider ||
+				(existingConfig.api_base || "").trim() !== finalBase.trim()),
 	);
 
 	let finalApiKey = incomingApiKey;
@@ -173,7 +190,9 @@ async function saveAIConfig({ provider, api_base, api_key, model }) {
 	try {
 		await client.query("BEGIN");
 		// 取消所有激活状态
-		await client.query("UPDATE ai_config SET is_active = false WHERE is_active = true");
+		await client.query(
+			"UPDATE ai_config SET is_active = false WHERE is_active = true",
+		);
 		// 插入或更新（按 provider 匹配）
 		const { rows } = await client.query(
 			`INSERT INTO ai_config (provider, api_base, api_key_cipher, model, is_active, updated_at)
@@ -203,7 +222,10 @@ async function saveAIConfig({ provider, api_base, api_key, model }) {
 // 移除 Perplexity 返回内容中的引用序号
 const removeCitationMarkers = (text) => {
 	if (typeof text !== "string") return text;
-	return text.replace(/\[\d+\]/g, "").replace(/\s{2,}/g, " ").trim();
+	return text
+		.replace(/\[\d+\]/g, "")
+		.replace(/\s{2,}/g, " ")
+		.trim();
 };
 
 /**
@@ -252,8 +274,13 @@ async function callAI(messages, options = {}) {
 	const data = await response.json();
 
 	// Perplexity 返回内容需要去除引用标记
-	if (config.provider === "perplexity" && data?.choices?.[0]?.message?.content) {
-		data.choices[0].message.content = removeCitationMarkers(data.choices[0].message.content);
+	if (
+		config.provider === "perplexity" &&
+		data?.choices?.[0]?.message?.content
+	) {
+		data.choices[0].message.content = removeCitationMarkers(
+			data.choices[0].message.content,
+		);
 	}
 
 	// 附加本次分析模型元数据（不影响现有 choices 结构）

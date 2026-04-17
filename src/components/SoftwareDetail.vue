@@ -258,6 +258,15 @@
                     leave-to-class="opacity-0 translate-y-1 scale-[0.997]"
                 >
                 <div v-if="activeTab === 'overview'" class="space-y-8 max-w-4xl mx-auto">
+                  <!-- 标语 hero（仅当 AI 给出 tagline 时展示） -->
+                  <section v-if="software.tagline" class="overview-tagline-card">
+                    <div class="overview-tagline-bar"></div>
+                    <div class="flex flex-col gap-1.5">
+                      <div class="overview-tagline-label">核心价值</div>
+                      <p class="overview-tagline-text">{{ software.tagline }}</p>
+                    </div>
+                  </section>
+
                   <!-- 产品描述 -->
                   <section class="software-detail-card rounded-lg p-6">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -279,15 +288,38 @@
                     </div>
                   </section>
 
-                  <!-- 核心特性 -->
+                  <!-- 核心亮点（结构化） / 核心特性（降级） -->
                   <section>
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 px-1">
-                        核心特性
+                        {{ structuredHighlights.length > 0 ? '核心亮点' : '核心特性' }}
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- 优先展示结构化 highlights -->
+                    <div v-if="structuredHighlights.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div
+                        v-for="(hl, index) in structuredHighlights"
+                        :key="`hl-${index}`"
+                        class="software-detail-card software-detail-card--interactive rounded-lg p-5 flex gap-4 items-start"
+                      >
+                        <div class="highlight-icon-badge shrink-0" :class="`highlight-kind-${hl.kind || 'other'}`">
+                          <component :is="getHighlightIcon(hl.kind)" class="w-5 h-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <div class="text-base font-bold text-gray-900 dark:text-white mb-1.5 truncate">
+                            {{ hl.title }}
+                          </div>
+                          <div class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {{ hl.detail }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 降级：历史数据无 highlights 时走 split 兜底 -->
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div
                         v-for="(feature, index) in coreFeatures"
-                        :key="index"
+                        :key="`cf-${index}`"
                         class="software-detail-card software-detail-card--interactive rounded-lg p-5"
                       >
                         <div class="text-base font-bold text-gray-900 dark:text-white mb-1.5">
@@ -338,6 +370,54 @@
                             </ul>
                         </div>
                     </div>
+
+                    <!-- 适合谁用 best_for -->
+                    <section v-if="structuredBestFor.length > 0">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 px-1">
+                            <UserCheck class="w-5 h-5 text-primary" />
+                            适合谁用
+                        </h3>
+                        <div class="space-y-3">
+                            <article
+                                v-for="(item, idx) in structuredBestFor"
+                                :key="`bf-${idx}`"
+                                class="software-detail-card recommend-card recommend-card--good rounded-lg"
+                            >
+                                <div class="recommend-icon">
+                                    <UserCheck class="w-4 h-4" />
+                                </div>
+                                <div class="recommend-body">
+                                    <div class="recommend-label">场景</div>
+                                    <p class="recommend-title">{{ item.persona }}</p>
+                                    <p class="recommend-reason">{{ item.reason }}</p>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- 什么情况别用 avoid_if -->
+                    <section v-if="structuredAvoidIf.length > 0">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 px-1">
+                            <ShieldAlert class="w-5 h-5 text-amber-500" />
+                            什么情况下别用
+                        </h3>
+                        <div class="space-y-3">
+                            <article
+                                v-for="(item, idx) in structuredAvoidIf"
+                                :key="`ai-${idx}`"
+                                class="software-detail-card recommend-card recommend-card--warn rounded-lg"
+                            >
+                                <div class="recommend-icon recommend-icon--warn">
+                                    <ShieldAlert class="w-4 h-4" />
+                                </div>
+                                <div class="recommend-body">
+                                    <div class="recommend-label recommend-label--warn">规避</div>
+                                    <p class="recommend-title">{{ item.situation }}</p>
+                                    <p class="recommend-reason">{{ item.reason }}</p>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
 
                     <!-- 安全审查 —— 只要有 AI 分析记录就展示此区块 -->
                     <div v-if="software.analysis_model" :class="hasWarnings ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50' : 'bg-primary/10 dark:bg-primary/[0.14] border-primary/20 dark:border-primary/24'" class="rounded-lg p-6 shadow-sm border">
@@ -633,17 +713,21 @@
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import {
   Bot,
+  Boxes,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleDot,
   Copy,
+  DollarSign,
   DownloadCloud,
   Edit,
   ExternalLink,
   FileSearch,
   FileText,
   FolderOpen,
+  Gauge,
   GitBranch,
   HelpCircle,
   History,
@@ -651,10 +735,16 @@ import {
   Link,
   Link2,
   Monitor,
+  Plug,
   Plus,
   Share2,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
   Star,
   Tag,
+  UserCheck,
   X,
   XCircle
 } from 'lucide-vue-next'
@@ -666,17 +756,25 @@ import { comparisonService } from '../services/comparison'
 import { githubService } from '../services/github'
 import { getIconUrl } from '../services/localIconCache'
 import { softwareService } from '../services/software'
-import type { DownloadLink, SecretItem, Software, SoftwareListItem } from '../types'
+import type {
+  DownloadLink,
+  SecretItem,
+  Software,
+  SoftwareAvoidIf,
+  SoftwareBestFor,
+  SoftwareHighlight,
+  SoftwareListItem,
+} from '../types'
 import { parseComparisonContent } from '../utils/comparison-parser'
 import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'
 import TagBadge from './common/TagBadge.vue'
 import Tooltip from './common/Tooltip.vue'
-import SystemIcon from './SystemIcon.vue'
 import ComparisonStructuredView from './comparison/ComparisonStructuredView.vue'
-import GitHubReleases from './software/GitHubReleases.vue'
 import InlineToast from './InlineToast.vue'
+import SystemIcon from './SystemIcon.vue'
+import GitHubReleases from './software/GitHubReleases.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -924,6 +1022,44 @@ const coreFeatures = computed(() => {
   })
 })
 
+// 结构化亮点（过滤空条目）：概览页优先渲染，降级到 coreFeatures
+const structuredHighlights = computed<SoftwareHighlight[]>(() => {
+  const raw = software.value.highlights
+  if (!Array.isArray(raw)) return []
+  return raw.filter((h) => h && typeof h === 'object' && (h.title || h.detail))
+})
+
+// 适合谁用：详细信息页渲染
+const structuredBestFor = computed<SoftwareBestFor[]>(() => {
+  const raw = software.value.best_for
+  if (!Array.isArray(raw)) return []
+  return raw.filter((h) => h && typeof h === 'object' && (h.persona || h.reason))
+})
+
+// 规避场景：详细信息页渲染
+const structuredAvoidIf = computed<SoftwareAvoidIf[]>(() => {
+  const raw = software.value.avoid_if
+  if (!Array.isArray(raw)) return []
+  return raw.filter((h) => h && typeof h === 'object' && (h.situation || h.reason))
+})
+
+// 亮点分类 → lucide 图标（未知分类兜底到 CircleDot）
+const HIGHLIGHT_ICON_MAP = {
+  performance: Gauge,
+  privacy: Shield,
+  security: ShieldCheck,
+  ecosystem: Boxes,
+  ux: Sparkles,
+  integration: Plug,
+  pricing: DollarSign,
+  other: CircleDot,
+} as const
+
+const getHighlightIcon = (kind?: string) => {
+  const key = (kind || 'other') as keyof typeof HIGHLIGHT_ICON_MAP
+  return HIGHLIGHT_ICON_MAP[key] || CircleDot
+}
+
 // ... Comparison Logic ...
 const isLoadingComparison = ref(false)
 const comparedSoftwares = ref<Software[]>([])
@@ -1166,4 +1302,193 @@ const afterLeave = () => {
   scrollbar-width: none;
 }
 .scroll-mask::-webkit-scrollbar { display: none; }
+
+/* ==================== 概览 tagline hero 卡 ==================== */
+.overview-tagline-card {
+  display: grid;
+  grid-template-columns: 3px 1fr;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary-500, #1ed760) 22%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary-500, #1ed760) 8%, transparent) 0%,
+    color-mix(in srgb, var(--theme-primary-500, #1ed760) 2%, transparent) 100%
+  );
+}
+
+.dark .overview-tagline-card {
+  border-color: color-mix(in srgb, var(--theme-primary-500, #1ed760) 28%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary-500, #1ed760) 12%, transparent) 0%,
+    color-mix(in srgb, var(--theme-primary-500, #1ed760) 3%, transparent) 100%
+  );
+}
+
+.overview-tagline-bar {
+  background: var(--theme-primary-500, #1ed760);
+  border-radius: 2px;
+}
+
+.overview-tagline-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--theme-primary-600, #1db954);
+}
+
+.dark .overview-tagline-label {
+  color: var(--theme-primary-400, #4de17e);
+}
+
+.overview-tagline-text {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 600;
+  color: rgb(17 24 39);
+}
+
+.dark .overview-tagline-text {
+  color: rgb(248 250 252);
+}
+
+/* ==================== 亮点分类徽章 ==================== */
+.highlight-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-primary-500, #1ed760) 12%, transparent);
+  color: var(--theme-primary-600, #1db954);
+  transition: background 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .highlight-icon-badge {
+  background: color-mix(in srgb, var(--theme-primary-500, #1ed760) 16%, transparent);
+  color: var(--theme-primary-400, #4de17e);
+}
+
+.highlight-kind-privacy,
+.highlight-kind-security {
+  background: color-mix(in srgb, #539df5 14%, transparent);
+  color: #2563eb;
+}
+
+.dark .highlight-kind-privacy,
+.dark .highlight-kind-security {
+  background: color-mix(in srgb, #539df5 18%, transparent);
+  color: #93c5fd;
+}
+
+.highlight-kind-pricing {
+  background: color-mix(in srgb, #ffa42b 14%, transparent);
+  color: #b45309;
+}
+
+.dark .highlight-kind-pricing {
+  background: color-mix(in srgb, #ffa42b 18%, transparent);
+  color: #fbbf24;
+}
+
+.highlight-kind-ux {
+  background: color-mix(in srgb, #a855f7 14%, transparent);
+  color: #7c3aed;
+}
+
+.dark .highlight-kind-ux {
+  background: color-mix(in srgb, #a855f7 18%, transparent);
+  color: #c4b5fd;
+}
+
+/* ==================== 推荐/规避卡片 ==================== */
+.recommend-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 18px;
+}
+
+.recommend-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--theme-primary-500, #1ed760) 12%, transparent);
+  color: var(--theme-primary-600, #1db954);
+  flex-shrink: 0;
+}
+
+.dark .recommend-icon {
+  background: color-mix(in srgb, var(--theme-primary-500, #1ed760) 16%, transparent);
+  color: var(--theme-primary-400, #4de17e);
+}
+
+.recommend-icon--warn {
+  background: color-mix(in srgb, #ffa42b 14%, transparent);
+  color: #b45309;
+}
+
+.dark .recommend-icon--warn {
+  background: color-mix(in srgb, #ffa42b 18%, transparent);
+  color: #fbbf24;
+}
+
+.recommend-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recommend-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--theme-primary-600, #1db954);
+}
+
+.dark .recommend-label {
+  color: var(--theme-primary-400, #4de17e);
+}
+
+.recommend-label--warn {
+  color: #b45309;
+}
+
+.dark .recommend-label--warn {
+  color: #fbbf24;
+}
+
+.recommend-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(17 24 39);
+  line-height: 1.5;
+}
+
+.dark .recommend-title {
+  color: rgb(248 250 252);
+}
+
+.recommend-reason {
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(100 116 139);
+}
+
+.dark .recommend-reason {
+  color: rgb(160 169 182);
+}
 </style>

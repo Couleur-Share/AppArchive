@@ -67,7 +67,9 @@ export const searchConfigService = {
 		return data.data;
 	},
 
-	async testTavily(apiKey: string): Promise<{ success: boolean; message: string }> {
+	async testTavily(
+		apiKey: string,
+	): Promise<{ success: boolean; message: string }> {
 		const response = await fetch(`${API_BASE}/search/config/test`, {
 			method: "POST",
 			headers: {
@@ -118,7 +120,9 @@ export const aiConfigService = {
 		return data.data;
 	},
 
-	async testConfig(config: AIConfigInput): Promise<{ success: boolean; message: string }> {
+	async testConfig(
+		config: AIConfigInput,
+	): Promise<{ success: boolean; message: string }> {
 		const response = await fetch(`${API_BASE}/ai/config/test`, {
 			method: "POST",
 			headers: {

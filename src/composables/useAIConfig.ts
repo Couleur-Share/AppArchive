@@ -18,7 +18,8 @@ export interface AIConfig {
 
 // 默认配置（从环境变量或代码中读取）
 const defaultConfig: AIConfig = {
-	apiBase: import.meta.env.VITE_PERPLEXITY_API_BASE || "https://api.perplexity.ai",
+	apiBase:
+		import.meta.env.VITE_PERPLEXITY_API_BASE || "https://api.perplexity.ai",
 	apiKey: import.meta.env.VITE_PERPLEXITY_API_KEY || "",
 	model: import.meta.env.VITE_PERPLEXITY_MODEL || "sonar",
 	temperature: Number(import.meta.env.VITE_PERPLEXITY_TEMPERATURE || 0.7),

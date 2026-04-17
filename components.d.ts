@@ -56,6 +56,7 @@ declare module 'vue' {
     SoftwareDetailLoading: typeof import('./src/components/SoftwareDetailLoading.vue')['default']
     SoftwareForm: typeof import('./src/components/SoftwareForm.vue')['default']
     SoftwareGrid: typeof import('./src/components/software/SoftwareGrid.vue')['default']
+    StructuredPairListEditor: typeof import('./src/components/common/StructuredPairListEditor.vue')['default']
     SystemIcon: typeof import('./src/components/SystemIcon.vue')['default']
     TagBadge: typeof import('./src/components/common/TagBadge.vue')['default']
     ThemeToggle: typeof import('./src/components/common/ThemeToggle.vue')['default']

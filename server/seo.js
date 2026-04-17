@@ -12,7 +12,8 @@ import { pool } from "./database.js";
 // ========== 工具函数 ==========
 
 const SITE_NAME = "软件清单";
-const SITE_DESC = "发现、记录和管理优质软件应用，涵盖社交、工具、编程、办公等多个分类。";
+const SITE_DESC =
+	"发现、记录和管理优质软件应用，涵盖社交、工具、编程、办公等多个分类。";
 
 function getBaseUrl(req) {
 	if (process.env.SITE_URL) return process.env.SITE_URL.replace(/\/$/, "");
@@ -41,9 +42,19 @@ function licenseToOffer(license) {
 		case "开源":
 			return { "@type": "Offer", price: "0", priceCurrency: "CNY" };
 		case "收费":
-			return { "@type": "Offer", price: "0", priceCurrency: "CNY", description: "付费软件" };
+			return {
+				"@type": "Offer",
+				price: "0",
+				priceCurrency: "CNY",
+				description: "付费软件",
+			};
 		case "已购":
-			return { "@type": "Offer", price: "0", priceCurrency: "CNY", description: "已购买" };
+			return {
+				"@type": "Offer",
+				price: "0",
+				priceCurrency: "CNY",
+				description: "已购买",
+			};
 		default:
 			return undefined;
 	}
@@ -52,16 +63,16 @@ function licenseToOffer(license) {
 // 分类 → schema.org applicationCategory 映射
 function categoryToSchema(cat) {
 	const map = {
-		"社交": "SocialNetworkingApplication",
-		"生活": "LifestyleApplication",
-		"购物": "ShoppingApplication",
-		"影音": "MultimediaApplication",
-		"阅读": "ReferenceApplication",
-		"休闲": "GameApplication",
-		"旅行": "TravelApplication",
-		"办公": "BusinessApplication",
-		"工具": "UtilitiesApplication",
-		"编程": "DeveloperApplication",
+		社交: "SocialNetworkingApplication",
+		生活: "LifestyleApplication",
+		购物: "ShoppingApplication",
+		影音: "MultimediaApplication",
+		阅读: "ReferenceApplication",
+		休闲: "GameApplication",
+		旅行: "TravelApplication",
+		办公: "BusinessApplication",
+		工具: "UtilitiesApplication",
+		编程: "DeveloperApplication",
 	};
 	return map[cat] || "SoftwareApplication";
 }
@@ -98,7 +109,9 @@ class LRUCache {
 
 	invalidate(pattern) {
 		for (const key of this.cache.keys()) {
-			if (typeof pattern === "string" ? key.includes(pattern) : pattern.test(key)) {
+			if (
+				typeof pattern === "string" ? key.includes(pattern) : pattern.test(key)
+			) {
 				this.cache.delete(key);
 			}
 		}
@@ -110,17 +123,26 @@ class LRUCache {
 }
 
 const pageCache = new LRUCache(500);
-const HOME_CACHE_TTL = 30 * 60 * 1000;      // 30 分钟
+const HOME_CACHE_TTL = 30 * 60 * 1000; // 30 分钟
 const DETAIL_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 小时
 const SITEMAP_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 小时
 
 // ========== Meta 标签构建 ==========
 
-function buildMetaTags({ title, description, image, url, type = "website", canonical }) {
+function buildMetaTags({
+	title,
+	description,
+	image,
+	url,
+	type = "website",
+	canonical,
+}) {
 	const tags = [];
 
 	if (description) {
-		tags.push(`<meta name="description" content="${escapeHtml(description)}" />`);
+		tags.push(
+			`<meta name="description" content="${escapeHtml(description)}" />`,
+		);
 	}
 	if (canonical) {
 		tags.push(`<link rel="canonical" href="${escapeHtml(canonical)}" />`);
@@ -128,8 +150,12 @@ function buildMetaTags({ title, description, image, url, type = "website", canon
 
 	// Open Graph
 	tags.push(`<meta property="og:title" content="${escapeHtml(title)}" />`);
-	if (description) tags.push(`<meta property="og:description" content="${escapeHtml(description)}" />`);
-	if (image) tags.push(`<meta property="og:image" content="${escapeHtml(image)}" />`);
+	if (description)
+		tags.push(
+			`<meta property="og:description" content="${escapeHtml(description)}" />`,
+		);
+	if (image)
+		tags.push(`<meta property="og:image" content="${escapeHtml(image)}" />`);
 	if (url) tags.push(`<meta property="og:url" content="${escapeHtml(url)}" />`);
 	tags.push(`<meta property="og:type" content="${type}" />`);
 	tags.push(`<meta property="og:site_name" content="${SITE_NAME}" />`);
@@ -137,8 +163,12 @@ function buildMetaTags({ title, description, image, url, type = "website", canon
 	// Twitter Card
 	tags.push(`<meta name="twitter:card" content="summary" />`);
 	tags.push(`<meta name="twitter:title" content="${escapeHtml(title)}" />`);
-	if (description) tags.push(`<meta name="twitter:description" content="${escapeHtml(description)}" />`);
-	if (image) tags.push(`<meta name="twitter:image" content="${escapeHtml(image)}" />`);
+	if (description)
+		tags.push(
+			`<meta name="twitter:description" content="${escapeHtml(description)}" />`,
+		);
+	if (image)
+		tags.push(`<meta name="twitter:image" content="${escapeHtml(image)}" />`);
 
 	return tags.join("\n    ");
 }
@@ -169,7 +199,9 @@ function buildJsonLdItemList(items, baseUrl) {
 				url: `${baseUrl}/software/${sw.id}`,
 				...(sw.icon ? { image: sw.icon } : {}),
 				applicationCategory: categoryToSchema(sw.category),
-				...(sw.systems?.length ? { operatingSystem: sw.systems.join(", ") } : {}),
+				...(sw.systems?.length
+					? { operatingSystem: sw.systems.join(", ") }
+					: {}),
 			},
 		})),
 	};
@@ -211,12 +243,24 @@ function jsonLdScript(data) {
 
 // ========== Body 内容 HTML 构建 ==========
 
-const CATEGORIES = ["社交", "生活", "购物", "影音", "阅读", "休闲", "旅行", "办公", "工具", "编程"];
+const CATEGORIES = [
+	"社交",
+	"生活",
+	"购物",
+	"影音",
+	"阅读",
+	"休闲",
+	"旅行",
+	"办公",
+	"工具",
+	"编程",
+];
 
 function buildHomeContentHtml(items, baseUrl) {
-	const categoryLinks = CATEGORIES
-		.map((c) => `<a href="${baseUrl}/?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`)
-		.join("\n        ");
+	const categoryLinks = CATEGORIES.map(
+		(c) =>
+			`<a href="${baseUrl}/?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`,
+	).join("\n        ");
 
 	const softwareCards = items
 		.map((sw) => {
@@ -247,7 +291,9 @@ function buildDetailContentHtml(sw, baseUrl) {
 
 	let prosHtml = "";
 	if (sw.pros?.length) {
-		const items = sw.pros.map((p) => `<li>${escapeHtml(p)}</li>`).join("\n          ");
+		const items = sw.pros
+			.map((p) => `<li>${escapeHtml(p)}</li>`)
+			.join("\n          ");
 		prosHtml = `
       <section>
         <h2>优点</h2>
@@ -259,7 +305,9 @@ function buildDetailContentHtml(sw, baseUrl) {
 
 	let consHtml = "";
 	if (sw.cons?.length) {
-		const items = sw.cons.map((c) => `<li>${escapeHtml(c)}</li>`).join("\n          ");
+		const items = sw.cons
+			.map((c) => `<li>${escapeHtml(c)}</li>`)
+			.join("\n          ");
 		consHtml = `
       <section>
         <h2>缺点</h2>
@@ -273,7 +321,10 @@ function buildDetailContentHtml(sw, baseUrl) {
 	const articles = (sw.related_articles || []).filter((a) => a.title && a.url);
 	if (articles.length) {
 		const items = articles
-			.map((a) => `<li><a href="${escapeHtml(a.url)}" rel="noopener noreferrer">${escapeHtml(a.title)}</a>${a.description ? ` - ${escapeHtml(a.description)}` : ""}</li>`)
+			.map(
+				(a) =>
+					`<li><a href="${escapeHtml(a.url)}" rel="noopener noreferrer">${escapeHtml(a.title)}</a>${a.description ? ` - ${escapeHtml(a.description)}` : ""}</li>`,
+			)
 			.join("\n          ");
 		articlesHtml = `
       <section>
@@ -363,14 +414,25 @@ async function prerenderHome(req, res, indexHtml) {
 		const url = baseUrl;
 		const canonical = baseUrl + "/";
 
-		const headTags = buildMetaTags({ title, description, url, type: "website", canonical });
+		const headTags = buildMetaTags({
+			title,
+			description,
+			url,
+			type: "website",
+			canonical,
+		});
 		const jsonLdList = [
 			buildJsonLdWebSite(baseUrl),
 			buildJsonLdItemList(items, baseUrl),
 		];
 		const contentHtml = buildHomeContentHtml(items, baseUrl);
 
-		const html = renderPage(indexHtml, { title, headTags, jsonLdList, contentHtml });
+		const html = renderPage(indexHtml, {
+			title,
+			headTags,
+			jsonLdList,
+			contentHtml,
+		});
 		pageCache.set(cacheKey, html, HOME_CACHE_TTL);
 		res.send(html);
 	} catch (error) {
@@ -403,7 +465,9 @@ async function prerenderDetail(req, res, indexHtml) {
 
 		const sw = result.rows[0];
 		const systems = (sw.systems || []).join(" / ");
-		const badge = [sw.category, sw.license, systems].filter(Boolean).join(" · ");
+		const badge = [sw.category, sw.license, systems]
+			.filter(Boolean)
+			.join(" · ");
 		const shortDesc = truncate(sw.description, 200);
 		const fullDesc = badge ? `${badge} — ${shortDesc}` : shortDesc;
 
@@ -423,7 +487,14 @@ async function prerenderDetail(req, res, indexHtml) {
 			buildJsonLdBreadcrumb(
 				[
 					{ name: "首页", url: "/" },
-					...(sw.category ? [{ name: sw.category, url: `/?category=${encodeURIComponent(sw.category)}` }] : []),
+					...(sw.category
+						? [
+								{
+									name: sw.category,
+									url: `/?category=${encodeURIComponent(sw.category)}`,
+								},
+							]
+						: []),
 					{ name: sw.name },
 				],
 				baseUrl,
@@ -431,7 +502,12 @@ async function prerenderDetail(req, res, indexHtml) {
 		];
 		const contentHtml = buildDetailContentHtml(sw, baseUrl);
 
-		const html = renderPage(indexHtml, { title, headTags, jsonLdList, contentHtml });
+		const html = renderPage(indexHtml, {
+			title,
+			headTags,
+			jsonLdList,
+			contentHtml,
+		});
 		pageCache.set(cacheKey, html, DETAIL_CACHE_TTL);
 		res.send(html);
 	} catch (error) {
@@ -464,7 +540,9 @@ async function prerenderShare(req, res, indexHtml) {
 
 		const sw = result.rows[0];
 		const systems = (sw.systems || []).join(" / ");
-		const badge = [sw.category, sw.license, systems].filter(Boolean).join(" · ");
+		const badge = [sw.category, sw.license, systems]
+			.filter(Boolean)
+			.join(" · ");
 		const shortDesc = truncate(sw.description, 200);
 		const fullDesc = badge ? `${badge} — ${shortDesc}` : shortDesc;
 
@@ -481,12 +559,15 @@ async function prerenderShare(req, res, indexHtml) {
 			type: "article",
 			canonical,
 		});
-		const jsonLdList = [
-			buildJsonLdSoftware(sw, baseUrl),
-		];
+		const jsonLdList = [buildJsonLdSoftware(sw, baseUrl)];
 		const contentHtml = buildDetailContentHtml(sw, baseUrl);
 
-		const html = renderPage(indexHtml, { title, headTags, jsonLdList, contentHtml });
+		const html = renderPage(indexHtml, {
+			title,
+			headTags,
+			jsonLdList,
+			contentHtml,
+		});
 		pageCache.set(cacheKey, html, DETAIL_CACHE_TTL);
 		res.send(html);
 	} catch (error) {

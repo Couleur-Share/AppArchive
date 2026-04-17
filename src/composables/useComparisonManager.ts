@@ -197,7 +197,11 @@ export function useComparisonManager(
 			const existing = selectedComparisons.value.find(
 				(c) => c.target_id === software.id,
 			);
-			const base = toValue(baseSoftware) as Software | SoftwareListItem | null | undefined;
+			const base = toValue(baseSoftware) as
+				| Software
+				| SoftwareListItem
+				| null
+				| undefined;
 			if (!base?.id) {
 				showToast("软件信息无效，请重试", "error");
 				return;

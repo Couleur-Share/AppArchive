@@ -7,9 +7,9 @@ import logger from "./logger";
 export const devPerformanceTips = {
 	checkForCommonIssues: () => {
 		console.group("🚀 [Performance] 性能审计报告 (Audit Report)");
-		
+
 		// 1. 检查 DOM 元素数量
-		const domCount = document.getElementsByTagName('*').length;
+		const domCount = document.getElementsByTagName("*").length;
 		if (domCount > 1500) {
 			console.warn(`[Performance] DOM 元素过多: ${domCount} (建议 < 1500)`);
 		} else {
@@ -17,21 +17,29 @@ export const devPerformanceTips = {
 		}
 
 		// 2. 检查未压缩或过大的资源
-		const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
-		const largeResources = entries.filter(e => e.transferSize > 500 * 1024); // > 500KB
+		const entries = performance.getEntriesByType(
+			"resource",
+		) as PerformanceResourceTiming[];
+		const largeResources = entries.filter((e) => e.transferSize > 500 * 1024); // > 500KB
 		if (largeResources.length > 0) {
-			console.warn("[Performance] 检测到大资源请求:", largeResources.map(e => ({
-				name: e.name,
-				size: `${(e.transferSize / 1024).toFixed(2)} KB`
-			})));
+			console.warn(
+				"[Performance] 检测到大资源请求:",
+				largeResources.map((e) => ({
+					name: e.name,
+					size: `${(e.transferSize / 1024).toFixed(2)} KB`,
+				})),
+			);
 		}
 
 		// 3. 检查是否有重复的 API 请求
-		const apiRequests = entries.filter(e => e.name.includes('/api/'));
-		const counts = apiRequests.reduce((acc, req) => {
-			acc[req.name] = (acc[req.name] || 0) + 1;
-			return acc;
-		}, {} as Record<string, number>);
+		const apiRequests = entries.filter((e) => e.name.includes("/api/"));
+		const counts = apiRequests.reduce(
+			(acc, req) => {
+				acc[req.name] = (acc[req.name] || 0) + 1;
+				return acc;
+			},
+			{} as Record<string, number>,
+		);
 		const duplicates = Object.entries(counts).filter(([_, count]) => count > 1);
 		if (duplicates.length > 0) {
 			console.warn("[Performance] 检测到重复的 API 请求:", duplicates);
@@ -52,7 +60,9 @@ export const performanceChecker = {
 		console.log("[Performance] 正在收集 Web Vitals 指标...");
 
 		const timing = window.performance.timing;
-		const navigationEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+		const navigationEntry = performance.getEntriesByType(
+			"navigation",
+		)[0] as PerformanceNavigationTiming;
 
 		const metrics: Record<string, string | number> = {
 			"[Performance] DOM 解析时间": `${(navigationEntry ? navigationEntry.domInteractive : timing.domInteractive - timing.navigationStart).toFixed(2)}ms`,
@@ -65,15 +75,21 @@ export const performanceChecker = {
 		let hasPrinted = false;
 		const printMetrics = () => {
 			if (hasPrinted) return;
-			
+
 			// 兜底逻辑：如果 FP 缺失但 FCP 存在，尝试直接从 performance 对象获取
 			if (metrics["[Performance] 白屏时间 (FP)"] === "等待中...") {
-				const fpEntry = performance.getEntriesByName('first-paint')[0];
-				if (fpEntry) metrics["[Performance] 白屏时间 (FP)"] = `${fpEntry.startTime.toFixed(2)}ms`;
+				const fpEntry = performance.getEntriesByName("first-paint")[0];
+				if (fpEntry)
+					metrics["[Performance] 白屏时间 (FP)"] =
+						`${fpEntry.startTime.toFixed(2)}ms`;
 			}
 			if (metrics["[Performance] 首屏时间 (FCP)"] === "等待中...") {
-				const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0];
-				if (fcpEntry) metrics["[Performance] 首屏时间 (FCP)"] = `${fcpEntry.startTime.toFixed(2)}ms`;
+				const fcpEntry = performance.getEntriesByName(
+					"first-contentful-paint",
+				)[0];
+				if (fcpEntry)
+					metrics["[Performance] 首屏时间 (FCP)"] =
+						`${fcpEntry.startTime.toFixed(2)}ms`;
 			}
 
 			console.table(metrics);
@@ -82,17 +98,19 @@ export const performanceChecker = {
 
 		// 1. 定义获取指标的函数
 		const updateMetrics = (entries: PerformanceEntry[]) => {
-			entries.forEach(entry => {
-				if (entry.name === 'first-paint') {
-					metrics["[Performance] 白屏时间 (FP)"] = `${entry.startTime.toFixed(2)}ms`;
-				} else if (entry.name === 'first-contentful-paint') {
-					metrics["[Performance] 首屏时间 (FCP)"] = `${entry.startTime.toFixed(2)}ms`;
+			entries.forEach((entry) => {
+				if (entry.name === "first-paint") {
+					metrics["[Performance] 白屏时间 (FP)"] =
+						`${entry.startTime.toFixed(2)}ms`;
+				} else if (entry.name === "first-contentful-paint") {
+					metrics["[Performance] 首屏时间 (FCP)"] =
+						`${entry.startTime.toFixed(2)}ms`;
 				}
 			});
 		};
 
 		// 2. 初始获取并启动观察者
-		updateMetrics(performance.getEntriesByType('paint'));
+		updateMetrics(performance.getEntriesByType("paint"));
 
 		const observer = new PerformanceObserver((list) => {
 			updateMetrics(list.getEntries());
@@ -103,7 +121,7 @@ export const performanceChecker = {
 		});
 
 		try {
-			observer.observe({ type: 'paint', buffered: true });
+			observer.observe({ type: "paint", buffered: true });
 		} catch (e) {
 			// fallback
 		}

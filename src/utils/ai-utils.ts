@@ -65,14 +65,99 @@ export function validateAIResponse(data: any) {
 	return data.choices[0].message.content;
 }
 
-// 尝试从模型返回的文本中提取并纠正 JSON（仅需要 pros/cons 两个字段）
-export function extractProsConsFromContent(content: string): {
+// 结构化洞察：highlights / best_for / avoid_if 的对象数组条目
+export interface ParsedHighlight {
+	title: string;
+	detail: string;
+	kind?: string;
+}
+export interface ParsedBestFor {
+	persona: string;
+	reason: string;
+}
+export interface ParsedAvoidIf {
+	situation: string;
+	reason: string;
+}
+
+// 过滤并规范 string 数组字段
+function sanitizeStringArray(raw: unknown): string[] {
+	if (!Array.isArray(raw)) return [];
+	return raw
+		.filter((x) => typeof x === "string")
+		.map((s: string) => s.trim())
+		.filter(Boolean);
+}
+
+// highlights 对象数组专用
+function sanitizeHighlights(raw: unknown): ParsedHighlight[] {
+	if (!Array.isArray(raw)) return [];
+	const out: ParsedHighlight[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== "object") continue;
+		const obj = item as Record<string, unknown>;
+		const title = typeof obj.title === "string" ? obj.title.trim() : "";
+		const detail = typeof obj.detail === "string" ? obj.detail.trim() : "";
+		if (!title && !detail) continue;
+		const kind =
+			typeof obj.kind === "string" && obj.kind.trim() ? obj.kind.trim() : "other";
+		out.push({ title, detail, kind });
+	}
+	return out;
+}
+
+// best_for / avoid_if 的通用两字段对象数组
+function sanitizePairArray<K1 extends string, K2 extends string>(
+	raw: unknown,
+	key1: K1,
+	key2: K2,
+): Array<Record<K1 | K2, string>> {
+	if (!Array.isArray(raw)) return [];
+	const out: Array<Record<K1 | K2, string>> = [];
+	for (const item of raw) {
+		if (!item || typeof item !== "object") continue;
+		const obj = item as Record<string, unknown>;
+		const v1 = typeof obj[key1] === "string" ? (obj[key1] as string).trim() : "";
+		const v2 = typeof obj[key2] === "string" ? (obj[key2] as string).trim() : "";
+		if (!v1 && !v2) continue;
+		out.push({ [key1]: v1, [key2]: v2 } as Record<K1 | K2, string>);
+	}
+	return out;
+}
+
+export interface ParsedAIResult {
 	description?: string;
 	pros: string[];
 	cons: string[];
 	systems?: string[];
 	warnings?: string[];
-} {
+	tagline?: string;
+	highlights?: ParsedHighlight[];
+	best_for?: ParsedBestFor[];
+	avoid_if?: ParsedAvoidIf[];
+}
+
+// 把 JSON.parse 后的通用对象映射到 ParsedAIResult
+function buildParsedResult(parsed: any): ParsedAIResult {
+	const description =
+		typeof parsed?.description === "string" ? parsed.description.trim() : "";
+	const tagline =
+		typeof parsed?.tagline === "string" ? parsed.tagline.trim() : "";
+	return {
+		description,
+		tagline,
+		pros: sanitizeStringArray(parsed?.pros),
+		cons: sanitizeStringArray(parsed?.cons),
+		systems: sanitizeStringArray(parsed?.systems),
+		warnings: sanitizeStringArray(parsed?.warnings),
+		highlights: sanitizeHighlights(parsed?.highlights),
+		best_for: sanitizePairArray(parsed?.best_for, "persona", "reason") as ParsedBestFor[],
+		avoid_if: sanitizePairArray(parsed?.avoid_if, "situation", "reason") as ParsedAvoidIf[],
+	};
+}
+
+// 尝试从模型返回的文本中提取并纠正 JSON
+export function extractProsConsFromContent(content: string): ParsedAIResult {
 	if (typeof content !== "string") {
 		return { description: "", pros: [], cons: [] };
 	}
@@ -93,32 +178,7 @@ export function extractProsConsFromContent(content: string): {
 			? text.slice(rawStart, rawEnd + 1)
 			: text;
 	try {
-		const parsed: any = JSON.parse(rawJsonCandidate);
-		const pros = Array.isArray(parsed?.pros) ? parsed.pros : [];
-		const cons = Array.isArray(parsed?.cons) ? parsed.cons : [];
-		const systems = Array.isArray(parsed?.systems) ? parsed.systems : [];
-		const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings : [];
-		const description =
-			typeof parsed?.description === "string" ? parsed.description.trim() : "";
-		return {
-			description,
-			pros: pros
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			cons: cons
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			systems: systems
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			warnings: warnings
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-		};
+		return buildParsedResult(JSON.parse(rawJsonCandidate));
 	} catch {}
 
 	// 若直接解析失败，再进入修复流程（兼容非 JSON Mode 或不规范输出）
@@ -136,41 +196,20 @@ export function extractProsConsFromContent(content: string): {
 		.replace(/[“”]/g, '"')
 		.replace(/[‘’]/g, '"')
 		.replace(/(\bdescription\b)\s*:/gi, '"description":')
+		.replace(/(\btagline\b)\s*:/gi, '"tagline":')
 		.replace(/(\bpros\b)\s*:/gi, '"pros":')
 		.replace(/(\bcons\b)\s*:/gi, '"cons":')
 		.replace(/(\bsystems\b)\s*:/gi, '"systems":')
 		.replace(/(\bwarnings\b)\s*:/gi, '"warnings":')
+		.replace(/(\bhighlights\b)\s*:/gi, '"highlights":')
+		.replace(/(\bbest_for\b)\s*:/gi, '"best_for":')
+		.replace(/(\bavoid_if\b)\s*:/gi, '"avoid_if":')
 		// 移除数组/对象末尾多余逗号
 		.replace(/,(\s*[}\]])/g, "$1");
 
 	// 再次尝试解析
 	try {
-		const parsed: any = JSON.parse(text);
-		const pros = Array.isArray(parsed?.pros) ? parsed.pros : [];
-		const cons = Array.isArray(parsed?.cons) ? parsed.cons : [];
-		const systems = Array.isArray(parsed?.systems) ? parsed.systems : [];
-		const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings : [];
-		const description =
-			typeof parsed?.description === "string" ? parsed.description.trim() : "";
-		return {
-			description,
-			pros: pros
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			cons: cons
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			systems: systems
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-			warnings: warnings
-				.filter((x: any) => typeof x === "string")
-				.map((s: string) => s.trim())
-				.filter(Boolean),
-		};
+		return buildParsedResult(JSON.parse(text));
 	} catch {}
 
 	// 回退方案：用更稳健的正则分别提取字段

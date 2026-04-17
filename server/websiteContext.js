@@ -43,7 +43,12 @@ function isPrivateHost(hostname) {
 	if (net.isIP(host)) {
 		if (net.isIPv4(host)) return isPrivateIPv4(host);
 		// IPv6 常见本地/链路本地地址
-		return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
+		return (
+			host === "::1" ||
+			host.startsWith("fc") ||
+			host.startsWith("fd") ||
+			host.startsWith("fe80:")
+		);
 	}
 
 	return false;

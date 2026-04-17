@@ -12,10 +12,7 @@ import remarkGithub from "remark-github";
 import { remarkAlert } from "remark-github-blockquote-alert";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import {
-	createHighlighterCore,
-	type HighlighterCore,
-} from "shiki/core";
+import { createHighlighterCore, type HighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import { unified } from "unified";
 import logger from "./logger";

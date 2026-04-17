@@ -52,7 +52,9 @@ export const githubService = {
 				const errorData = await response
 					.json()
 					.catch(() => ({ error: "请求失败" }));
-				throw new Error(errorData.message || errorData.error || "获取版本信息失败");
+				throw new Error(
+					errorData.message || errorData.error || "获取版本信息失败",
+				);
 			}
 			return await response.json();
 		} catch (error) {
@@ -98,7 +100,10 @@ export const githubService = {
 		try {
 			const parsed = new URL(url);
 			if (parsed.hostname !== "github.com") return false;
-			const parts = parsed.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+			const parts = parsed.pathname
+				.replace(/\/$/, "")
+				.split("/")
+				.filter(Boolean);
 			return parts.length >= 2;
 		} catch {
 			return false;
@@ -112,7 +117,10 @@ export const githubService = {
 		try {
 			const parsed = new URL(url);
 			if (parsed.hostname !== "github.com") return null;
-			const parts = parsed.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+			const parts = parsed.pathname
+				.replace(/\/$/, "")
+				.split("/")
+				.filter(Boolean);
 			if (parts.length < 2) return null;
 			return { owner: parts[0], repo: parts[1] };
 		} catch {

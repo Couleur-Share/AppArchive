@@ -55,8 +55,11 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 			"",
 			"输出规范：",
 			"- 必须输出纯JSON，不要任何额外文字、代码块标记或解释",
-			"- 优缺点要具体、可感知，避免空泛表述（如「功能强大」「体验好」）",
+			"- 所有字符串字段必须是一行，严禁换行符",
+			"- 优缺点、标语、亮点要具体、可感知，避免空泛表述（如「功能强大」「体验好」）",
 			"- 不确定的信息宁可不写，不要编造",
+			"- highlights 是决定用户「这软件有啥特别的」的核心卡片数据，写得好坏直接决定概览页观感",
+			"- best_for / avoid_if 是帮助用户快速决策的场景推荐，要与优缺点形成互补而非重复",
 		].join("\n"),
 	};
 
@@ -78,9 +81,7 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 				`来源${i + 1}：${sanitizeText(r.title)}（${sanitizeText(r.url)}）`,
 			);
 			if (r.content) {
-				searchSection.push(
-					`摘要：${sanitizeText(r.content).slice(0, 300)}`,
-				);
+				searchSection.push(`摘要：${sanitizeText(r.content).slice(0, 300)}`);
 			}
 			searchSection.push("");
 		}
@@ -94,9 +95,7 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 	const safetySection = [];
 	if (hasSafetyResults) {
 		safetySection.push("## 安全风险搜索结果（系统检索）");
-		safetySection.push(
-			`搜索查询：${sanitizeText(safetySearchResults.query)}`,
-		);
+		safetySection.push(`搜索查询：${sanitizeText(safetySearchResults.query)}`);
 		if (safetySearchResults.answer) {
 			safetySection.push(
 				`搜索摘要：${sanitizeText(safetySearchResults.answer)}`,
@@ -110,17 +109,13 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 				`来源${i + 1}：${sanitizeText(r.title)}（${sanitizeText(r.url)}）`,
 			);
 			if (r.content) {
-				safetySection.push(
-					`摘要：${sanitizeText(r.content).slice(0, 300)}`,
-				);
+				safetySection.push(`摘要：${sanitizeText(r.content).slice(0, 300)}`);
 			}
 			safetySection.push("");
 		}
 	} else if (safetySearchResults?.error) {
 		safetySection.push("## 安全风险搜索结果（系统检索）");
-		safetySection.push(
-			`检索状态：${sanitizeText(safetySearchResults.error)}`,
-		);
+		safetySection.push(`检索状态：${sanitizeText(safetySearchResults.error)}`);
 		safetySection.push("");
 	}
 
@@ -147,9 +142,7 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 			"请访问官网获取最新信息，结合网络上的真实用户评价进行分析。",
 		);
 	} else {
-		analysisInstructions.push(
-			"请搜索该软件的官方信息和真实用户评价进行分析。",
-		);
+		analysisInstructions.push("请搜索该软件的官方信息和真实用户评价进行分析。");
 	}
 	if (hasExternalContext) {
 		analysisInstructions.push(
@@ -213,6 +206,28 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 			"用一句话说清楚「这软件是干什么的 + 最大特色是什么」",
 			"示例：「一款专注代码片段管理的工具，支持云同步和智能搜索，适合需要跨设备管理代码的开发者」",
 			"",
+			"**tagline** (15-25字)：",
+			"用一句有冲击力的短句概括该软件的核心价值主张，可以是 slogan 风格",
+			"✓ 好的写法：「让代码片段像笔记一样好管理」「轻到感觉不到，却什么都能剪」",
+			"✗ 差的写法：「优秀的代码管理工具」「值得推荐的好软件」",
+			"",
+			"**highlights** (2-4条)：",
+			"该软件真正与众不同的核心亮点，每条都是一张独立卡片，要让用户一眼看懂「这软件凭什么值得关注」",
+			"每条包含三个字段：",
+			"- title (6-14字)：亮点主题，短而有力",
+			"- detail (20-45字)：具体展开，说清楚这个亮点「是什么 / 能解决啥问题」",
+			"- kind：从以下 8 种中选一个最贴切的：",
+			"  * performance = 性能/速度优势（启动快、占用低、响应快）",
+			"  * privacy = 隐私保护（本地化、无追踪、开源可审计）",
+			"  * security = 安全特性（端到端加密、沙箱、零信任）",
+			"  * ecosystem = 生态/扩展性（插件丰富、跨平台、集成广泛）",
+			"  * ux = 用户体验/界面（直观、美观、流畅）",
+			"  * integration = 集成能力（和其他工具/系统的协同）",
+			"  * pricing = 价格优势（免费、一次买断、性价比）",
+			"  * other = 不适合归入以上类别的特色",
+			'✓ 好的写法：{title:"零延迟启动", detail:"冷启动仅 300ms，相比同类快 5 倍以上，重度使用不卡顿", kind:"performance"}',
+			'✗ 差的写法：{title:"功能强大", detail:"软件具有很多功能", kind:"other"}（空泛无信息量）',
+			"",
 			"**pros** (1-5条，每条10-25字)：",
 			"写出让用户心动的真实优点，要具体可感知：",
 			"✓ 好的写法：「启动速度0.5秒内，无需等待」「支持50+语言语法高亮」",
@@ -222,6 +237,22 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 			"写出用户可能踩的坑，帮助他们提前避雷：",
 			"✓ 好的写法：「免费版限制3个项目，个人够用但团队不够」「中文界面翻译不完整」",
 			"✗ 差的写法：「有些功能要付费」「不够完美」",
+			"",
+			"**best_for** (2-4条)：",
+			"明确「什么人、什么场景下应该选这款软件」，和 pros 形成互补（pros 讲客观优势，best_for 讲适配场景）",
+			"每条包含：",
+			"- persona (10-20字)：目标人群或场景描述",
+			"- reason (20-45字)：为什么这款软件特别适合这个人群/场景",
+			'✓ 好的写法：{persona:"需要跨设备同步的独立开发者", reason:"开箱即用的云同步 + 端到端加密，无需自建服务"}',
+			'✗ 差的写法：{persona:"所有人", reason:"功能全面适合大家"}',
+			"",
+			"**avoid_if** (0-3条)：",
+			"明确「什么情况下别用这款软件」，帮助用户避雷，和 cons 形成互补（cons 讲产品局限，avoid_if 讲使用禁忌）",
+			"每条包含：",
+			"- situation (10-20字)：不适合的场景或情况",
+			"- reason (20-45字)：为什么该场景不适合",
+			'✓ 好的写法：{situation:"对数据主权要求严格的企业", reason:"服务端托管在境外，合规审计成本较高"}',
+			"如果没有明显的不适合场景，输出空数组 []",
 			"",
 			"**systems** (数组)：",
 			"从 Windows、macOS、Linux、Android、iOS、HarmonyOS 中选择支持的平台",
@@ -235,7 +266,24 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 			"如果没有已知安全事件，输出空数组 []",
 			"",
 			"## 输出格式（严格JSON，无其他内容）",
-			'{"description":"","pros":[],"cons":[],"systems":[],"warnings":[]}',
+			"",
+			"{",
+			'  "description": "",',
+			'  "tagline": "",',
+			'  "highlights": [',
+			'    { "title": "", "detail": "", "kind": "performance" }',
+			"  ],",
+			'  "pros": [],',
+			'  "cons": [],',
+			'  "best_for": [',
+			'    { "persona": "", "reason": "" }',
+			"  ],",
+			'  "avoid_if": [',
+			'    { "situation": "", "reason": "" }',
+			"  ],",
+			'  "systems": [],',
+			'  "warnings": []',
+			"}",
 		]
 			.filter(Boolean)
 			.join("\n"),
