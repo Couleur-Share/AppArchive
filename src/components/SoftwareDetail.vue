@@ -163,6 +163,17 @@
 
                          <!-- 主要操作按钮 -->
                          <div class="flex items-center gap-3">
+                            <!-- 订阅按钮：仅当是 GitHub 仓库且用户已登录时显示 -->
+                            <SubscribeButton
+                                v-if="isGitHubSoftware && isSignedIn"
+                                :software="{
+                                    id: software.id,
+                                    name: software.name,
+                                    icon: software.icon,
+                                    website: software.website,
+                                }"
+                            />
+
                             <Tooltip v-if="software.website" content="访问官方网站">
                                 <BaseButton
                                     @click="openWebsite"
@@ -775,6 +786,7 @@ import ComparisonStructuredView from './comparison/ComparisonStructuredView.vue'
 import InlineToast from './InlineToast.vue'
 import SystemIcon from './SystemIcon.vue'
 import GitHubReleases from './software/GitHubReleases.vue'
+import SubscribeButton from './subscription/SubscribeButton.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -876,6 +888,17 @@ const descriptionThreshold = 200
 const showExpandButton = computed(() => (software.value.description?.length || 0) > descriptionThreshold)
 
 const licenseLabel = computed(() => software.value.license || '未知')
+
+// 判断软件是否关联 GitHub 仓库（仅此类软件支持订阅）
+const isGitHubSoftware = computed(() => {
+  const url = software.value.website
+  if (!url) return false
+  try {
+    return new URL(url).hostname === 'github.com'
+  } catch {
+    return false
+  }
+})
 
 function formatModelName(model: string): string {
   const raw = model.toLowerCase().replace(/[_-]/g, ' ')

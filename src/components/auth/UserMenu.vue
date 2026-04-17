@@ -32,6 +32,20 @@
 
             <div class="py-1">
               <MenuItem v-slot="{ active }">
+                <router-link
+                  to="/subscriptions"
+                  class="w-full text-left px-4 py-2 text-sm flex items-center gap-2"
+                  :class="[
+                    active
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                      : 'text-gray-700 dark:text-gray-300',
+                  ]"
+                >
+                  <Bell class="w-4 h-4" />
+                  我的订阅
+                </router-link>
+              </MenuItem>
+              <MenuItem v-slot="{ active }">
                 <button
                   @click="$emit('change-password')"
                   class="w-full text-left px-4 py-2 text-sm"
@@ -76,7 +90,7 @@
 
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { User as UserIcon } from 'lucide-vue-next'
+import { Bell, User as UserIcon } from 'lucide-vue-next'
 import { computed } from 'vue'
 import type { AuthUser } from '../../lib/auth'
 

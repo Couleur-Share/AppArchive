@@ -42,6 +42,7 @@ export const softwareService = {
 			search?: string;
 			category?: string;
 			systems?: string[];
+			licenses?: string[];
 			sortField?: string;
 			sortOrder?: "asc" | "desc";
 			addedSince?: string;
@@ -58,6 +59,8 @@ export const softwareService = {
 				queryParams.append("category", params.category);
 			if (params.systems && params.systems.length > 0)
 				queryParams.append("systems", params.systems.join(","));
+			if (params.licenses && params.licenses.length > 0)
+				queryParams.append("licenses", params.licenses.join(","));
 			if (params.sortField) queryParams.append("sortField", params.sortField);
 			if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 			if (params.addedSince)

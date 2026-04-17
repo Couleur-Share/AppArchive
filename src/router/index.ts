@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { isSignedIn } from "../lib/auth";
 
 const AppView = () => import("../App.vue");
 
@@ -20,7 +21,21 @@ const router = createRouter({
 			name: "software-share",
 			component: () => import("../views/SoftwareShareView.vue"),
 		},
+		{
+			path: "/subscriptions",
+			name: "subscriptions",
+			component: () => import("../views/SubscriptionsView.vue"),
+			meta: { requiresAuth: true },
+		},
 	],
+});
+
+router.beforeEach((to, _from, next) => {
+	if (to.meta.requiresAuth && !isSignedIn.value) {
+		next({ name: "home" });
+		return;
+	}
+	next();
 });
 
 export default router;

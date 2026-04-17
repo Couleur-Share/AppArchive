@@ -28,6 +28,10 @@ import {
 	uploadToCOS,
 } from "./cos.js";
 import { handleDatabaseError, pool, testConnection } from "./database.js";
+import {
+	ensureGitHubReleasesCache,
+	parseGitHubRepo,
+} from "./githubReleases.js";
 import { buildCompareMessages } from "./prompts.js";
 import * as rerunJob from "./rerunJob.js";
 import {
@@ -38,6 +42,8 @@ import {
 	prerenderHome,
 	prerenderShare,
 } from "./seo.js";
+import { createSubscriptionRoutes } from "./subscriptionRoutes.js";
+import * as subscriptionScheduler from "./subscriptionScheduler.js";
 import {
 	getTavilyConfigForClient,
 	saveTavilyConfig,
@@ -809,6 +815,7 @@ app.get("/api/software", async (req, res) => {
 			search,
 			category,
 			systems,
+			licenses,
 			sortField = "created_at",
 			sortOrder = "desc",
 			addedSince,
@@ -844,6 +851,20 @@ app.get("/api/software", async (req, res) => {
 			whereConditions.push(`systems && $${paramIndex}`);
 			params.push(systemList);
 			paramIndex++;
+		}
+
+		// 授权类型筛选 (逗号分隔，多选 OR)
+		if (licenses) {
+			const licenseList = String(licenses)
+				.split(",")
+				.map((s) => s.trim())
+				.filter(Boolean);
+			if (licenseList.length > 0) {
+				// license 是单值 text 列，使用 ANY 实现多值 OR 匹配
+				whereConditions.push(`license = ANY($${paramIndex})`);
+				params.push(licenseList);
+				paramIndex++;
+			}
 		}
 
 		// 新增时间筛选
@@ -1462,93 +1483,7 @@ app.get("/api/software/:id/articles", async (req, res) => {
 });
 
 // ===== GitHub Releases 版本跟踪 API =====
-
-// 从 URL 中解析 GitHub owner/repo
-function parseGitHubRepo(url) {
-	if (!url || typeof url !== "string") return null;
-	try {
-		const parsed = new URL(url);
-		if (parsed.hostname !== "github.com") return null;
-		const parts = parsed.pathname.replace(/\/$/, "").split("/").filter(Boolean);
-		if (parts.length < 2) return null;
-		return { owner: parts[0], repo: parts[1] };
-	} catch {
-		return null;
-	}
-}
-
-// 缓存有效期（秒），默认 6 小时
-const GITHUB_CACHE_TTL = Number(process.env.GITHUB_CACHE_TTL || 21600);
-
-// 调用 GitHub Releases API（支持 ETag 条件请求）
-async function fetchGitHubReleases(owner, repo, etag = null) {
-	const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=50`;
-	const headers = {
-		Accept: "application/vnd.github+json",
-		"User-Agent": "AppArchive-Bot/1.0",
-	};
-
-	// 若配置了 GitHub Token，使用认证请求（5000 次/小时）
-	const token = process.env.GITHUB_TOKEN;
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
-
-	// ETag 条件请求：如果数据没变 GitHub 返回 304，不计入 rate limit
-	if (etag) {
-		headers["If-None-Match"] = etag;
-	}
-
-	const response = await fetch(url, { headers });
-
-	// 304 Not Modified —— 数据没变
-	if (response.status === 304) {
-		return { notModified: true };
-	}
-
-	if (!response.ok) {
-		const rateRemaining = response.headers.get("x-ratelimit-remaining");
-		const rateReset = response.headers.get("x-ratelimit-reset");
-		console.error(
-			`[GITHUB_API] ${response.status} ${response.statusText} ` +
-				`remaining=${rateRemaining} reset=${rateReset ? new Date(Number(rateReset) * 1000).toISOString() : "?"}`,
-		);
-		throw new Error(
-			`GitHub API 请求失败: ${response.status} ${response.statusText}`,
-		);
-	}
-
-	const data = await response.json();
-	const newEtag = response.headers.get("etag") || null;
-
-	// 格式化 Release 数据，只保留前端需要的字段
-	const releases = data.map((release) => ({
-		tag_name: release.tag_name,
-		name: release.name || release.tag_name,
-		body: release.body || "",
-		published_at: release.published_at,
-		prerelease: release.prerelease || false,
-		draft: release.draft || false,
-		html_url: release.html_url,
-		assets: (release.assets || []).map((asset) => ({
-			name: asset.name,
-			download_url: asset.browser_download_url,
-			size: asset.size,
-			download_count: asset.download_count,
-		})),
-	}));
-
-	// 过滤掉 draft 版本
-	const publicReleases = releases.filter((r) => !r.draft);
-
-	return {
-		notModified: false,
-		releases: publicReleases,
-		etag: newEtag,
-		latestVersion:
-			publicReleases.length > 0 ? publicReleases[0].tag_name : null,
-	};
-}
+// 核心抓取与缓存逻辑已抽至 server/githubReleases.js，便于订阅调度器共享
 
 // GitHub Releases 限流（公共端点，但有外部 API 调用，需要限流）
 const githubReleasesRateLimiter = rateLimit({
@@ -1567,7 +1502,6 @@ app.get(
 		try {
 			const { id } = req.params;
 
-			// 1. 查询软件的 website 字段
 			const softwareRes = await pool.query(
 				"SELECT website FROM softwares WHERE id = $1",
 				[id],
@@ -1577,9 +1511,9 @@ app.get(
 			}
 
 			const { website } = softwareRes.rows[0];
-			const ghRepo = parseGitHubRepo(website);
+			const result = await ensureGitHubReleasesCache(id, website);
 
-			if (!ghRepo) {
+			if (!result.isGitHub) {
 				return res.json({
 					success: true,
 					data: [],
@@ -1588,129 +1522,17 @@ app.get(
 				});
 			}
 
-			const { owner, repo } = ghRepo;
-
-			// 2. 查缓存
-			const cacheRes = await pool.query(
-				"SELECT * FROM github_releases_cache WHERE software_id = $1",
-				[id],
-			);
-
-			const cache = cacheRes.rows[0] || null;
-			const now = new Date();
-			const cacheAge = cache
-				? (now.getTime() - new Date(cache.fetched_at).getTime()) / 1000
-				: Infinity;
-
-			// 3. 缓存命中且未过期 → 直接返回
-			if (cache && cacheAge < GITHUB_CACHE_TTL) {
-				console.log(
-					`[GITHUB] 缓存命中 ${owner}/${repo} (age=${Math.round(cacheAge)}s)`,
-				);
-				return res.json({
-					success: true,
-					data: cache.releases || [],
-					latestVersion: cache.latest_version,
-					isGitHub: true,
-					cached: true,
-					cachedAt: cache.fetched_at,
-				});
-			}
-
-			// 4. 缓存过期或不存在 → 调用 GitHub API
-			console.log(
-				`[GITHUB] 请求 ${owner}/${repo} ` +
-					(cache ? `(ETag=${cache.etag?.slice(0, 16)}...)` : "(无缓存)"),
-			);
-
-			const result = await fetchGitHubReleases(
-				owner,
-				repo,
-				cache?.etag || null,
-			);
-
-			// 5. 304 Not Modified → 更新 fetched_at，保留旧数据
-			if (result.notModified && cache) {
-				await pool.query(
-					"UPDATE github_releases_cache SET fetched_at = NOW() WHERE software_id = $1",
-					[id],
-				);
-				console.log(`[GITHUB] 304 Not Modified ${owner}/${repo}`);
-				return res.json({
-					success: true,
-					data: cache.releases || [],
-					latestVersion: cache.latest_version,
-					isGitHub: true,
-					cached: true,
-					cachedAt: new Date().toISOString(),
-				});
-			}
-
-			// 6. 有新数据 → 写入/更新缓存
-			if (cache) {
-				await pool.query(
-					`UPDATE github_releases_cache 
-					 SET releases = $1::jsonb, etag = $2, latest_version = $3, 
-					     fetched_at = NOW(), updated_at = NOW()
-					 WHERE software_id = $4`,
-					[
-						JSON.stringify(result.releases),
-						result.etag,
-						result.latestVersion,
-						id,
-					],
-				);
-			} else {
-				await pool.query(
-					`INSERT INTO github_releases_cache 
-					 (software_id, owner, repo, releases, etag, latest_version)
-					 VALUES ($1, $2, $3, $4::jsonb, $5, $6)`,
-					[
-						id,
-						owner,
-						repo,
-						JSON.stringify(result.releases),
-						result.etag,
-						result.latestVersion,
-					],
-				);
-			}
-
-			console.log(
-				`[GITHUB] 已缓存 ${owner}/${repo} (${result.releases.length} releases, latest=${result.latestVersion})`,
-			);
-
 			return res.json({
 				success: true,
 				data: result.releases,
 				latestVersion: result.latestVersion,
 				isGitHub: true,
-				cached: false,
+				cached: result.fromCache,
+				cachedAt: result.cachedAt,
+				...(result.stale ? { stale: true } : {}),
 			});
 		} catch (error) {
 			console.error("[GITHUB] Releases 获取失败:", error.message);
-			// 如果 GitHub API 失败但有过期缓存，返回过期缓存
-			try {
-				const { id } = req.params;
-				const fallback = await pool.query(
-					"SELECT * FROM github_releases_cache WHERE software_id = $1",
-					[id],
-				);
-				if (fallback.rows.length > 0) {
-					console.log("[GITHUB] GitHub API 失败，返回过期缓存");
-					return res.json({
-						success: true,
-						data: fallback.rows[0].releases || [],
-						latestVersion: fallback.rows[0].latest_version,
-						isGitHub: true,
-						cached: true,
-						stale: true,
-						cachedAt: fallback.rows[0].fetched_at,
-					});
-				}
-			} catch (_) {
-				// 缓存查询也失败，忽略
-			}
 			res.status(502).json({
 				error: "GitHub API 请求失败",
 				message: error.message,
@@ -1736,49 +1558,21 @@ app.post(
 				return res.status(404).json({ error: "软件不存在" });
 			}
 
-			const ghRepo = parseGitHubRepo(softwareRes.rows[0].website);
-			if (!ghRepo) {
+			const { website } = softwareRes.rows[0];
+			const parsed = parseGitHubRepo(website);
+			if (!parsed) {
 				return res.status(400).json({
 					error: "该软件未关联 GitHub 仓库",
 				});
 			}
 
-			const { owner, repo } = ghRepo;
+			const result = await ensureGitHubReleasesCache(id, website, {
+				forceRefresh: true,
+			});
 
-			// 强制刷新：不使用 ETag，直接拉取最新数据
-			const result = await fetchGitHubReleases(owner, repo);
-
-			if (result.notModified) {
-				return res.json({
-					success: true,
-					message: "数据无变化",
-				});
+			if (result.fromNotModified) {
+				return res.json({ success: true, message: "数据无变化" });
 			}
-
-			// 写入缓存（upsert）
-			await pool.query(
-				`INSERT INTO github_releases_cache 
-				 (software_id, owner, repo, releases, etag, latest_version)
-				 VALUES ($1, $2, $3, $4::jsonb, $5, $6)
-				 ON CONFLICT (software_id) DO UPDATE SET
-				   releases = EXCLUDED.releases,
-				   etag = EXCLUDED.etag,
-				   latest_version = EXCLUDED.latest_version,
-				   fetched_at = NOW(),
-				   updated_at = NOW()`,
-				[
-					id,
-					owner,
-					repo,
-					JSON.stringify(result.releases),
-					result.etag,
-					result.latestVersion,
-				],
-			);
-
-			console.log(
-				`[GITHUB] 强制刷新 ${owner}/${repo} (${result.releases.length} releases)`,
-			);
 
 			return res.json({
 				success: true,
@@ -2096,6 +1890,16 @@ app.get("/api/comparison/groups/:groupId/analysis", async (req, res) => {
 	}
 });
 
+// ========== 订阅推送路由 ==========
+app.use(
+	"/api",
+	createSubscriptionRoutes({
+		requireAuth,
+		rateLimitKey,
+		writeRateLimiter,
+	}),
+);
+
 // ========== 动态 SEO 端点（无论是否有 dist 目录都需要） ==========
 
 // 动态 robots.txt：包含基于请求的绝对 Sitemap URL
@@ -2179,6 +1983,9 @@ const getLocalIPAddress = () => {
 // 启动前从磁盘恢复批量重跑任务的进度（不会自动续跑，仅供前端展示"上次中断"）
 rerunJob.restoreFromDisk();
 
+// 启动订阅调度器：进程内 setInterval，1 分钟 tick 一次
+subscriptionScheduler.start();
+
 // 启动服务器
 app.listen(PORT, "0.0.0.0", () => {
 	const localIP = getLocalIPAddress();
@@ -2195,6 +2002,7 @@ app.listen(PORT, "0.0.0.0", () => {
 // 处理进程退出
 process.on("SIGINT", async () => {
 	console.log("正在关闭服务器...");
+	subscriptionScheduler.stop();
 	await pool.end();
 	process.exit(0);
 });

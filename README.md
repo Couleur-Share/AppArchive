@@ -26,6 +26,7 @@
 - 🤖 AI 辅助分析（多供应商支持）
 - 🔐 用户认证系统（JWT）
 - 🌗 响应式设计 + 暗色模式
+- 🔔 **GitHub 订阅推送** — 订阅开源项目的 Release 更新，AI 自动生成中文摘要，通过 MeoW 等通道实时推送
 
 ---
 
@@ -135,6 +136,9 @@ node scripts/migrate-related-articles.js
 
 # 补齐结构化洞察字段（tagline / highlights / best_for / avoid_if）
 node scripts/migrate-software-structured-fields.js
+
+# GitHub 订阅推送（user_channels / subscriptions / release_ai_summaries / notification_logs）
+node scripts/migrate-subscriptions.js
 ```
 
 > 若后端日志出现 `[SCHEMA]` 提示，请按日志中的缺失字段执行对应迁移脚本或手动 SQL。
@@ -176,6 +180,7 @@ pnpm server
 | `pnpm deploy:local` | 本地部署脚本      |
 | `pnpm full-rebuild` | 全量重建脚本      |
 | `pnpm migrate:structured` | 执行结构化字段迁移（tagline / highlights / best_for / avoid_if） |
+| `pnpm migrate:subscriptions` | 创建 GitHub 订阅推送相关的四张表 |
 | `pnpm rerun:analyze` | 批量为存量软件刷新结构化洞察（需要 `AUTH_TOKEN` 环境变量） |
 
 
@@ -331,6 +336,39 @@ interface RelatedArticle {
 
 ---
 
+## 🔔 GitHub 订阅推送
+
+订阅 GitHub 开源项目的 Release 更新，新版本发布时系统会调用 AI 生成中文摘要并通过已配置的推送通道推送给用户。
+
+### 架构要点
+
+- **通道抽象**：`user_channels` 表以加密 JSONB 存储配置，首发支持 **MeoW**，代码里 `server/notifier.js` 注册新通道即可扩展（Bark / Telegram / 邮件等）。
+- **调度器**：进程内 `setInterval` 每 1 分钟 tick 一次，按 `next_check_at` 捞到期订阅，按 `software_id` 分组后软件级并发扫描（复用 `github_releases_cache` + ETag）。
+- **AI 摘要**：`release_ai_summaries` 表按 `(software_id, tag_name)` 缓存，同一版本全站只生成一次；失败降级截取 release body 前 200 字，保证推送不阻塞。
+- **失败兜底**：连续 3 次失败自动 `paused_reason='channel_error'`，前端显示警告；用户在编辑对话框中再次保存即恢复。
+- **订阅上限**：每用户 **100** 条。
+- **冷启动防补推**：创建订阅时立即把当前 `latest_version` 写入 `last_notified_version`，避免刚订阅就收到老版本。
+
+### 环境变量
+
+| 变量 | 说明 | 默认 |
+| ---- | ---- | ---- |
+| `APP_SECRET_KEY` | AES-256-GCM 加密密钥（32 字节 hex / base64，复用 AI 模块） | **必须配置** |
+| `GITHUB_TOKEN` | GitHub Personal Access Token（强烈建议配置，否则未认证限流 60/小时） | 未配置 |
+| `GITHUB_CACHE_TTL` | GitHub Releases 缓存有效期（秒） | `21600` |
+| `MEOW_API_BASE` | MeoW 推送网关 | `https://api.chuckfang.com` |
+| `MEOW_HTML_HEIGHT` | MeoW HTML 消息高度 | `400` |
+| `SUBSCRIPTION_TICK_INTERVAL_MS` | 调度器 tick 间隔（毫秒） | `60000` |
+
+### 使用流程
+
+1. 管理员执行 `pnpm migrate:subscriptions` 创建四张表
+2. 用户登录后进入「设置 → 通知渠道」添加 MeoW 昵称，点击「测试推送」确认连通
+3. 在任意 GitHub 软件详情页点击「订阅更新」，选择检查频率（15m / 1h / 6h / 12h / 1d）
+4. 在顶部用户菜单的「我的订阅」进入管理页，可查看投递日志、立即检查、修改频率与通道
+
+---
+
 ## ✅ 手动验证清单
 
 - 启动后端后无 `[SCHEMA]` 迁移警告
@@ -338,10 +376,16 @@ interface RelatedArticle {
 - 上传非图片或超限文件返回 `400`；频繁上传返回 `429`
 - 「对比结果」弹窗默认展示详情，不出现空白
 - 图片多次加载后无 `localStorage` 满额报错（已改用 IndexedDB 缓存）
-- 新增软件后触发 AI 分析并保存，详情页可见“最后一次AI分析：供应商/模型”
+- 新增软件后触发 AI 分析并保存，详情页可见"最后一次AI分析：供应商/模型"
 - 编辑软件重新 AI 分析并保存后，详情页模型信息会更新
 - 切换全局 AI 设置后，历史软件仍显示各自记录的分析模型（不串号）
-- 历史旧数据（无分析元数据）详情页显示“未记录”，且页面不报错
+- 历史旧数据（无分析元数据）详情页显示"未记录"，且页面不报错
+- 执行 `pnpm migrate:subscriptions` 无报错，四张新表已创建
+- 在"通知渠道"绑定 MeoW 并测试推送成功；昵称显示为 `ab***xy` 脱敏形态
+- 对 GitHub 开源软件点击"订阅更新"，可选择五档频率并保存
+- "我的订阅"页可看到订阅列表，统计卡片数值正确
+- 订阅的软件发布新版本后，MeoW App 能收到含中文摘要的 HTML 推送
+- 连续 3 次推送失败后订阅自动暂停，前端显示"订阅已暂停"状态
 - 新增软件 AI 分析完成后，详情页概览 Tab 顶部显示 tagline hero 卡，核心亮点按分类带图标卡片渲染
 - 历史软件未配置 `highlights` 时概览页降级为 split 兜底的「核心特性」卡片，不出现空状态报错
 - 在表单「结构化洞察」区块手动增删 highlights / best_for / avoid_if 后，保存并重新打开详情页可正确渲染

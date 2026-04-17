@@ -1,9 +1,17 @@
 import dotenv from "dotenv";
-import { Pool } from "pg";
+import pg from "pg";
+
+const { Pool } = pg;
 
 // ESM import 会在 index.js 的 dotenv.config() 之前执行，因此这里需先加载环境变量
 dotenv.config({ override: true });
 dotenv.config({ path: ".env.local", override: true });
+
+// node-postgres 默认把 int8/bigint 解析为 string（防精度丢失），但本应用的 id 列
+// 远不会超过 JS 安全整数上限（2^53-1），字符串会污染前端/后端的数字比较与校验
+// （例如 Number.isInteger、严格等值比较等）。这里统一转为 number。
+// OID 20 = int8 / bigint。
+pg.types.setTypeParser(20, (val) => (val === null ? null : Number(val)));
 
 const useConnectionString = process.env.DATABASE_URL;
 

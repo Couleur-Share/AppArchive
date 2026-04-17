@@ -53,8 +53,8 @@
                     </button>
                   </div>
 
-                  <!-- 底部按钮（维护工具 Tab 内置自己的操作按钮，故隐藏全局 Save/Reset） -->
-                  <div v-if="activeTab !== 'maintenance'" class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <!-- 底部按钮（维护工具、通知渠道 Tab 内置自己的操作按钮，故隐藏全局 Save/Reset） -->
+                  <div v-if="activeTab !== 'maintenance' && activeTab !== 'channels'" class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     <BaseButton
                       @click="resetSettings"
                       variant="secondary"
@@ -149,25 +149,55 @@
                       </p>
                     </div>
 
-                    <!-- 系统筛选 -->
-                    <div v-if="activeTab === 'systems'" class="space-y-4">
-                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">选择操作系统</p>
-                      <div class="grid grid-cols-3 gap-3">
-                        <button
-                          v-for="system in SYSTEMS"
-                          :key="system"
-                          @click="toggleSystem(system)"
-                          class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors"
-                          :class="[
-                            selectedSystems.includes(system)
-                              ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700 text-white'
-                              : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
-                          ]"
-                        >
-                          <Monitor v-if="system === 'Windows' || system === 'macOS' || system === 'Linux'" class="w-6 h-6 mb-2" />
-                          <Smartphone v-else class="w-6 h-6 mb-2" />
-                          <span class="text-sm">{{ system }}</span>
-                        </button>
+                    <!-- 筛选条件 -->
+                    <div v-if="activeTab === 'filters'" class="space-y-6">
+                      <!-- 操作系统 -->
+                      <div class="space-y-3">
+                        <div class="flex items-baseline justify-between">
+                          <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">操作系统</h5>
+                          <span class="text-xs text-gray-500 dark:text-gray-400">维度内多选 OR</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                          <button
+                            v-for="system in SYSTEMS"
+                            :key="system"
+                            @click="toggleSystem(system)"
+                            class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors"
+                            :class="[
+                              selectedSystems.includes(system)
+                                ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700 text-white'
+                                : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                            ]"
+                          >
+                            <Monitor v-if="system === 'Windows' || system === 'macOS' || system === 'Linux'" class="w-6 h-6 mb-2" />
+                            <Smartphone v-else class="w-6 h-6 mb-2" />
+                            <span class="text-sm">{{ system }}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 授权类型 -->
+                      <div class="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-3">
+                        <div class="flex items-baseline justify-between">
+                          <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">授权类型</h5>
+                          <span class="text-xs text-gray-500 dark:text-gray-400">维度间 AND</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                          <button
+                            v-for="license in LICENSES"
+                            :key="license"
+                            @click="toggleLicense(license)"
+                            class="flex items-center justify-center gap-2 p-3 rounded-lg border transition-colors"
+                            :class="[
+                              selectedLicenses.includes(license)
+                                ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700 text-white'
+                                : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                            ]"
+                          >
+                            <component :is="licenseIcons[license]" class="w-4 h-4" />
+                            <span class="text-sm">{{ license }}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -443,6 +473,11 @@
                       </template>
                     </div>
 
+                    <!-- 通知渠道：推送通道管理 -->
+                    <div v-if="activeTab === 'channels'">
+                      <ChannelsPanel />
+                    </div>
+
                     <!-- 维护工具：批量重跑 AI 分析 -->
                     <div v-if="activeTab === 'maintenance'">
                       <BatchRerunPanel />
@@ -461,18 +496,20 @@
 
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { ArrowDown, ArrowUp, Camera, Eye, EyeOff, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
+import { ArrowDown, ArrowUp, BadgeCheck, Camera, Code2, DollarSign, Eye, EyeOff, Gift, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
 import { computed, nextTick, ref, watch } from 'vue'
-import { SYSTEMS } from '@/types/constants'
+import { LICENSES, SYSTEMS } from '@/types/constants'
 import { isSignedIn, updateProfile, user } from '../lib/auth'
 import { type AIConfig, type AIProvider, aiConfigService, type SearchConfig, searchConfigService } from '../services/aiConfig'
 import { uploadService } from '../services/upload'
 import BatchRerunPanel from './BatchRerunPanel.vue'
 import BaseButton from './common/BaseButton.vue'
+import ChannelsPanel from './subscription/ChannelsPanel.vue'
 
 const props = defineProps<{
   isOpen: boolean
   initialSystems?: string[]
+  initialLicenses?: string[]
   initialSort?: {
     field: string
     order: 'asc' | 'desc'
@@ -488,6 +525,7 @@ interface SortSettings {
 
 interface Settings {
   systems: string[];
+  licenses: string[];
   sort: SortSettings;
   viewMode: 'grid' | 'list';
 }
@@ -499,20 +537,21 @@ const emit = defineEmits<{
 }>();
 
 // 导航标签页
-type TabId = 'account' | 'systems' | 'sort' | 'view' | 'ai' | 'maintenance'
+type TabId = 'account' | 'filters' | 'sort' | 'view' | 'ai' | 'channels' | 'maintenance'
 const tabs = computed(() => {
   const list: { id: TabId; label: string }[] = []
   if (isSignedIn.value) {
     list.push({ id: 'account', label: '账户设置' })
   }
   list.push(
-    { id: 'systems', label: '系统筛选' },
+    { id: 'filters', label: '筛选条件' },
     { id: 'sort', label: '排序方式' },
     { id: 'view', label: '布局设置' },
   )
   if (isSignedIn.value) {
     list.push(
       { id: 'ai', label: 'AI 设置' },
+      { id: 'channels', label: '通知渠道' },
       { id: 'maintenance', label: '维护工具' },
     )
   }
@@ -520,13 +559,16 @@ const tabs = computed(() => {
 })
 
 // 当前选中的标签页
-const activeTab = ref<TabId>('systems')
+const activeTab = ref<TabId>('filters')
 
 // 当前标签页信息
 const currentTab = computed(() => tabs.value.find(tab => tab.id === activeTab.value))
 
 // 系统筛选设置
 const selectedSystems = ref<string[]>(props.initialSystems || [])
+
+// 授权类型筛选设置
+const selectedLicenses = ref<string[]>(props.initialLicenses || [])
 
 // 排序设置
 const sortSettings = ref<SortSettings>({
@@ -603,6 +645,24 @@ const toggleSystem = (system: string) => {
   }
 }
 
+// 切换授权类型筛选
+const toggleLicense = (license: string) => {
+  const index = selectedLicenses.value.indexOf(license)
+  if (index === -1) {
+    selectedLicenses.value.push(license)
+  } else {
+    selectedLicenses.value.splice(index, 1)
+  }
+}
+
+// 授权类型图标映射（保持设置面板中性观感，不引入语义色）
+const licenseIcons: Record<string, typeof Gift> = {
+  免费: Gift,
+  收费: DollarSign,
+  开源: Code2,
+  已购: BadgeCheck,
+}
+
 // 重置设置
 const resetSettings = () => {
   if (activeTab.value === 'maintenance') {
@@ -620,6 +680,7 @@ const resetSettings = () => {
     return
   }
   selectedSystems.value = []
+  selectedLicenses.value = []
   sortSettings.value = {
     field: 'name',
     order: 'asc'
@@ -644,6 +705,7 @@ const saveSettings = async () => {
   }
   emit('update:settings', {
     systems: selectedSystems.value,
+    licenses: selectedLicenses.value,
     sort: sortSettings.value,
     viewMode: viewMode.value
   })
@@ -654,6 +716,12 @@ const saveSettings = async () => {
 watch(() => props.initialSystems, (newSystems) => {
   if (newSystems) {
     selectedSystems.value = [...newSystems]
+  }
+}, { deep: true })
+
+watch(() => props.initialLicenses, (newLicenses) => {
+  if (newLicenses) {
+    selectedLicenses.value = [...newLicenses]
   }
 }, { deep: true })
 

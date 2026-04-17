@@ -181,6 +181,7 @@
   <SettingsDialog
     v-model:is-open="showSettings"
     :initial-systems="filterSystems"
+    :initial-licenses="filterLicenses"
     :initial-sort="{ field: sortBy, order: sortOrder }"
     :initial-view-mode="viewMode"
     @update:settings="updateSettings"
@@ -335,6 +336,7 @@ const showDetailDialog = ref(false)
 const editingSoftware = ref<Software | undefined>(undefined)
 const showSettings = ref(false)
 const filterSystems = ref<string[]>([])
+const filterLicenses = ref<string[]>([])
 const sortBy = ref<keyof Software>('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const showDeleteDialog = ref(false)
@@ -580,6 +582,13 @@ watch(filterSystems, () => {
   fetchSoftwares()
 })
 
+// 监听授权类型过滤变化
+watch(filterLicenses, () => {
+  if (!isInitialized.value) return
+  currentPage.value = 0
+  fetchSoftwares()
+})
+
 // 监听排序变化
 watch([sortBy, sortOrder], () => {
   if (!isInitialized.value) return
@@ -765,6 +774,7 @@ onMounted(async () => {
     try {
       const settings = JSON.parse(savedSettings)
       if (settings.systems) filterSystems.value = settings.systems
+      if (Array.isArray(settings.licenses)) filterLicenses.value = settings.licenses
       if (settings.sort) {
         sortBy.value = settings.sort.field
         sortOrder.value = settings.sort.order
@@ -832,6 +842,7 @@ async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' 
     search: searchTerm.value,
     category: activeCategory.value,
     systems: filterSystems.value,
+    licenses: filterLicenses.value,
     sortField: sortBy.value,
     sortOrder: sortOrder.value,
     addedSince: showNewOnly.value ? activeNewSince.value : undefined,
@@ -900,7 +911,8 @@ async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' 
         !showNewOnly.value &&
         !searchTerm.value &&
         activeCategory.value === 'all' &&
-        filterSystems.value.length === 0
+        filterSystems.value.length === 0 &&
+        filterLicenses.value.length === 0
       ) {
         localStorage.setItem(
           SOFTWARE_CACHE_KEY,
@@ -993,36 +1005,45 @@ const handleSoftwareNavigate = (software: SoftwareListItem) => {
 // 添加更新设置的方法
 const updateSettings = (settings: {
   systems: string[]
+  licenses: string[]
   sort: {
     field: string
     order: 'asc' | 'desc'
   }
   viewMode: 'grid' | 'list'
 }) => {
-  // 检查系统筛选是否改变（使用集合比较，忽略顺序）
+  // 使用集合比较判断筛选维度是否变化（忽略顺序）
   const oldSystemsSet = new Set(filterSystems.value)
   const newSystemsSet = new Set(settings.systems)
-  const systemsChanged = 
+  const systemsChanged =
     oldSystemsSet.size !== newSystemsSet.size ||
     ![...oldSystemsSet].every(sys => newSystemsSet.has(sys))
-  
+
+  const oldLicensesSet = new Set(filterLicenses.value)
+  const newLicensesSet = new Set(settings.licenses)
+  const licensesChanged =
+    oldLicensesSet.size !== newLicensesSet.size ||
+    ![...oldLicensesSet].every(lic => newLicensesSet.has(lic))
+
   filterSystems.value = settings.systems
+  filterLicenses.value = settings.licenses
   sortBy.value = settings.sort.field as keyof Software
   sortOrder.value = settings.sort.order
   viewMode.value = settings.viewMode
-  
-  // 如果系统筛选改变，重置页码到第一页
-  if (systemsChanged) {
+
+  // 任一筛选维度改变，重置到第一页
+  if (systemsChanged || licensesChanged) {
     currentPage.value = 0
   }
-  
+
   // 保存设置到 localStorage
   localStorage.setItem('app-settings', JSON.stringify({
     systems: settings.systems,
+    licenses: settings.licenses,
     sort: settings.sort,
     viewMode: settings.viewMode
   }))
-  
+
   showToast('设置已保存', 'success')
   showSettings.value = false
 }
