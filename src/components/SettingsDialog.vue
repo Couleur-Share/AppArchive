@@ -18,31 +18,60 @@
         <div class="flex min-h-full items-center justify-center p-4">
           <TransitionChild as="div">
             <DialogPanel
-             class="relative transform overflow-hidden rounded-2xl
+             class="relative transform overflow-hidden
                     app-modal-panel app-modal-panel--interactive
                     text-left shadow-level3 will-change-transform will-change-opacity
-                    w-[min(960px,94vw)] h-[min(86dvh,760px)] flex flex-col"
+                    flex flex-col
+                    w-full h-[100dvh] rounded-none
+                    sm:w-[min(960px,94vw)] sm:h-[min(86dvh,760px)] sm:rounded-2xl"
               v-gsap="{ y: 12, duration: 0.28, ease: 'power2.out', to: { y: 0, duration: 0.28, ease: 'power2.out' } }"
             >
-              <!-- 两栏布局 -->
-              <div class="flex flex-1 overflow-hidden">
-                <!-- 左侧导航栏 -->
-                <div class="w-48 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-gray-50 dark:bg-gray-900/50">
-                  <!-- 标题 -->
-                  <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <!-- 移动端顶部栏：标题 + 关闭（桌面端在右侧内容头部承担） -->
+              <div class="sm:hidden flex items-center justify-between gap-3 px-4 border-b border-gray-200 dark:border-gray-700 pt-safe">
+                <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 dark:text-white py-3">
+                  {{ currentTab?.label || '设置' }}
+                </DialogTitle>
+                <button
+                  type="button"
+                  @click="$emit('update:isOpen', false)"
+                  class="touch-target p-2 rounded-lg transition-all duration-200
+                         text-gray-600 dark:text-gray-400
+                         hover:bg-gray-100 dark:hover:bg-gray-700
+                         hover:text-gray-900 dark:hover:text-white
+                         focus:outline-none focus:ring-2 focus:ring-gray-500/50 app-modal-close-btn"
+                  title="关闭"
+                  aria-label="关闭"
+                >
+                  <X class="h-5 w-5" />
+                </button>
+              </div>
+
+              <!-- 主体：桌面两栏 / 移动端单列 -->
+              <div class="flex flex-1 overflow-hidden sm:flex-row flex-col">
+                <!-- 侧栏 / 顶部 tab 条 -->
+                <div
+                  class="flex flex-col bg-gray-50 dark:bg-gray-900/50
+                         sm:w-48 sm:border-r border-gray-200 dark:border-gray-700
+                         w-full border-b sm:border-b-0"
+                >
+                  <!-- 桌面端标题（移动端已在顶栏承担） -->
+                  <div class="hidden sm:block p-6 border-b border-gray-200 dark:border-gray-700">
                     <DialogTitle as="h3" class="text-xl font-semibold text-gray-900 dark:text-white">
                       设置
                     </DialogTitle>
                   </div>
 
-                  <!-- 导航项 -->
-                  <div class="flex-1 p-4 space-y-2">
+                  <!-- Tab 导航：桌面列、移动端横向滚动 -->
+                  <div
+                    class="sm:flex-1 sm:p-4 sm:space-y-2 sm:overflow-visible
+                           flex sm:flex-col flex-row gap-1.5 p-2 overflow-x-auto settings-mobile-tab-strip"
+                  >
                     <button
                       type="button"
                       v-for="tab in tabs"
                       :key="tab.id"
                       @click="activeTab = tab.id"
-                      class="w-full text-left px-4 py-2 rounded-lg transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40"
+                      class="sm:w-full text-left px-4 py-2 rounded-lg transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500/40 whitespace-nowrap shrink-0 touch-target text-sm"
                       :class="[
                         activeTab === tab.id
                           ? 'bg-gray-900 dark:bg-gray-700 text-white'
@@ -53,8 +82,8 @@
                     </button>
                   </div>
 
-                  <!-- 底部按钮（维护工具、通知渠道 Tab 内置自己的操作按钮，故隐藏全局 Save/Reset） -->
-                  <div v-if="activeTab !== 'maintenance' && activeTab !== 'channels'" class="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <!-- 桌面端底部按钮（移动端改为 sticky footer） -->
+                  <div v-if="activeTab !== 'maintenance' && activeTab !== 'channels'" class="hidden sm:block p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     <BaseButton
                       @click="resetSettings"
                       variant="secondary"
@@ -76,8 +105,8 @@
 
                 <!-- 右侧内容区 -->
                 <div class="flex-1 flex flex-col overflow-hidden">
-                  <!-- 内容区标题栏 -->
-                  <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                  <!-- 桌面端内容头部（标题 + 关闭）；移动端由顶栏承担 -->
+                  <div class="hidden sm:flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xl font-semibold text-gray-900 dark:text-white">
                       {{ currentTab?.label }}
                     </h4>
@@ -85,9 +114,9 @@
                       ref="closeButtonRef"
                       type="button"
                       @click="$emit('update:isOpen', false)"
-                      class="p-2 rounded-lg transition-all duration-200 
+                      class="p-2 rounded-lg transition-all duration-200
                              text-gray-600 dark:text-gray-400
-                             hover:bg-gray-100 dark:hover:bg-gray-700 
+                             hover:bg-gray-100 dark:hover:bg-gray-700
                              hover:text-gray-900 dark:hover:text-white
                              focus:outline-none focus:ring-2 focus:ring-gray-500/50 app-modal-close-btn"
                       title="关闭"
@@ -97,8 +126,11 @@
                     </button>
                   </div>
 
-                  <!-- 内容区主体 -->
-                  <div class="flex-1 overflow-y-auto p-6">
+                  <!-- 内容区主体：移动端底部留出 sticky footer 空间 -->
+                  <div
+                    class="flex-1 overflow-y-auto p-4 sm:p-6"
+                    :class="showMobileFooter ? 'pb-[calc(120px+env(safe-area-inset-bottom))] sm:pb-6' : ''"
+                  >
                     <!-- 账户设置 -->
                     <div v-if="activeTab === 'account'" class="space-y-6">
                       <div class="flex items-center gap-6">
@@ -486,6 +518,31 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 移动端 sticky Save/Reset 底栏（维护/通知渠道 tab 内置自己的操作，故隐藏） -->
+              <div
+                v-if="showMobileFooter"
+                class="sm:hidden absolute bottom-0 inset-x-0 z-10 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-md pb-safe"
+              >
+                <div class="grid grid-cols-2 gap-2 p-3">
+                  <BaseButton
+                    @click="resetSettings"
+                    variant="secondary"
+                    block
+                    :disabled="isProfileSaving || isAvatarUploading"
+                  >
+                    重置
+                  </BaseButton>
+                  <BaseButton
+                    @click="saveSettings"
+                    variant="primary"
+                    block
+                    :disabled="isProfileSaving || isAvatarUploading"
+                  >
+                    {{ isProfileSaving ? '保存中...' : '保存' }}
+                  </BaseButton>
+                </div>
+              </div>
             </DialogPanel>
           </TransitionChild>
         </div>
@@ -563,6 +620,11 @@ const activeTab = ref<TabId>('filters')
 
 // 当前标签页信息
 const currentTab = computed(() => tabs.value.find(tab => tab.id === activeTab.value))
+
+// 移动端 sticky footer 是否显示：与桌面端左下 Save/Reset 同条件
+const showMobileFooter = computed(() =>
+  activeTab.value !== 'maintenance' && activeTab.value !== 'channels'
+)
 
 // 系统筛选设置
 const selectedSystems = ref<string[]>(props.initialSystems || [])
@@ -959,6 +1021,9 @@ const saveTavilySettings = async () => {
   tavilyForm.value.api_key = ''
 }
 
+// 为移动端横向 tab 条隐藏滚动条（桌面端不生效）
+// （放在 script 中只是为了就近维护；实际样式通过下方 <style> 注入）
+
 const saveAISettings = async () => {
   aiMessage.value = ''
   aiError.value = false
@@ -989,3 +1054,20 @@ const saveAISettings = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* 移动端横向 tab 条：隐藏滚动条，保留可滚动行为 */
+.settings-mobile-tab-strip {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	scroll-snap-type: x proximity;
+}
+
+.settings-mobile-tab-strip::-webkit-scrollbar {
+	display: none;
+}
+
+.settings-mobile-tab-strip > button {
+	scroll-snap-align: start;
+}
+</style>

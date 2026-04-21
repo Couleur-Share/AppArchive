@@ -1,5 +1,5 @@
 <template>
-  <nav class="app-header-shell sticky top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300">
+  <nav class="app-header-shell pt-safe sticky top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300">
     <div class="container mx-auto px-3 sm:px-6 h-14 flex items-center justify-between">
       <!-- Logo部分 -->
       <div class="flex items-center">
@@ -23,8 +23,12 @@
         
         <!-- 搜索按钮 - 移动端显示图标按钮 -->
         <button
+          type="button"
           @click="toggleMobileSearch"
-          class="app-header-icon-btn sm:hidden p-2 rounded-lg"
+          class="app-header-icon-btn touch-target sm:hidden p-2 rounded-lg"
+          aria-label="打开搜索"
+          :aria-expanded="showMobileSearch"
+          aria-controls="app-header-mobile-search-panel"
         >
           <Search class="h-5 w-5" />
         </button>
@@ -73,8 +77,9 @@
     </div>
     
     <!-- 移动端搜索栏 - 展开时显示 -->
-    <div 
-      v-if="showMobileSearch" 
+    <div
+      v-if="showMobileSearch"
+      id="app-header-mobile-search-panel"
       class="app-header-mobile-panel sm:hidden px-3 pb-3 border-t"
     >
       <div class="relative mt-2">
@@ -83,19 +88,24 @@
           v-model="searchTerm"
           type="text"
           placeholder="搜索软件..."
-          class="app-header-search-input w-full px-4 py-2.5 rounded-xl text-sm transition-all duration-200"
+          aria-label="搜索软件"
+          class="app-header-search-input w-full px-4 py-3 rounded-xl text-sm transition-all duration-200"
           @keyup.enter="closeMobileSearch"
         />
         <button
           v-if="searchTerm"
+          type="button"
           @click="clearSearch"
-          class="app-header-search-clear absolute right-10 top-1/2 -translate-y-1/2"
+          class="app-header-search-clear touch-target absolute right-10 top-1/2 -translate-y-1/2 p-1"
+          aria-label="清除搜索"
         >
           <XCircle class="h-4 w-4" />
         </button>
         <button
+          type="button"
           @click="closeMobileSearch"
-          class="app-header-search-clear absolute right-3 top-1/2 -translate-y-1/2"
+          class="app-header-search-clear touch-target absolute right-3 top-1/2 -translate-y-1/2 p-1"
+          aria-label="关闭搜索"
         >
           <X class="h-4 w-4" />
         </button>

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-home min-h-screen flex flex-col transition-colors duration-300 font-sans">
+  <div class="app-home min-h-[100dvh] flex flex-col transition-colors duration-300 font-sans pb-[calc(64px+env(safe-area-inset-bottom))] sm:pb-0">
     <AppHeader
       :is-signed-in="isSignedIn"
       :user="user"
@@ -209,6 +209,30 @@
     :is-deleting="isDeleting"
     @confirm="confirmDelete"
   />
+
+  <!-- 移动端底部固定导航（桌面端自动隐藏） -->
+  <MobileBottomNav
+    :is-signed-in="isSignedIn"
+    :active-tab="mobileActiveTab"
+    @add="handleMobileAdd"
+    @open-settings="handleMobileOpenSettings"
+    @open-account="handleMobileOpenAccount"
+    @open-login="handleMobileOpenLogin"
+    @navigate-home="handleMobileNavigateHome"
+    @navigate-subscriptions="handleMobileNavigateSubscriptions"
+  />
+
+  <!-- 移动端账户底部弹层（登录后从"账户" tab 打开） -->
+  <MobileAccountSheet
+    v-model:show="showAccountSheet"
+    :user="user"
+    :is-refreshing="isLoading || isListRefreshing"
+    @refresh="handleRefresh"
+    @subscriptions="handleMobileNavigateSubscriptions"
+    @change-password="handleAccountChangePassword"
+    @account-settings="handleAccountSettings"
+    @sign-out="handleSignOut"
+  />
 </template>
 
 <script setup lang="ts">
@@ -220,9 +244,10 @@ import BlurFade from './components/animations/BlurFade.vue'
 import CategoryFilter from './components/common/CategoryFilter.vue'
 import NewArrivalRadar from './components/common/NewArrivalRadar.vue'
 import AppHeader from './components/layout/AppHeader.vue'
+import MobileBottomNav from './components/layout/MobileBottomNav.vue'
 import SkeletonLoader from './components/SkeletonLoader.vue'
 import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
-import { isSignedIn, logout, openPasswordDialog, showLoginDialog, showPasswordDialog, user } from './lib/auth'
+import { isSignedIn, logout, openLoginDialog, openPasswordDialog, showLoginDialog, showPasswordDialog, user } from './lib/auth'
 import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
 import { type LicenseType, type Software, type SoftwareListItem, type SystemType } from './types'
@@ -301,6 +326,7 @@ const SettingsDialog = defineAsyncComponent(() => import('./components/SettingsD
 const ComparisonManager = defineAsyncComponent(() => import('./components/ComparisonManager.vue'))
 const LoginDialog = defineAsyncComponent(() => import('./components/auth/LoginDialog.vue'))
 const ChangePasswordDialog = defineAsyncComponent(() => import('./components/auth/ChangePasswordDialog.vue'))
+const MobileAccountSheet = defineAsyncComponent(() => import('./components/auth/MobileAccountSheet.vue'))
 
 import { usePagination } from './composables/usePagination'
 import { useTheme } from './composables/useTheme'
@@ -359,6 +385,7 @@ const isNewArrivalPanelExpanded = ref(false)
 const isMobileViewport = ref(
   typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false
 )
+const showAccountSheet = ref(false)
 
 const shouldShowSkeleton = computed(() => {
   // 1. 如果组件还没加载完，必须显示骨架（避免空白）
@@ -377,13 +404,11 @@ const activeNewSince = computed(() => {
 })
 
 const shouldHideNewArrivalRadar = computed(() =>
-  !isMobileViewport.value &&
   !showNewOnly.value &&
   !isNewArrivalPanelExpanded.value
 )
 
 const canCollapseNewArrivalRadar = computed(() =>
-  !isMobileViewport.value &&
   !showNewOnly.value &&
   isNewArrivalPanelExpanded.value
 )
@@ -946,6 +971,59 @@ const handleRefresh = async () => {
 
 // 添加权限检查的计算属性
 const canEditSoftware = computed(() => isSignedIn.value)
+
+// 移动端底部 nav 激活态：跟随当前路由
+const mobileActiveTab = computed<'home' | 'subscriptions' | 'settings' | 'account' | 'login'>(() => {
+  if (route.name === 'subscriptions') return 'subscriptions'
+  if (showSettings.value) return 'settings'
+  if (showAccountSheet.value) return isSignedIn.value ? 'account' : 'login'
+  return 'home'
+})
+
+// 移动端底部 nav 事件处理
+const handleMobileNavigateHome = () => {
+  if (route.name !== 'home') {
+    router.push({ name: 'home' })
+  }
+}
+
+const handleMobileNavigateSubscriptions = () => {
+  if (!isSignedIn.value) {
+    openLoginDialog()
+    return
+  }
+  if (route.name !== 'subscriptions') {
+    router.push({ name: 'subscriptions' })
+  }
+}
+
+const handleMobileOpenSettings = () => {
+  showSettings.value = true
+}
+
+const handleMobileOpenAccount = () => {
+  showAccountSheet.value = true
+}
+
+const handleMobileOpenLogin = () => {
+  openLoginDialog()
+}
+
+const handleMobileAdd = () => {
+  if (!canEditSoftware.value) {
+    showToast('请先登录后再进行操作', 'error')
+    return
+  }
+  showAddDialog.value = true
+}
+
+const handleAccountChangePassword = () => {
+  openPasswordDialog()
+}
+
+const handleAccountSettings = () => {
+  showSettings.value = true
+}
 
 // 退出登录
 const handleSignOut = () => {

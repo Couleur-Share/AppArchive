@@ -62,7 +62,11 @@
                 </div>
                </div>
                <Menu as="div" class="relative">
-                 <MenuButton @click.stop class="software-card-menu-trigger p-1.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0">
+                 <MenuButton
+                   @click.stop
+                   aria-label="更多操作"
+                   class="software-card-menu-trigger touch-target p-2.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 backdrop-blur-sm transform translate-x-2 group-hover:translate-x-0 [@media(pointer:coarse)]:opacity-100 [@media(pointer:coarse)]:translate-x-0"
+                 >
                    <MoreVertical class="w-4 h-4" />
                  </MenuButton>
                  <transition enter-active-class="transition duration-150 ease-out" enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100" leave-active-class="transition duration-100 ease-in" leave-from-class="transform scale-100 opacity-100" leave-to-class="transform scale-95 opacity-0">
@@ -494,6 +498,30 @@ const handleMouseLeave = (e: MouseEvent) => {
   width: 96px;
   margin-left: 16px;
   opacity: 1;
+}
+
+/* 可访问性：尊重用户降低动效的设置 */
+@media (prefers-reduced-motion: reduce) {
+  .software-grid-card,
+  .software-list-card,
+  .software-card-icon-shell,
+  .software-card-copy,
+  .software-card-menu-trigger,
+  .action-buttons {
+    transition: none !important;
+  }
+
+  .software-grid-card:hover {
+    transform: none;
+  }
+
+  .group:hover .software-card-icon-shell {
+    transform: none;
+  }
+
+  .actions-visible .action-buttons {
+    transition: opacity 120ms ease;
+  }
 }
 
 /* 自定义滚动条样式 */

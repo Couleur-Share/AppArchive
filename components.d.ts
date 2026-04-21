@@ -45,6 +45,8 @@ declare module 'vue' {
     LogsDialog: typeof import('./src/components/subscription/LogsDialog.vue')['default']
     MarkdownRenderer: typeof import('./src/components/common/MarkdownRenderer.vue')['default']
     MeowChannelForm: typeof import('./src/components/subscription/MeowChannelForm.vue')['default']
+    MobileAccountSheet: typeof import('./src/components/auth/MobileAccountSheet.vue')['default']
+    MobileBottomNav: typeof import('./src/components/layout/MobileBottomNav.vue')['default']
     NewArrivalRadar: typeof import('./src/components/common/NewArrivalRadar.vue')['default']
     ProsConsEditor: typeof import('./src/components/ProsConsEditor.vue')['default']
     RelatedArticlesEditor: typeof import('./src/components/RelatedArticlesEditor.vue')['default']

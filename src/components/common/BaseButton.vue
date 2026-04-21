@@ -54,7 +54,7 @@ const baseClass = 'inline-flex items-center justify-center gap-2 rounded-lg text
 const sizeClass = computed(() => {
   if (props.size === 'xs') return 'px-2.5 py-1 text-xs'
   if (props.size === 'sm') return 'px-3 py-1.5'
-  return 'px-4 py-2'
+  return 'px-4 py-2 [@media(pointer:coarse)]:min-h-[44px]'
 })
 
 const isDisabled = computed(() => props.disabled || props.loading)

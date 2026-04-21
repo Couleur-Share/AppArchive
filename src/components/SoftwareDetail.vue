@@ -212,7 +212,8 @@
                             <button
                                 type="button"
                                 @click="handleDetailCloseLogged"
-                                class="sm:hidden p-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 app-modal-close-btn"
+                                aria-label="关闭详情"
+                                class="sm:hidden touch-target p-3 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 app-modal-close-btn"
                             >
                                 <X class="w-5 h-5" />
                             </button>

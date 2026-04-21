@@ -42,7 +42,8 @@
             <Menu as="div" class="relative">
               <MenuButton
                 @click.stop
-                class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                aria-label="更多操作"
+                class="card-menu-btn touch-target p-2.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
               >
                 <MoreVertical class="w-4 h-4" />
               </MenuButton>
@@ -205,8 +206,12 @@ defineEmits<{
               border-color 0.3s ease,
               box-shadow 0.3s ease;
 }
-.card-body:hover {
-  transform: translateY(-6px);
+
+/* 仅在带悬停能力的精确指针设备启用上浮，避免触摸点击后"hover 残留" */
+@media (hover: hover) and (pointer: fine) {
+  .card-body:hover {
+    transform: translateY(-6px);
+  }
 }
 
 /* GPU 加速 */
@@ -220,26 +225,38 @@ defineEmits<{
   transition: box-shadow 0.3s ease;
 }
 
-/* 图标入场：初始隐藏，加载完后 CSS 动画播放 */
+/* 图标入场：初始隐藏，加载完后 CSS 动画播放（移除 blur 以避免合成层抖动与低端机卡顿） */
 .icon-image {
   opacity: 0;
-  transform: scale(0.9);
-  filter: blur(8px);
+  transform: scale(0.92);
 }
 .icon-image.icon-loaded {
-  animation: iconReveal 0.5s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  animation: iconReveal 0.35s cubic-bezier(0.33, 1, 0.68, 1) forwards;
 }
 
 @keyframes iconReveal {
   from {
     opacity: 0;
-    transform: scale(0.9);
-    filter: blur(8px);
+    transform: scale(0.92);
   }
   to {
     opacity: 1;
     transform: scale(1);
-    filter: blur(0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-body {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card-body:hover {
+    transform: none;
+  }
+  .icon-image,
+  .icon-image.icon-loaded {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 </style>
