@@ -1,9 +1,9 @@
 <template>
-  <div class="min-w-0">
-    <div class="text-[11px] text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+  <div class="subscription-info-item min-w-0">
+    <div class="subscription-info-item__label">
       {{ label }}
     </div>
-    <div class="mt-0.5 truncate text-gray-700 dark:text-gray-300">
+    <div class="subscription-info-item__value">
       <slot />
     </div>
   </div>
@@ -12,3 +12,24 @@
 <script setup lang="ts">
 defineProps<{ label: string }>()
 </script>
+
+<style scoped>
+.subscription-info-item {
+  display: grid;
+  gap: 6px;
+}
+
+.subscription-info-item__label {
+  color: var(--home-text-subtle);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.subscription-info-item__value {
+  color: var(--home-text);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+  word-break: break-word;
+}
+</style>

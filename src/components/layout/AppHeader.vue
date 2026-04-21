@@ -33,6 +33,17 @@
           <Search class="h-5 w-5" />
         </button>
 
+        <router-link
+          v-if="isSignedIn"
+          to="/subscriptions"
+          class="app-header-icon-btn app-header-shortcut hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg focus:outline-none"
+          title="查看我的订阅"
+          aria-label="查看我的订阅"
+        >
+          <Bell class="h-4 w-4 shrink-0" />
+          <span class="hidden md:inline text-sm font-medium">我的订阅</span>
+        </router-link>
+
         <!-- 按钮组：主题/刷新/设置（组内更紧凑） -->
         <div class="flex items-center space-x-0.5 sm:space-x-2">
           <!-- 主题切换按钮 -->
@@ -115,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { RotateCcw, Search, Settings, X, XCircle } from 'lucide-vue-next'
+import { Bell, RotateCcw, Search, Settings, X, XCircle } from 'lucide-vue-next'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useToast } from '../../composables/useToast'
 import { logout, openLoginDialog } from '../../lib/auth'
@@ -218,6 +229,12 @@ const handleSignOut = () => {
     background-color 150ms var(--ease),
     border-color 150ms var(--ease),
     box-shadow 150ms var(--ease);
+}
+
+.app-header-shortcut {
+  border-color: color-mix(in srgb, var(--home-border) 82%, transparent);
+  background: color-mix(in srgb, var(--home-surface-soft) 78%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 
 .app-header-icon-btn:hover {
