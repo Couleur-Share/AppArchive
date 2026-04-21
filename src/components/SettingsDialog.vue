@@ -1,34 +1,35 @@
 <template>
-  <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog 
-      as="div" 
-      class="relative z-50" 
-      :open="isOpen"
-      :initialFocus="closeButtonRef"
-      @close="$emit('update:isOpen', false)"
-    >
-      <div class="fixed inset-0">
-        <TransitionChild as="div">
-          <div class="fixed inset-0 app-modal-backdrop"
-               v-gsap="{ duration: 0.18, to: { duration: 0.18, ease: 'power1.out' } }" />
-        </TransitionChild>
-      </div>
+  <Teleport to="body">
+    <TransitionRoot appear :show="isOpen" as="template">
+      <Dialog
+        as="div"
+        class="fixed inset-0 z-[100]"
+        :open="isOpen"
+        :initialFocus="closeButtonRef"
+        @close="$emit('update:isOpen', false)"
+      >
+        <div class="fixed inset-0">
+          <TransitionChild as="template">
+            <div class="fixed inset-0 app-modal-backdrop"
+                 v-gsap="{ duration: 0.18, to: { duration: 0.18, ease: 'power1.out' } }" />
+          </TransitionChild>
+        </div>
 
-      <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4">
-          <TransitionChild as="div">
-            <DialogPanel
+        <div class="fixed inset-0 overflow-y-auto p-4 sm:p-6">
+          <div class="flex min-h-full items-center justify-center">
+            <TransitionChild as="template">
+              <DialogPanel
              class="relative transform overflow-hidden
                     app-modal-panel app-modal-panel--interactive
                     text-left shadow-level3 will-change-transform will-change-opacity
-                    flex flex-col
-                    w-full h-[100dvh] rounded-none
-                    sm:w-[min(960px,94vw)] sm:h-[min(86dvh,760px)] sm:rounded-2xl"
+                    flex h-[min(92dvh,760px)] max-h-[min(92dvh,760px)] flex-col rounded-2xl
+                    w-full
+                    sm:w-[min(960px,94vw)] sm:h-[min(86dvh,760px)]"
               v-gsap="{ y: 12, duration: 0.28, ease: 'power2.out', to: { y: 0, duration: 0.28, ease: 'power2.out' } }"
             >
               <!-- 移动端顶部栏：标题 + 关闭（桌面端在右侧内容头部承担） -->
-              <div class="sm:hidden flex items-center justify-between gap-3 px-4 border-b border-gray-200 dark:border-gray-700 pt-safe">
-                <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 dark:text-white py-3">
+              <div class="sm:hidden flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-md">
+                <DialogTitle as="h3" class="text-lg font-semibold text-gray-900 dark:text-white">
                   {{ currentTab?.label || '设置' }}
                 </DialogTitle>
                 <button
@@ -47,7 +48,7 @@
               </div>
 
               <!-- 主体：桌面两栏 / 移动端单列 -->
-              <div class="flex flex-1 overflow-hidden sm:flex-row flex-col">
+              <div class="flex min-h-0 flex-1 overflow-hidden sm:flex-row flex-col min-w-0">
                 <!-- 侧栏 / 顶部 tab 条 -->
                 <div
                   class="flex flex-col bg-gray-50 dark:bg-gray-900/50
@@ -64,7 +65,7 @@
                   <!-- Tab 导航：桌面列、移动端横向滚动 -->
                   <div
                     class="sm:flex-1 sm:p-4 sm:space-y-2 sm:overflow-visible
-                           flex sm:flex-col flex-row gap-1.5 p-2 overflow-x-auto settings-mobile-tab-strip"
+                           flex sm:flex-col flex-row gap-1.5 px-4 py-3 overflow-x-auto settings-mobile-tab-strip"
                   >
                     <button
                       type="button"
@@ -104,7 +105,7 @@
                 </div>
 
                 <!-- 右侧内容区 -->
-                <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 flex min-h-0 flex-col overflow-hidden min-w-0">
                   <!-- 桌面端内容头部（标题 + 关闭）；移动端由顶栏承担 -->
                   <div class="hidden sm:flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h4 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -126,11 +127,8 @@
                     </button>
                   </div>
 
-                  <!-- 内容区主体：移动端底部留出 sticky footer 空间 -->
-                  <div
-                    class="flex-1 overflow-y-auto p-4 sm:p-6"
-                    :class="showMobileFooter ? 'pb-[calc(120px+env(safe-area-inset-bottom))] sm:pb-6' : ''"
-                  >
+                  <!-- 内容区主体 -->
+                  <div class="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 min-w-0">
                     <!-- 账户设置 -->
                     <div v-if="activeTab === 'account'" class="space-y-6">
                       <div class="flex items-center gap-6">
@@ -189,12 +187,12 @@
                           <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">操作系统</h5>
                           <span class="text-xs text-gray-500 dark:text-gray-400">维度内多选 OR</span>
                         </div>
-                        <div class="grid grid-cols-3 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           <button
                             v-for="system in SYSTEMS"
                             :key="system"
                             @click="toggleSystem(system)"
-                            class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors"
+                            class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors min-w-0"
                             :class="[
                               selectedSystems.includes(system)
                                 ? 'bg-gray-900 dark:bg-gray-700 border-gray-900 dark:border-gray-700 text-white'
@@ -519,12 +517,12 @@
                 </div>
               </div>
 
-              <!-- 移动端 sticky Save/Reset 底栏（维护/通知渠道 tab 内置自己的操作，故隐藏） -->
+              <!-- 移动端 Save/Reset 底栏（flex child，自然参与布局；维护/通知渠道 tab 内置自己的操作，故隐藏） -->
               <div
                 v-if="showMobileFooter"
-                class="sm:hidden absolute bottom-0 inset-x-0 z-10 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-md pb-safe"
+                class="sm:hidden shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-md"
               >
-                <div class="grid grid-cols-2 gap-2 p-3">
+                <div class="grid grid-cols-2 gap-3 p-4">
                   <BaseButton
                     @click="resetSettings"
                     variant="secondary"
@@ -543,12 +541,13 @@
                   </BaseButton>
                 </div>
               </div>
-            </DialogPanel>
-          </TransitionChild>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
         </div>
-      </div>
-    </Dialog>
-  </TransitionRoot>
+      </Dialog>
+    </TransitionRoot>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
