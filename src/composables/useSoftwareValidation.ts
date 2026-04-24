@@ -1,7 +1,15 @@
 import { z } from "zod";
 import { ref, computed, unref, type Ref } from "vue";
-import { LICENSES, SYSTEMS } from "@/types/constants";
-import type { Software } from "@/types";
+import {
+	APP_CATEGORIES,
+	BROWSER_SYSTEMS,
+	EXT_CATEGORIES,
+	KINDS,
+	LICENSES,
+	OS_SYSTEMS,
+	USERSCRIPT_HOSTS,
+} from "@/types/constants";
+import type { Software, SoftwareKind, SystemType } from "@/types";
 
 // Define schemas
 export const downloadLinkSchema = z.object({
@@ -26,39 +34,96 @@ export const downloadLinkSchema = z.object({
 	expiresAt: z.string().optional(),
 });
 
-export const softwareFormSchema = z.object({
-	name: z.string().min(2, "名称至少 2 个字符"),
-	category: z.string().min(1, "类别必选"),
-	description: z.string().optional(),
-	icon: z.any().refine((v) => {
-		if (!v) return true;
-		if (v instanceof File) return true;
-		if (typeof v === "string") {
-			return (
-				v.startsWith("https://") &&
-				v.includes("cos.") &&
-				v.includes("myqcloud.com")
-			);
+// 按 kind 返回对应的合法 category / systems 集合
+const getCategorySet = (kind: SoftwareKind): Set<string> => {
+	if (kind === "extension" || kind === "userscript") {
+		return new Set(EXT_CATEGORIES);
+	}
+	return new Set(APP_CATEGORIES);
+};
+
+const getSystemSet = (kind: SoftwareKind): Set<SystemType> => {
+	if (kind === "extension") {
+		return new Set(BROWSER_SYSTEMS);
+	}
+	if (kind === "userscript") {
+		return new Set(USERSCRIPT_HOSTS);
+	}
+	return new Set(OS_SYSTEMS);
+};
+
+export const softwareFormSchema = z
+	.object({
+		name: z.string().min(2, "名称至少 2 个字符"),
+		kind: z
+			.enum(KINDS)
+			.optional()
+			.transform((v) => v ?? "app"),
+		category: z.string().min(1, "类别必选"),
+		description: z.string().optional(),
+		icon: z.any().refine((v) => {
+			if (!v) return true;
+			if (v instanceof File) return true;
+			if (typeof v === "string") {
+				return (
+					v.startsWith("https://") &&
+					v.includes("cos.") &&
+					v.includes("myqcloud.com")
+				);
+			}
+			return true;
+		}, "图标必须上传到腾讯云COS"),
+		license: z
+			.enum(LICENSES)
+			.optional()
+			.transform((v) => v ?? "免费"),
+		// 先保证是字符串数组且非空，具体枚举按 kind 走 superRefine 分支
+		systems: z.array(z.string()).min(1, "至少选择一个系统"),
+		website: z
+			.string()
+			.optional()
+			.refine(
+				(v: string | undefined) => !v || /^https?:\/\//i.test(v),
+				"请输入合法网址（http/https）",
+			),
+		pros: z.array(z.string()).optional(),
+		cons: z.array(z.string()).optional(),
+		download_links: z.array(downloadLinkSchema).optional(),
+		secrets: z.any().optional(),
+	})
+	.superRefine((val, ctx) => {
+		const kind: SoftwareKind = (val.kind as SoftwareKind) ?? "app";
+
+		// 分类合法值随 kind 分支
+		const categorySet = getCategorySet(kind);
+		if (val.category && !categorySet.has(val.category)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["category"],
+				message:
+					kind === "app"
+						? "请选择合法的应用分类"
+						: "请选择合法的插件/脚本分类",
+			});
 		}
-		return true;
-	}, "图标必须上传到腾讯云COS"),
-	license: z
-		.enum(LICENSES)
-		.optional()
-		.transform((v) => v ?? "免费"),
-	systems: z.array(z.enum(SYSTEMS)).min(1, "至少选择一个系统"),
-	website: z
-		.string()
-		.optional()
-		.refine(
-			(v: string | undefined) => !v || /^https?:\/\//i.test(v),
-			"请输入合法网址（http/https）",
-		),
-	pros: z.array(z.string()).optional(),
-	cons: z.array(z.string()).optional(),
-	download_links: z.array(downloadLinkSchema).optional(),
-	secrets: z.any().optional(),
-});
+
+		// 运行环境合法值随 kind 分支
+		const systemSet = getSystemSet(kind);
+		const systems = Array.isArray(val.systems) ? val.systems : [];
+		const illegal = systems.filter((s) => !systemSet.has(s as SystemType));
+		if (illegal.length > 0) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["systems"],
+				message:
+					kind === "app"
+						? "存在非法的操作系统：" + illegal.join(", ")
+						: kind === "extension"
+							? "存在非法的浏览器：" + illegal.join(", ")
+							: "存在非法的脚本宿主：" + illegal.join(", "),
+			});
+		}
+	});
 
 export type ValidationErrors = Record<string, string>;
 

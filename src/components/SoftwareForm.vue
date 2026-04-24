@@ -104,6 +104,48 @@
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">核心信息</h3>
             </div>
 
+            <!-- 形态选择：决定下方 category 与 systems 的候选集 -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                软件形态 <span class="text-red-500">*</span>
+              </label>
+              <RadioGroup
+                :model-value="formKind"
+                @update:model-value="onKindChange"
+                aria-label="软件形态"
+                class="grid grid-cols-3 gap-3"
+              >
+                <RadioGroupOption
+                  v-for="k in KINDS"
+                  :key="k"
+                  :value="k"
+                  v-slot="{ checked }"
+                  as="template"
+                >
+                  <div
+                    class="cursor-pointer relative flex items-center gap-3 p-3 rounded-xl border transition-all duration-200 group overflow-hidden"
+                    :class="checked
+                      ? 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'"
+                  >
+                    <span aria-hidden="true" class="text-xl leading-none">{{ kindIconMap[k] }}</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ kindLabelMap[k] }}</div>
+                      <div class="text-xs" :class="checked ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+                        {{ kindHintMap[k] }}
+                      </div>
+                    </div>
+                    <div
+                      class="w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
+                      :class="checked ? 'border-primary bg-primary' : 'border-gray-300 dark:border-gray-600'"
+                    >
+                      <Check v-if="checked" class="w-2.5 h-2.5 text-white" />
+                    </div>
+                  </div>
+                </RadioGroupOption>
+              </RadioGroup>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- 软件名称 -->
               <div class="space-y-2 col-span-2 md:col-span-1">
@@ -156,7 +198,7 @@
                       >
                         <ListboxOption
                           v-slot="{ active, selected }"
-                          v-for="category in categories"
+                          v-for="category in formCategories"
                           :key="category"
                           :value="category"
                           as="template"
@@ -253,18 +295,21 @@
             </div>
           </section>
 
-          <!-- Section 3: 系统支持 -->
+          <!-- Section 3: 系统支持 / 运行环境（随 kind 切换候选集） -->
           <section class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Monitor class="w-4 h-4" />
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">支持系统 <span class="text-red-500">*</span></h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ formKind === 'app' ? '支持系统' : formKind === 'extension' ? '支持浏览器' : '支持脚本宿主' }}
+                <span class="text-red-500">*</span>
+              </h3>
             </div>
-            
+
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <button
-                v-for="sys in SYSTEMS"
+                v-for="sys in formSystems"
                 :key="sys"
                 type="button"
                 @click="toggleSystem(sys)"
@@ -486,6 +531,8 @@ import {
   ListboxButton,
   ListboxOption,
   ListboxOptions,
+  RadioGroup,
+  RadioGroupOption,
 } from '@headlessui/vue'
 import { useDebounceFn, useMagicKeys, useManualRefHistory, useScrollLock, whenever } from '@vueuse/core'
 import {
@@ -519,7 +566,12 @@ import {
 } from 'vue'
 import { useAIAnalysis } from '@/composables/useAIAnalysis'
 import { useSoftwareValidation } from '@/composables/useSoftwareValidation'
-import { LICENSES, SYSTEMS } from '@/types/constants'
+import {
+  getCategoriesByKind,
+  getSystemsByKind,
+  KINDS,
+  LICENSES,
+} from '@/types/constants'
 import { normalizeSystem } from '@/utils/system'
 import { mergeUnique, normalizeList } from '@/utils/text'
 import {
@@ -530,6 +582,7 @@ import {
   type SoftwareAvoidIf,
   type SoftwareBestFor,
   type SoftwareHighlight,
+  type SoftwareKind,
   type SystemType,
 } from '../types'
 import { AppError, ErrorCode } from '../types/error'
@@ -609,9 +662,27 @@ const AVOID_IF_FIELDS: PairListFieldDef[] = [
   },
 ]
 
+// kind 展示用 label / icon
+const kindLabelMap: Record<SoftwareKind, string> = {
+  app: '应用',
+  extension: '插件',
+  userscript: '脚本',
+}
+const kindIconMap: Record<SoftwareKind, string> = {
+  app: '📦',
+  extension: '🧩',
+  userscript: '📜',
+}
+const kindHintMap: Record<SoftwareKind, string> = {
+  app: '桌面/移动应用',
+  extension: '浏览器插件',
+  userscript: '用户脚本',
+}
+
 // 默认表单数据
 const defaultFormData: Partial<Software> = {
   name: '',
+  kind: 'app',
   category: '工具',
   description: '',
   icon: '',
@@ -643,9 +714,14 @@ watch(
   () => props.software,
   (newSoftware) => {
     if (newSoftware) {
+      const incomingKind: SoftwareKind =
+        newSoftware.kind === 'extension' || newSoftware.kind === 'userscript'
+          ? newSoftware.kind
+          : 'app'
       formData.value = {
         ...defaultFormData,
         ...newSoftware,
+        kind: incomingKind,
         pros: newSoftware.pros || [],
         cons: newSoftware.cons || [],
         tagline: newSoftware.tagline || '',
@@ -657,7 +733,15 @@ watch(
         related_articles: newSoftware.related_articles || [],
       }
     } else {
-      formData.value = { ...defaultFormData }
+      // 新建态：若 props.categories 提示当前上下文是插件/脚本，默认同步切换
+      const defaults: Partial<Software> = { ...defaultFormData }
+      const ctxCats = props.categories || []
+      if (ctxCats.includes('广告拦截') || ctxCats.includes('AI 增强')) {
+        defaults.kind = 'extension'
+        defaults.category = getCategoriesByKind('extension')[0]
+        defaults.systems = [getSystemsByKind('extension')[0] as SystemType]
+      }
+      formData.value = defaults
     }
     // 清空历史记录，避免撤销到上一个软件的状态
     clear()
@@ -866,6 +950,36 @@ const toggleSystem = (sys: SystemType) => {
   if (index === -1) current.push(sys)
   else current.splice(index, 1)
   formData.value.systems = current
+  validateField('systems')
+}
+
+// 当前 kind 对应的候选分类与运行环境（表单内始终以 formData.kind 为准，不依赖父组件）
+const formKind = computed<SoftwareKind>(() => (formData.value.kind as SoftwareKind) || 'app')
+const formCategories = computed(() => getCategoriesByKind(formKind.value))
+const formSystems = computed(() => getSystemsByKind(formKind.value))
+
+// 切换 kind 时：重置非法 category，对 systems 取交集（保留当前合法项）
+const onKindChange = (next: SoftwareKind) => {
+  const prev = formKind.value
+  if (next === prev) return
+  formData.value.kind = next
+
+  const nextCategories = getCategoriesByKind(next)
+  if (
+    !formData.value.category ||
+    !(nextCategories as readonly string[]).includes(formData.value.category)
+  ) {
+    formData.value.category = nextCategories[0]
+  }
+
+  const nextSystemSet = new Set(getSystemsByKind(next))
+  const current = Array.isArray(formData.value.systems) ? formData.value.systems : []
+  const intersected = current.filter((s) => nextSystemSet.has(s as SystemType))
+  formData.value.systems = intersected.length > 0
+    ? intersected
+    : [getSystemsByKind(next)[0] as SystemType]
+
+  validateField('category')
   validateField('systems')
 }
 

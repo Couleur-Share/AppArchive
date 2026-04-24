@@ -13,6 +13,7 @@
 		"full-rebuild": "node scripts/full-rebuild.js",
 		"migrate:structured": "node scripts/migrate-software-structured-fields.js",
 		"migrate:subscriptions": "node scripts/migrate-subscriptions.js",
+		"migrate:kind": "node scripts/migrate-software-kind.js",
 		"rerun:analyze": "node scripts/rerun-analyze-all.js",
 		"lint": "biome check .",
 		"format": "biome format . --write"

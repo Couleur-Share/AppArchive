@@ -4,18 +4,18 @@
     <div
       ref="scrollEl"
       :class="[
-        'tab-scroll relative w-full flex items-center gap-1.5 sm:gap-2 overflow-x-auto p-1.5 pe-16 sm:pe-[4.5rem] no-scrollbar',
+        'tab-scroll relative w-full flex items-center gap-1 sm:gap-2 overflow-x-auto p-1.5 pe-16 sm:pe-[4.5rem] no-scrollbar',
         { 'scroll-mask': hasOverflow }
       ]"
       :style="scrollStyle"
     >
-      <!-- 优化的背景滑块 - 使用CSS transition替代GSAP -->
+      <!-- Category 区段指示器 -->
       <div
         ref="indicatorRef"
         class="tab-indicator pointer-events-none absolute top-1.5 bottom-1.5 rounded-[11px]"
       ></div>
 
-      <!-- Tabs -->
+      <!-- Category 区段 -->
       <RadioGroup
         :model-value="modelValue"
         @update:model-value="$emit('update:modelValue', $event)"
@@ -123,7 +123,9 @@ const props = defineProps<{
   fadeWidth?: number
 }>()
 
-defineEmits<(e: 'update:modelValue', value: string) => void>()
+defineEmits<{
+  (e: 'update:modelValue', value: string): void
+}>()
 
 const tabRefs = ref<HTMLElement[]>([])
 const activeTabWidth = ref(0)
@@ -198,32 +200,29 @@ const scrollBy = (dir: number) => {
   })
 }
 
-// 使用CSS transition更新指示器位置（比GSAP更快，无JS开销）
+// 使用CSS transition更新指示器位置
 const updateIndicator = (activeTab: HTMLElement, animate = true) => {
   const indicator = indicatorRef.value
   if (!indicator) return
-  
+
   const inset = Math.max(0, indicatorInset.value)
   const newWidth = Math.max(0, activeTab.offsetWidth - inset * 2)
   const newLeft = activeTab.offsetLeft + inset
-  
+
   if (!animate || !indicatorInitialized) {
-    // 初始化：禁用transition直接到位
     indicator.style.transition = 'none'
     indicator.style.width = `${newWidth}px`
     indicator.style.transform = `translateX(${newLeft}px)`
     indicator.style.opacity = '1'
-    // 强制reflow使transition=none生效，然后恢复transition
     indicator.offsetWidth // force reflow
     indicator.style.transition = ''
     indicatorInitialized = true
   } else {
-    // 后续切换：CSS transition自动处理动画
     indicator.style.width = `${newWidth}px`
     indicator.style.transform = `translateX(${newLeft}px)`
     indicator.style.opacity = '1'
   }
-  
+
   activeTabWidth.value = newWidth
   activeTabLeft.value = newLeft
 }
@@ -307,7 +306,7 @@ onMounted(() => {
       reducedMotionMediaQuery.addListener(onReducedMotionChange)
     }
   }
-  
+
   requestLayoutSync({
     center: true,
     animateIndicator: false
@@ -344,7 +343,6 @@ onBeforeUnmount(() => {
 }
 
 .scroll-mask {
-  /* 渐隐遮罩，提示可横向滚动 */
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0,
@@ -359,13 +357,11 @@ onBeforeUnmount(() => {
     black calc(100% - var(--tab-mask-right, 0px)),
     transparent 100%
   );
-  /* 隐藏横向滚动条（保留滚动能力） */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Edge/IE */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .scroll-mask::-webkit-scrollbar {
-  /* WebKit */
-  display: none; /* 彻底隐藏滚动条 */
+  display: none;
 }
 
 :where(.tab-item, .tab-badge, .tab-indicator, .nav-btn) {
@@ -443,14 +439,13 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 指示器 - CSS transition 动画（替代GSAP，零JS开销） */
+/* Category 指示器：经典 tab 下划线——只有底部光束，无底色填充、无描边 */
 .tab-indicator {
   position: absolute;
   width: 0;
   transform: translateX(0);
   opacity: 0;
-  background: var(--home-tab-indicator-bg);
-  box-shadow: var(--ui-indicator-shadow);
+  background: transparent;
   will-change: transform, width;
   transition:
     transform 240ms var(--tab-motion-ease),
@@ -467,9 +462,9 @@ onBeforeUnmount(() => {
 .tab-indicator::after {
   content: '';
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 5px;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
   height: 2.5px;
   border-radius: 999px;
   background: var(--home-tab-indicator-beam);
@@ -477,7 +472,6 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-/* Tab项 - 轻量级颜色过渡 + 入场动画 */
 .tab-item {
   transition:
     color 150ms var(--tab-motion-ease),
@@ -490,8 +484,13 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 
+/* 经典 tab 下划线惯例：激活文字与底部光束呼应，但不填充背景 */
 .tab-item--active {
-  color: var(--home-tab-active-text);
+  color: color-mix(
+    in srgb,
+    var(--home-tab-active-text) 88%,
+    rgb(30 215 96)
+  );
   font-weight: 700;
   letter-spacing: 0.01em;
 }

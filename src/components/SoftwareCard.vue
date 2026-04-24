@@ -83,6 +83,15 @@
           </div>
           
           <div class="flex flex-wrap gap-2 mt-2">
+            <!-- kind 徽章：仅 extension / userscript 显示，保持 app 视觉不变 -->
+            <span
+              v-if="software.kind && software.kind !== 'app'"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border"
+              :class="getKindTagClass(software.kind)"
+            >
+              <span aria-hidden="true" class="text-[11px] leading-none">{{ getKindIcon(software.kind) }}</span>
+              <span>{{ getKindLabel(software.kind) }}</span>
+            </span>
             <TagBadge size="xs" variant="neutral" strong class="uppercase tracking-wider">
               {{ software.category }}
             </TagBadge>
@@ -127,6 +136,7 @@ import { computed, onMounted, ref } from 'vue'
 import { isSignedIn } from '../lib/auth'
 import { getErrorPlaceholder, getIconUrl, preloadIcon } from '../services/localIconCache'
 import type { Software } from '../types'
+import { getKindIcon, getKindLabel, getKindTagClass } from '../utils/kind'
 import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import TagBadge from './common/TagBadge.vue'

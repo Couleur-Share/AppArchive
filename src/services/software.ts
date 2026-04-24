@@ -1,4 +1,4 @@
-import type { Software, SoftwareListItem } from "../types";
+import type { Software, SoftwareKind, SoftwareListItem } from "../types";
 import { AppError, ErrorCode } from "../types/error";
 import { errorHandler } from "../utils/error-handler";
 import logger from "../utils/logger";
@@ -43,6 +43,7 @@ export const softwareService = {
 			category?: string;
 			systems?: string[];
 			licenses?: string[];
+			kind?: SoftwareKind | "all";
 			sortField?: string;
 			sortOrder?: "asc" | "desc";
 			addedSince?: string;
@@ -57,6 +58,8 @@ export const softwareService = {
 			if (params.search) queryParams.append("search", params.search);
 			if (params.category && params.category !== "all")
 				queryParams.append("category", params.category);
+			if (params.kind && params.kind !== "all")
+				queryParams.append("kind", params.kind);
 			if (params.systems && params.systems.length > 0)
 				queryParams.append("systems", params.systems.join(","));
 			if (params.licenses && params.licenses.length > 0)

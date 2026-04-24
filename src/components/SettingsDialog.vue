@@ -181,15 +181,17 @@
 
                     <!-- 筛选条件 -->
                     <div v-if="activeTab === 'filters'" class="space-y-6">
-                      <!-- 操作系统 -->
+                      <!-- 运行环境（随 activeKind 切换候选集） -->
                       <div class="space-y-3">
                         <div class="flex items-baseline justify-between">
-                          <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">操作系统</h5>
+                          <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            {{ activeKind === 'extension' ? '浏览器' : activeKind === 'userscript' ? '脚本宿主' : '操作系统' }}
+                          </h5>
                           <span class="text-xs text-gray-500 dark:text-gray-400">维度内多选 OR</span>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           <button
-                            v-for="system in SYSTEMS"
+                            v-for="system in visibleSystems"
                             :key="system"
                             @click="toggleSystem(system)"
                             class="flex flex-col items-center justify-center p-4 rounded-lg border transition-colors min-w-0"
@@ -549,7 +551,8 @@
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ArrowDown, ArrowUp, BadgeCheck, Camera, Code2, DollarSign, Eye, EyeOff, Gift, LayoutGrid, List, Monitor, Smartphone, X } from 'lucide-vue-next'
 import { computed, nextTick, ref, watch } from 'vue'
-import { LICENSES, SYSTEMS } from '@/types/constants'
+import type { SoftwareKind } from '@/types'
+import { getSystemsByKind, LICENSES } from '@/types/constants'
 import { isSignedIn, updateProfile, user } from '../lib/auth'
 import { type AIConfig, type AIProvider, aiConfigService, type SearchConfig, searchConfigService } from '../services/aiConfig'
 import { uploadService } from '../services/upload'
@@ -565,7 +568,15 @@ const props = defineProps<{
     order: 'asc' | 'desc'
   }
   initialViewMode?: 'grid' | 'list'
+  /** 当前主页选中的形态（kind），决定操作系统筛选的候选集 */
+  activeKind?: SoftwareKind
 }>()
+
+// 根据 activeKind 动态切换系统筛选候选：
+// - app → 操作系统 6 项
+// - extension → 浏览器 4 项
+// - userscript → 脚本宿主 3 项
+const visibleSystems = computed(() => getSystemsByKind(props.activeKind || 'app'))
 
 // 首先定义正确的类型
 interface SortSettings {

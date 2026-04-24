@@ -27,6 +27,7 @@
 - 🔐 用户认证系统（JWT）
 - 🌗 响应式设计 + 暗色模式
 - 🔔 **GitHub 订阅推送** — 订阅开源项目的 Release 更新，AI 自动生成中文摘要，通过 MeoW 等通道实时推送
+- 🧩 **浏览器插件与用户脚本管理** — 与桌面/移动应用同库管理，顶部 tab 切换形态，分类与运行环境随形态联动
 
 ---
 
@@ -139,6 +140,9 @@ node scripts/migrate-software-structured-fields.js
 
 # GitHub 订阅推送（user_channels / subscriptions / release_ai_summaries / notification_logs）
 node scripts/migrate-subscriptions.js
+
+# 新增软件形态字段 kind（app / extension / userscript）
+node scripts/migrate-software-kind.js
 ```
 
 > 若后端日志出现 `[SCHEMA]` 提示，请按日志中的缺失字段执行对应迁移脚本或手动 SQL。
@@ -181,6 +185,7 @@ pnpm server
 | `pnpm full-rebuild` | 全量重建脚本      |
 | `pnpm migrate:structured` | 执行结构化字段迁移（tagline / highlights / best_for / avoid_if） |
 | `pnpm migrate:subscriptions` | 创建 GitHub 订阅推送相关的四张表 |
+| `pnpm migrate:kind` | 新增 `kind` 字段并默认回填 `app`，支持插件/脚本形态 |
 | `pnpm rerun:analyze` | 批量为存量软件刷新结构化洞察（需要 `AUTH_TOKEN` 环境变量） |
 
 
@@ -300,11 +305,22 @@ AUTH_TOKEN=<your-jwt> pnpm rerun:analyze
 interface Software {
   id: number
   name: string
+  // 软件形态：app（桌面/移动应用）/ extension（浏览器插件）/ userscript（用户脚本）
+  // 缺省/历史数据按 'app' 处理；写接口会做白名单校验，非法值 400
+  kind?: 'app' | 'extension' | 'userscript'
+  // 分类：app 与 extension/userscript 共用同一字段，运行时按 kind 对应不同候选集
+  //   app → 社交/生活/购物/影音/阅读/休闲/旅行/办公/工具/编程
+  //   extension/userscript → 广告拦截/隐私安全/样式美化/下载增强/生产力/开发者工具/自动化/AI 增强/媒体抓取/其它
   category: string
   description: string
   icon: string
   license: '免费' | '收费' | '开源' | '已购'
-  systems: ('Windows' | 'Android')[]
+  // 运行环境：app=操作系统；extension=浏览器；userscript=脚本宿主
+  systems: (
+    | 'Windows' | 'macOS' | 'Linux' | 'Android' | 'iOS' | 'HarmonyOS'
+    | 'Chrome' | 'Edge' | 'Firefox' | 'Safari'
+    | 'Tampermonkey' | 'Violentmonkey' | 'ScriptCat'
+  )[]
   website: string
   pros: string[]
   cons: string[]
@@ -333,6 +349,31 @@ interface RelatedArticle {
   sortOrder: number
 }
 ```
+
+---
+
+## 🧩 浏览器插件与用户脚本
+
+AppArchive 支持以"形态（kind）"维度统一管理三类软件：
+
+| 形态 | 语义 | 分类集合 | 运行环境（systems） |
+| ---- | ---- | -------- | -------------------- |
+| `app` | 桌面 / 移动应用 | 10 项生活化分类（社交、生活、购物、影音、阅读、休闲、旅行、办公、工具、编程） | Windows / macOS / Linux / Android / iOS / HarmonyOS |
+| `extension` | 浏览器插件 | 10 项功能化分类（广告拦截、隐私安全、样式美化、下载增强、生产力、开发者工具、自动化、AI 增强、媒体抓取、其它） | Chrome / Edge / Firefox / Safari |
+| `userscript` | 用户脚本 | 与 `extension` 共用功能化分类 | Tampermonkey / Violentmonkey / ScriptCat |
+
+### 交互规则
+
+- 顶部筛选栏前三格是 kind pill（应用 / 插件 / 脚本），点击切换当前上下文；切换后分类区段自动重置为"全部"。
+- 搜索框为空时列表仅展示当前 kind 的条目；**搜索词非空时跨 kind 全局搜索**，结果卡片会带形态徽章（🧩 插件 / 📜 脚本）帮助识别来源。
+- 表单"核心信息"顶部可选择形态，分类下拉、支持系统候选集均随之切换；切换时非法的 category 会重置为新集合首项，systems 对新集合取交集保留。
+- 设置面板的"运行环境筛选"候选项也跟随主页当前 kind，避免"应用"上下文出现 Chrome / Tampermonkey 这种噪声。
+
+### 数据层
+
+- 单表同接口：`softwares.kind` 字段以 `VARCHAR(16)` 存储，默认 `app`，并建 `idx_softwares_kind` 索引。
+- 存量软件通过 `pnpm migrate:kind` 一键接入，无需手动回填。
+- 回滚方案：`ALTER TABLE softwares DROP COLUMN kind`，前端读取时会自动兜底为 `app`。
 
 ---
 
@@ -399,6 +440,16 @@ interface RelatedArticle {
 - CLI `AUTH_TOKEN=... pnpm rerun:analyze` 在 Web Job 完成后运行时，自动跳过所有已处理条目
 - ETA 在前 2 条显示「计算中…」，从第 3 条开始稳定显示 `mm:ss`
 - 单条 AI 调用失败后，错误折叠面板出现该条记录，任务继续推进而非中断
+- 执行 `pnpm migrate:kind` 无报错；重启后端无 `[SCHEMA]` 警告；`\d softwares` 可见 `kind` 列且默认 `app`
+- 存量所有软件出现在「应用」tab 下，总数与迁移前一致
+- 新增一条 `kind=extension`，在「插件」tab 出现；类别下拉为 10 项功能化分类；系统候选为 Chrome/Edge/Firefox/Safari
+- 新增一条 `kind=userscript`，在「脚本」tab 出现；系统候选为 Tampermonkey/Violentmonkey/ScriptCat；类别与插件共用集合
+- 切换 kind 时 `activeCategory` 重置为 `all`，列表立即刷新
+- 搜索框输入关键词时，跨 3 个 kind 都能返回结果，每项带对应 kind 徽章（应用无徽章）
+- 清空搜索后仅显示当前 kind 的列表
+- 卡片 / 详情页 kind 徽章样式正确，`kind='app'` 时不显示徽章以保持视觉不变
+- AI 分析 / 订阅 / 对比 / 关联文章功能在 extension 与 userscript 条目上可正常触发
+- 未登录直接构造 `POST /api/software {kind:'bad'}` 返回 400；登录后相同 payload 也返回 400
 
 ---
 

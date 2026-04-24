@@ -14,14 +14,18 @@
     <main class="w-full relative z-30 flex-1">
       <div class="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5 mb-6 sm:mb-9">
-          <nav class="flex-1 min-w-0" aria-label="软件分类">
+          <nav
+            class="flex-1 min-w-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
+            aria-label="软件形态与分类"
+          >
+            <KindSwitcher v-model="activeKind" />
             <CategoryFilter
               v-model="activeCategory"
               :categories="categories"
               :category-counts="categoryCounts"
               :category-icons="categoryIcons"
               :show-arrows="true"
-              class="w-full"
+              class="flex-1 min-w-0"
             />
           </nav>
 
@@ -184,6 +188,7 @@
     :initial-licenses="filterLicenses"
     :initial-sort="{ field: sortBy, order: sortOrder }"
     :initial-view-mode="viewMode"
+    :active-kind="activeKind"
     @update:settings="updateSettings"
   />
 
@@ -242,6 +247,7 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, r
 import { useRoute, useRouter } from 'vue-router'
 import BlurFade from './components/animations/BlurFade.vue'
 import CategoryFilter from './components/common/CategoryFilter.vue'
+import KindSwitcher from './components/common/KindSwitcher.vue'
 import NewArrivalRadar from './components/common/NewArrivalRadar.vue'
 import AppHeader from './components/layout/AppHeader.vue'
 import MobileBottomNav from './components/layout/MobileBottomNav.vue'
@@ -250,7 +256,8 @@ import SoftwareDetailLoading from './components/SoftwareDetailLoading.vue'
 import { isSignedIn, logout, openLoginDialog, openPasswordDialog, showLoginDialog, showPasswordDialog, user } from './lib/auth'
 import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
-import { type LicenseType, type Software, type SoftwareListItem, type SystemType } from './types'
+import { type LicenseType, type Software, type SoftwareKind, type SoftwareListItem, type SystemType } from './types'
+import { APP_CATEGORIES, EXT_CATEGORIES } from './types/constants'
 import logger from './utils/logger'
 import { devPerformanceTips, performanceChecker } from './utils/performance'
 
@@ -333,18 +340,16 @@ import { useTheme } from './composables/useTheme'
 // 导入组合式函数
 import { useToast } from './composables/useToast'
 
-const categories = [
-  '社交',
-  '生活',
-  '购物',
-  '影音',
-  '阅读',
-  '休闲',
-  '旅行',
-  '办公',
-  '工具',
-  '编程',
-]
+// 软件形态（kind）当前选中：默认 'app'
+const activeKind = ref<SoftwareKind>('app')
+
+// 候选分类：随 activeKind 切换（app 用生活化 10 项，extension / userscript 共用功能化 10 项）
+const categories = computed<string[]>(() => {
+  if (activeKind.value === 'extension' || activeKind.value === 'userscript') {
+    return [...EXT_CATEGORIES]
+  }
+  return [...APP_CATEGORIES]
+})
 
 type NewArrivalMode = '7d' | '30d'
 
@@ -413,9 +418,10 @@ const canCollapseNewArrivalRadar = computed(() =>
   isNewArrivalPanelExpanded.value
 )
 
-// Tabs 图标映射（可按需自定义）
+// Tabs 图标映射：兼容 app / extension / userscript 三种 kind 的分类集合
 const categoryIcons: Record<string, string> = {
   all: '✨',
+  // app 生活化 10 项
   '社交': '👥',
   '生活': '🏠',
   '购物': '🛍️',
@@ -426,6 +432,17 @@ const categoryIcons: Record<string, string> = {
   '办公': '💼',
   '工具': '🧰',
   '编程': '💻',
+  // 插件/脚本 功能化 10 项
+  '广告拦截': '🚫',
+  '隐私安全': '🛡️',
+  '样式美化': '🎨',
+  '下载增强': '⬇️',
+  '生产力': '⚡',
+  '开发者工具': '🧪',
+  '自动化': '🤖',
+  'AI 增强': '🧠',
+  '媒体抓取': '🎯',
+  '其它': '📎',
 }
 
 // 内存缓存配置
@@ -729,6 +746,16 @@ watch(activeCategory, () => {
   fetchSoftwares()
 })
 
+// 监听形态（kind）变化：重置页码与分类，然后触发数据拉取
+// 重置 activeCategory 会触发上面的 watch，但此处已显式调用 fetchSoftwares，
+// 配合 runtimeCache 的 key（含 kind+category）不会产生两次网络请求——命中第二次必走缓存
+watch(activeKind, () => {
+  if (!isInitialized.value) return
+  currentPage.value = 0
+  activeCategory.value = 'all'
+  fetchSoftwares()
+})
+
 // 修改 confirmDelete 函数
 const confirmDelete = async () => {
   if (softwareToDelete.value) {
@@ -861,11 +888,15 @@ async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' 
   const { loadingMode = 'inline', forceRefresh = false } = options
 
   // 生成缓存 key
+  // 搜索词非空时 kind 置为 'all'，实现跨形态全局搜索；否则按当前 activeKind 过滤
   const params = {
     page: currentPage.value + 1,
     limit: pageSize.value,
     search: searchTerm.value,
     category: activeCategory.value,
+    kind: (searchTerm.value && searchTerm.value.trim())
+      ? ('all' as const)
+      : activeKind.value,
     systems: filterSystems.value,
     licenses: filterLicenses.value,
     sortField: sortBy.value,

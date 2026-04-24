@@ -18,6 +18,13 @@ const systemTagClassMap: Record<SystemType, string> = {
 	Android: neutralTagClass,
 	iOS: neutralTagClass,
 	HarmonyOS: neutralTagClass,
+	Chrome: neutralTagClass,
+	Edge: neutralTagClass,
+	Firefox: neutralTagClass,
+	Safari: neutralTagClass,
+	Tampermonkey: neutralTagClass,
+	Violentmonkey: neutralTagClass,
+	ScriptCat: neutralTagClass,
 };
 
 const systemIdleCardClassMap: Record<SystemType, string> = {
@@ -27,6 +34,13 @@ const systemIdleCardClassMap: Record<SystemType, string> = {
 	Android: fallbackIdleCardClass,
 	iOS: fallbackIdleCardClass,
 	HarmonyOS: fallbackIdleCardClass,
+	Chrome: fallbackIdleCardClass,
+	Edge: fallbackIdleCardClass,
+	Firefox: fallbackIdleCardClass,
+	Safari: fallbackIdleCardClass,
+	Tampermonkey: fallbackIdleCardClass,
+	Violentmonkey: fallbackIdleCardClass,
+	ScriptCat: fallbackIdleCardClass,
 };
 
 const systemSelectedCardClassMap: Record<SystemType, string> = {
@@ -36,6 +50,13 @@ const systemSelectedCardClassMap: Record<SystemType, string> = {
 	Android: fallbackSelectedCardClass,
 	iOS: fallbackSelectedCardClass,
 	HarmonyOS: fallbackSelectedCardClass,
+	Chrome: fallbackSelectedCardClass,
+	Edge: fallbackSelectedCardClass,
+	Firefox: fallbackSelectedCardClass,
+	Safari: fallbackSelectedCardClass,
+	Tampermonkey: fallbackSelectedCardClass,
+	Violentmonkey: fallbackSelectedCardClass,
+	ScriptCat: fallbackSelectedCardClass,
 };
 
 const systemSelectionDotClassMap: Record<SystemType, string> = {
@@ -45,6 +66,13 @@ const systemSelectionDotClassMap: Record<SystemType, string> = {
 	Android: fallbackSelectionDotClass,
 	iOS: fallbackSelectionDotClass,
 	HarmonyOS: fallbackSelectionDotClass,
+	Chrome: fallbackSelectionDotClass,
+	Edge: fallbackSelectionDotClass,
+	Firefox: fallbackSelectionDotClass,
+	Safari: fallbackSelectionDotClass,
+	Tampermonkey: fallbackSelectionDotClass,
+	Violentmonkey: fallbackSelectionDotClass,
+	ScriptCat: fallbackSelectionDotClass,
 };
 
 export const getSystemTagClass = (

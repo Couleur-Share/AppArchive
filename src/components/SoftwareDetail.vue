@@ -149,6 +149,16 @@
                       <!-- 标签与操作行 -->
                       <div class="mt-5 flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
                          <div class="flex flex-wrap items-center justify-center gap-2">
+                            <!-- kind 徽章：仅 extension / userscript 显示 -->
+                            <span
+                              v-if="software.kind && software.kind !== 'app'"
+                              class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold border"
+                              :class="getKindTagClass(software.kind)"
+                            >
+                              <span aria-hidden="true" class="text-sm leading-none">{{ getKindIcon(software.kind) }}</span>
+                              <span>{{ getKindLabel(software.kind) }}</span>
+                            </span>
+
                             <!-- 授权标签 -->
                             <TagBadge size="sm" :variant="getLicenseVariant(software.license)" strong>
                               {{ licenseLabel }}
@@ -778,6 +788,7 @@ import type {
   SoftwareListItem,
 } from '../types'
 import { parseComparisonContent } from '../utils/comparison-parser'
+import { getKindIcon, getKindLabel, getKindTagClass } from '../utils/kind'
 import { getLicenseTagVariant as getLicenseVariant } from '../utils/license'
 import logger from '../utils/logger'
 import { getSecretKindClass, getSecretKindLabel } from '../utils/secret'

@@ -39,6 +39,7 @@ declare module 'vue' {
     ISimpleIconsLinux: typeof import('~icons/simple-icons/linux')['default']
     IUilAndroid: typeof import('~icons/uil/android')['default']
     IUilWindows: typeof import('~icons/uil/windows')['default']
+    KindSwitcher: typeof import('./src/components/common/KindSwitcher.vue')['default']
     LoadingOverlay: typeof import('./src/components/layout/LoadingOverlay.vue')['default']
     LoginDialog: typeof import('./src/components/auth/LoginDialog.vue')['default']
     LogsDialog: typeof import('./src/components/subscription/LogsDialog.vue')['default']

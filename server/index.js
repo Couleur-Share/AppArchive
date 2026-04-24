@@ -125,7 +125,8 @@ async function verifySchema() {
           'tagline',
           'highlights',
           'best_for',
-          'avoid_if'
+          'avoid_if',
+          'kind'
         )
     `);
 		const existing = new Set(rows.map((r) => r.column_name));
@@ -142,6 +143,7 @@ async function verifySchema() {
 			"highlights",
 			"best_for",
 			"avoid_if",
+			"kind",
 		].filter((c) => !existing.has(c));
 		if (missing.length) {
 			console.warn(
@@ -716,6 +718,7 @@ app.get("/api/software", async (req, res) => {
 			category,
 			systems,
 			licenses,
+			kind,
 			sortField = "created_at",
 			sortOrder = "desc",
 			addedSince,
@@ -733,6 +736,16 @@ app.get("/api/software", async (req, res) => {
 			);
 			params.push(`%${search}%`);
 			paramIndex++;
+		}
+
+		// 形态筛选（kind）：仅当前端明确传入合法值时才过滤；省略或传 'all' 则跨形态返回
+		if (kind && kind !== "all") {
+			const allowedKinds = new Set(["app", "extension", "userscript"]);
+			if (allowedKinds.has(String(kind))) {
+				whereConditions.push(`kind = $${paramIndex}`);
+				params.push(kind);
+				paramIndex++;
+			}
 		}
 
 		// 分类筛选
@@ -799,7 +812,7 @@ app.get("/api/software", async (req, res) => {
 		// 排除 secrets, download_links, pros, cons (如果内容很长)
 		// 保留列表展示需要的字段
 		const selectFields =
-			"id, name, icon, description, category, license, systems, website, created_at";
+			"id, name, kind, icon, description, category, license, systems, website, created_at";
 
 		// 获取总数
 		const countQuery = `SELECT COUNT(*) FROM softwares ${whereClause}`;
@@ -864,6 +877,7 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
 	try {
 		const {
 			name,
+			kind,
 			category,
 			description,
 			icon,
@@ -892,6 +906,16 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
 				message: "软件名称和分类是必填项",
 			});
 		}
+
+		// kind 白名单校验：未提供或非法值一律归为 'app'，非法值时直接拒绝
+		const allowedKinds = new Set(["app", "extension", "userscript"]);
+		if (kind !== undefined && kind !== null && !allowedKinds.has(String(kind))) {
+			return res.status(400).json({
+				error: "非法的 kind",
+				message: "kind 仅允许 app / extension / userscript",
+			});
+		}
+		const safeKind = allowedKinds.has(String(kind)) ? String(kind) : "app";
 
 		// 验证图标路径：仅允许COS URL
 		if (icon && typeof icon === "string") {
@@ -942,19 +966,20 @@ app.post("/api/software", requireAuth, writeRateLimiter, async (req, res) => {
 
 		const query = `
       INSERT INTO softwares (
-        name, category, description, icon, license, systems, website, pros, cons,
+        name, kind, category, description, icon, license, systems, website, pros, cons,
         download_links, secrets, related_articles, analysis_provider, analysis_model, analysis_at, analysis_sources,
         warnings, tagline, highlights, best_for, avoid_if
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9,
-        $10::jsonb, $11::jsonb, $12::jsonb, $13, $14, $15::timestamptz, $16,
-        $17, $18, $19::jsonb, $20::jsonb, $21::jsonb
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11::jsonb, $12::jsonb, $13::jsonb, $14, $15, $16::timestamptz, $17,
+        $18, $19, $20::jsonb, $21::jsonb, $22::jsonb
       )
       RETURNING *
     `;
 		const values = [
 			name,
+			safeKind,
 			category,
 			description || "",
 			finalIcon || "",
@@ -1002,6 +1027,22 @@ app.put(
 			// 移除不需要更新的字段
 			delete updateData.id;
 			delete updateData.created_at;
+
+			// kind 白名单校验：仅允许 app / extension / userscript
+			if (Object.hasOwn(updateData, "kind")) {
+				const allowedKinds = new Set(["app", "extension", "userscript"]);
+				const rawKind = updateData.kind;
+				if (rawKind === undefined || rawKind === null || rawKind === "") {
+					delete updateData.kind;
+				} else if (!allowedKinds.has(String(rawKind))) {
+					return res.status(400).json({
+						error: "非法的 kind",
+						message: "kind 仅允许 app / extension / userscript",
+					});
+				} else {
+					updateData.kind = String(rawKind);
+				}
+			}
 
 			// 先查询软件的当前信息（用于图标重命名和删除旧图标）
 			const existingRes = await pool.query(

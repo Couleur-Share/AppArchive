@@ -1,4 +1,4 @@
-import type { BaseEntity, LicenseType, SystemType } from "./base";
+import type { BaseEntity, LicenseType, SoftwareKind, SystemType } from "./base";
 
 // 下载链接提供方
 export type DownloadProvider =
@@ -40,8 +40,8 @@ export interface SecretItem {
 	hasValue?: boolean; // 后端用于告知是否存在受保护的值
 }
 
-// 软件类别
-export type SoftwareCategory =
+// 应用类别（app 形态使用，生活化口径）
+export type AppCategory =
 	| "社交"
 	| "生活"
 	| "购物"
@@ -52,6 +52,22 @@ export type SoftwareCategory =
 	| "办公"
 	| "工具"
 	| "编程";
+
+// 插件/脚本类别（extension / userscript 共用，功能化口径）
+export type ExtCategory =
+	| "广告拦截"
+	| "隐私安全"
+	| "样式美化"
+	| "下载增强"
+	| "生产力"
+	| "开发者工具"
+	| "自动化"
+	| "AI 增强"
+	| "媒体抓取"
+	| "其它";
+
+// 软件类别：app 与 extension/userscript 共用同一字段，运行时按 kind 区分合法值
+export type SoftwareCategory = AppCategory | ExtCategory;
 
 // 关联文章类型
 export type RelatedArticleType =
@@ -105,6 +121,8 @@ export interface SoftwareAvoidIf {
 // 软件接口
 export interface Software extends BaseEntity {
 	name: string;
+	// 形态：app / extension / userscript，后端未返回时按 app 处理
+	kind?: SoftwareKind;
 	category: SoftwareCategory;
 	description: string;
 	icon: string;
@@ -141,6 +159,7 @@ export interface Software extends BaseEntity {
 // 列表接口的轻量字段（详情字段为可选）
 export interface SoftwareListItem extends BaseEntity {
 	name: string;
+	kind?: SoftwareKind;
 	category?: SoftwareCategory;
 	description?: string;
 	icon?: string;

@@ -17,6 +17,17 @@ const categoryTagClassMap: Record<SoftwareCategory, string> = {
 	办公: neutralTagClass,
 	工具: primaryTagClass,
 	编程: primaryTagClass,
+	// 插件/脚本共用的功能化分类
+	广告拦截: primaryTagClass,
+	隐私安全: primaryTagClass,
+	样式美化: neutralTagClass,
+	下载增强: neutralTagClass,
+	生产力: neutralTagClass,
+	开发者工具: primaryTagClass,
+	自动化: primaryTagClass,
+	"AI 增强": primaryTagClass,
+	媒体抓取: neutralTagClass,
+	其它: neutralTagClass,
 };
 
 export const getCategoryTagClass = (
