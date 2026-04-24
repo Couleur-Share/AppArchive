@@ -224,6 +224,7 @@ watch(
       loadChannels()
     }
   },
+  { immediate: true },
 )
 
 // 监听初始值变化
