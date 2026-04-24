@@ -128,7 +128,17 @@
                       ? 'border-primary bg-primary/10 dark:bg-primary/[0.14] dark:border-primary/45 shadow-sm shadow-primary/10'
                       : 'border-gray-200 dark:border-gray-600 hover:border-primary/35 dark:hover:border-primary/35 bg-white dark:bg-gray-800'"
                   >
-                    <span aria-hidden="true" class="text-xl leading-none">{{ kindIconMap[k] }}</span>
+                    <span
+                      aria-hidden="true"
+                      class="flex h-5 w-5 items-center justify-center transition-colors"
+                      :class="checked ? 'text-primary' : 'text-gray-500 dark:text-gray-400'"
+                    >
+                      <component
+                        :is="kindIconMap[k]"
+                        class="h-[18px] w-[18px]"
+                        :stroke-width="2.2"
+                      />
+                    </span>
                     <div class="flex-1 min-w-0">
                       <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ kindLabelMap[k] }}</div>
                       <div class="text-xs" :class="checked ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'">
@@ -547,7 +557,10 @@ import {
   Loader2,
   Lock,
   Monitor,
+  Package,
+  Puzzle,
   Redo2,
+  ScrollText,
   ShieldAlert,
   Sparkles,
   Tag,
@@ -557,6 +570,7 @@ import {
   UserCheck,
   X,
 } from 'lucide-vue-next'
+import type { Component } from 'vue'
 import {
   computed,
   nextTick,
@@ -668,10 +682,10 @@ const kindLabelMap: Record<SoftwareKind, string> = {
   extension: '插件',
   userscript: '脚本',
 }
-const kindIconMap: Record<SoftwareKind, string> = {
-  app: '📦',
-  extension: '🧩',
-  userscript: '📜',
+const kindIconMap: Record<SoftwareKind, Component> = {
+  app: Package,
+  extension: Puzzle,
+  userscript: ScrollText,
 }
 const kindHintMap: Record<SoftwareKind, string> = {
   app: '桌面/移动应用',

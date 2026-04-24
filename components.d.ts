@@ -53,6 +53,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/components/common/SearchBar.vue')['default']
+    SegmentedControl: typeof import('./src/components/common/SegmentedControl.vue')['default']
     SelectedComparisonList: typeof import('./src/components/comparison/SelectedComparisonList.vue')['default']
     SettingsDialog: typeof import('./src/components/SettingsDialog.vue')['default']
     ShareCardPreview: typeof import('./src/components/ShareCardPreview.vue')['default']

@@ -242,7 +242,35 @@
 
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
-import { ChevronLeft, ChevronRight, LayoutGrid, List, Plus, Sparkles } from 'lucide-vue-next'
+import {
+  BookOpen,
+  BrainCircuit,
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  Clapperboard,
+  Code2,
+  Download,
+  FlaskConical,
+  Gamepad2,
+  Home,
+  LayoutGrid,
+  List,
+  MoreHorizontal,
+  Palette,
+  Plane,
+  Plus,
+  Shield,
+  ShieldOff,
+  ShoppingBag,
+  Sparkles,
+  Target,
+  Users,
+  Workflow,
+  Wrench,
+  Zap,
+} from 'lucide-vue-next'
+import type { Component } from 'vue'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BlurFade from './components/animations/BlurFade.vue'
@@ -419,30 +447,30 @@ const canCollapseNewArrivalRadar = computed(() =>
 )
 
 // Tabs 图标映射：兼容 app / extension / userscript 三种 kind 的分类集合
-const categoryIcons: Record<string, string> = {
-  all: '✨',
+const categoryIcons: Record<string, Component> = {
+  all: Sparkles,
   // app 生活化 10 项
-  '社交': '👥',
-  '生活': '🏠',
-  '购物': '🛍️',
-  '影音': '🎬',
-  '阅读': '📚',
-  '休闲': '🎮',
-  '旅行': '✈️',
-  '办公': '💼',
-  '工具': '🧰',
-  '编程': '💻',
+  '社交': Users,
+  '生活': Home,
+  '购物': ShoppingBag,
+  '影音': Clapperboard,
+  '阅读': BookOpen,
+  '休闲': Gamepad2,
+  '旅行': Plane,
+  '办公': Briefcase,
+  '工具': Wrench,
+  '编程': Code2,
   // 插件/脚本 功能化 10 项
-  '广告拦截': '🚫',
-  '隐私安全': '🛡️',
-  '样式美化': '🎨',
-  '下载增强': '⬇️',
-  '生产力': '⚡',
-  '开发者工具': '🧪',
-  '自动化': '🤖',
-  'AI 增强': '🧠',
-  '媒体抓取': '🎯',
-  '其它': '📎',
+  '广告拦截': ShieldOff,
+  '隐私安全': Shield,
+  '样式美化': Palette,
+  '下载增强': Download,
+  '生产力': Zap,
+  '开发者工具': FlaskConical,
+  '自动化': Workflow,
+  'AI 增强': BrainCircuit,
+  '媒体抓取': Target,
+  '其它': MoreHorizontal,
 }
 
 // 内存缓存配置
