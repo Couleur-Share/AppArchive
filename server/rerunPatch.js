@@ -1,7 +1,7 @@
 /**
  * 批量重跑补丁构造工具
  *
- * 共用方：scripts/rerun-analyze-all.js (CLI) + server/rerunJob.js (Web 后端 Job)
+ * 共用方：scripts/rerun-analyze-all.js (CLI)
  *
  * 设计目标：
  *  - 仅回写 4 个新结构化字段 + warnings + analysis_* 元数据

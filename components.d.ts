@@ -17,7 +17,6 @@ declare module 'vue' {
     AppFooter: typeof import('./src/components/layout/AppFooter.vue')['default']
     AppHeader: typeof import('./src/components/layout/AppHeader.vue')['default']
     BaseButton: typeof import('./src/components/common/BaseButton.vue')['default']
-    BatchRerunPanel: typeof import('./src/components/BatchRerunPanel.vue')['default']
     BlurFade: typeof import('./src/components/animations/BlurFade.vue')['default']
     CategoryFilter: typeof import('./src/components/common/CategoryFilter.vue')['default']
     ChangePasswordDialog: typeof import('./src/components/auth/ChangePasswordDialog.vue')['default']

@@ -68,25 +68,41 @@
           label="订阅总数"
           :value="stats.total"
           :max="100"
-          caption="当前账户已启用的版本跟踪数量"
+          caption="当前账户保存的版本跟踪数量"
+          interactive
+          :active="activeFilter === 'all'"
+          aria-label="查看全部订阅"
+          @select="activeFilter = 'all'"
         />
         <StatCard
           label="正常运行"
           :value="stats.active"
           variant="success"
           caption="检查与通知链路都处于可用状态"
+          interactive
+          :active="activeFilter === 'active'"
+          aria-label="只查看正常运行的订阅"
+          @select="activeFilter = 'active'"
         />
         <StatCard
           label="已暂停"
           :value="stats.paused"
           variant="warning"
-          caption="需要恢复通道或手动重新启用"
+          caption="不会自动检查，也不会推送更新通知"
+          interactive
+          :active="activeFilter === 'paused'"
+          aria-label="只查看已暂停的订阅"
+          @select="activeFilter = 'paused'"
         />
         <StatCard
           label="未设通道"
           :value="stats.noChannel"
           variant="info"
-          caption="仍会检查版本，但目前不会推送通知"
+          caption="缺少可用推送通道，需要补齐通知链路"
+          interactive
+          :active="activeFilter === 'noChannel'"
+          aria-label="只查看未设通道的订阅"
+          @select="activeFilter = 'noChannel'"
         />
       </section>
 
@@ -94,14 +110,14 @@
         <div class="subscriptions-list-head">
           <div>
             <h2 id="subscriptions-list-heading" class="subscriptions-list-head__title">
-              订阅列表
+              {{ listHeading }}
             </h2>
             <p class="subscriptions-list-head__description">
-              查看每个项目的轮询频率、当前版本、通道绑定与最近检查状态。
+              {{ listDescription }}
             </p>
           </div>
           <TagBadge size="xs" variant="neutral">
-            {{ stats.total }} 项
+            {{ listCountLabel }}
           </TagBadge>
         </div>
 
@@ -124,14 +140,30 @@
           </router-link>
         </div>
 
+        <div v-else-if="visibleSubscriptions.length === 0" class="subscriptions-state subscriptions-state--empty">
+          <div class="subscriptions-state__icon-shell subscriptions-state__icon-shell--muted">
+            <BellOff class="h-6 w-6" />
+          </div>
+          <p class="subscriptions-state__title">{{ emptyFilterTitle }}</p>
+          <p class="subscriptions-state__description">
+            {{ emptyFilterDescription }}
+          </p>
+          <button type="button" class="subscriptions-empty-link" @click="activeFilter = 'all'">
+            查看全部订阅
+          </button>
+        </div>
+
         <div v-else class="subscriptions-list">
           <SubscriptionCard
-            v-for="sub in subscriptions"
+            v-for="sub in visibleSubscriptions"
             :key="sub.id"
             :subscription="sub"
+            :busy="subscriptionBusyIds.has(sub.id)"
             @edit="openEdit"
             @check-now="handleCheckNow"
+            @pause="handlePauseSubscription"
             @remove="confirmRemove"
+            @resume="handleResumeSubscription"
             @view-logs="openLogs"
           />
         </div>
@@ -171,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Bell, RefreshCw } from 'lucide-vue-next'
+import { ArrowLeft, Bell, BellOff, RefreshCw } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '../components/common/BaseButton.vue'
@@ -192,10 +224,14 @@ import type {
 const router = useRouter()
 const { showToast } = useToast()
 
+type SubscriptionFilter = 'all' | 'active' | 'paused' | 'noChannel'
+
 const subscriptions = ref<Subscription[]>([])
 const loading = ref(false)
 const submitting = ref(false)
 const removing = ref(false)
+const activeFilter = ref<SubscriptionFilter>('all')
+const subscriptionBusyIds = ref<Set<number>>(new Set())
 
 const editingSub = ref<Subscription | null>(null)
 const dialogShow = ref(false)
@@ -212,13 +248,78 @@ const stats = computed(() => {
   let active = 0
   for (const s of subscriptions.value) {
     if (s.paused_reason) paused += 1
-    else active += 1
+    else if (s.channel_snapshot && s.consecutive_failures === 0) active += 1
     if (!s.channel_snapshot) noChannel += 1
   }
   return { total, active, paused, noChannel }
 })
 
-const attentionCount = computed(() => stats.value.paused + stats.value.noChannel)
+const attentionCount = computed(() =>
+  subscriptions.value.filter(
+    (s) => s.paused_reason || !s.channel_snapshot || s.consecutive_failures > 0,
+  ).length,
+)
+
+const visibleSubscriptions = computed(() => {
+  switch (activeFilter.value) {
+    case 'active':
+      return subscriptions.value.filter(
+        (s) => !s.paused_reason && s.channel_snapshot && s.consecutive_failures === 0,
+      )
+    case 'paused':
+      return subscriptions.value.filter((s) => Boolean(s.paused_reason))
+    case 'noChannel':
+      return subscriptions.value.filter((s) => !s.channel_snapshot)
+    default:
+      return subscriptions.value
+  }
+})
+
+const listHeading = computed(() => {
+  switch (activeFilter.value) {
+    case 'active':
+      return '正常运行'
+    case 'paused':
+      return '已暂停订阅'
+    case 'noChannel':
+      return '未设通道'
+    default:
+      return '订阅列表'
+  }
+})
+
+const listDescription = computed(() => {
+  switch (activeFilter.value) {
+    case 'active':
+      return '检查计划、推送通道与最近任务都处于可用状态的项目。'
+    case 'paused':
+      return '这些项目不会自动检查或推送，可直接在卡片中恢复订阅。'
+    case 'noChannel':
+      return '这些项目缺少可用推送通道，需要先补齐通知链路。'
+    default:
+      return '查看每个项目的轮询频率、当前版本、通道绑定与最近检查状态。'
+  }
+})
+
+const listCountLabel = computed(() => {
+  if (activeFilter.value === 'all') return `${stats.value.total} 项`
+  return `${visibleSubscriptions.value.length} / ${stats.value.total} 项`
+})
+
+const emptyFilterTitle = computed(() => `${listHeading.value}为空`)
+
+const emptyFilterDescription = computed(() => {
+  switch (activeFilter.value) {
+    case 'active':
+      return '当前没有同时满足检查、通知和失败计数都正常的订阅。'
+    case 'paused':
+      return '当前没有暂停中的订阅。'
+    case 'noChannel':
+      return '当前所有订阅都已经拥有可用推送通道。'
+    default:
+      return '当前筛选条件下没有订阅。'
+  }
+})
 
 const heroSummary = computed(() => {
   if (stats.value.total === 0) {
@@ -231,6 +332,20 @@ const heroSummary = computed(() => {
 
   return `当前已稳定跟踪 ${stats.value.total} 个项目，所有订阅都处于正常运行状态，适合把常用工具长期挂在这里。`
 })
+
+function setSubscriptionBusy(id: number, busy: boolean) {
+  const next = new Set(subscriptionBusyIds.value)
+  if (busy) next.add(id)
+  else next.delete(id)
+  subscriptionBusyIds.value = next
+}
+
+function replaceSubscription(updated: Subscription) {
+  const index = subscriptions.value.findIndex((sub) => sub.id === updated.id)
+  if (index >= 0) {
+    subscriptions.value.splice(index, 1, updated)
+  }
+}
 
 async function loadAll() {
   if (!isSignedIn.value) {
@@ -295,6 +410,11 @@ async function handleUnsubscribeInDialog() {
 }
 
 async function handleCheckNow(sub: Subscription) {
+  if (sub.paused_reason) {
+    showToast('订阅已暂停，恢复后才能立即检查', 'info')
+    return
+  }
+  setSubscriptionBusy(sub.id, true)
   try {
     const result = await subscriptionService.checkNow(sub.id)
     if (result.triggered) {
@@ -305,6 +425,36 @@ async function handleCheckNow(sub: Subscription) {
     await loadAll()
   } catch (err) {
     showToast((err as Error).message || '立即检查失败', 'error')
+  } finally {
+    setSubscriptionBusy(sub.id, false)
+  }
+}
+
+async function handlePauseSubscription(sub: Subscription) {
+  if (sub.paused_reason) return
+  setSubscriptionBusy(sub.id, true)
+  try {
+    const updated = await subscriptionService.pause(sub.id)
+    replaceSubscription(updated)
+    showToast(`已暂停 ${sub.software_snapshot.name}`, 'success')
+  } catch (err) {
+    showToast((err as Error).message || '暂停订阅失败', 'error')
+  } finally {
+    setSubscriptionBusy(sub.id, false)
+  }
+}
+
+async function handleResumeSubscription(sub: Subscription) {
+  if (!sub.paused_reason) return
+  setSubscriptionBusy(sub.id, true)
+  try {
+    const updated = await subscriptionService.resume(sub.id)
+    replaceSubscription(updated)
+    showToast(`已恢复 ${sub.software_snapshot.name}`, 'success')
+  } catch (err) {
+    showToast((err as Error).message || '恢复订阅失败', 'error')
+  } finally {
+    setSubscriptionBusy(sub.id, false)
   }
 }
 
@@ -405,7 +555,7 @@ onMounted(loadAll)
 .subscriptions-hero {
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--home-border-strong) 88%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--home-surface-strong) 92%, transparent), color-mix(in srgb, var(--home-surface) 88%, transparent));
@@ -434,7 +584,7 @@ onMounted(loadAll)
   color: var(--theme-primary-400);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -449,10 +599,10 @@ onMounted(loadAll)
 
 .subscriptions-hero__title {
   color: var(--home-text-strong);
-  font-size: clamp(1.55rem, 1vw + 1.15rem, 2.2rem);
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1.06;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .subscriptions-hero__description {
@@ -492,7 +642,7 @@ onMounted(loadAll)
   color: var(--home-text-strong);
   font-size: 1.04rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .subscriptions-list-head__description {
@@ -512,7 +662,7 @@ onMounted(loadAll)
   justify-items: center;
   gap: 10px;
   padding: 48px 20px;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px dashed color-mix(in srgb, var(--home-border-strong) 78%, transparent);
   background: color-mix(in srgb, var(--home-surface-soft) 72%, transparent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
@@ -534,11 +684,18 @@ onMounted(loadAll)
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: 18px;
+  border-radius: 14px;
   color: var(--theme-primary-400);
   background: color-mix(in srgb, var(--home-accent-soft) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--home-accent-border) 92%, transparent);
   box-shadow: 0 16px 34px -24px rgb(30 215 96 / 0.28);
+}
+
+.subscriptions-state__icon-shell--muted {
+  color: var(--home-text-muted);
+  background: color-mix(in srgb, var(--home-surface-soft) 88%, transparent);
+  border-color: color-mix(in srgb, var(--home-border) 88%, transparent);
+  box-shadow: none;
 }
 
 .subscriptions-state__title {
@@ -562,7 +719,10 @@ onMounted(loadAll)
   margin-top: 6px;
   padding: 0 16px;
   border-radius: 12px;
+  border: 0;
   color: rgb(18 18 18);
+  cursor: pointer;
+  font: inherit;
   font-size: 14px;
   font-weight: 600;
   background: var(--theme-primary-500);
@@ -598,7 +758,7 @@ onMounted(loadAll)
 @media (max-width: 640px) {
   .subscriptions-hero {
     padding: 16px 18px;
-    border-radius: 20px;
+    border-radius: 14px;
   }
 
   .subscriptions-hero__title {

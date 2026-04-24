@@ -2,7 +2,7 @@
  * AI 分析核心：抽离自 server/index.js 的 POST /api/ai/analyze 内部逻辑
  *
  * 设计目标：
- *  - HTTP 路由、Web 批量重跑 Job、CLI 脚本三方共用同一份分析流程，避免重复维护
+ *  - HTTP 路由与 CLI 脚本共用同一份分析流程，避免重复维护
  *  - 纯函数：输入 software 对象，输出最终响应体（含 analysis_meta / website_context / search_context）
  *  - 不抛 401/400/HTTP 错误，所有失败统一抛 Error，由调用方决定如何回包
  */

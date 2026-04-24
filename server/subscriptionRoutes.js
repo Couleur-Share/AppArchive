@@ -450,6 +450,13 @@ export function createSubscriptionRoutes({
 				}
 
 				const patch = req.body || {};
+				if (patch.pause === true && patch.resume === true) {
+					return res.status(400).json({
+						error: "暂停状态非法",
+						message: "不能同时暂停和恢复订阅",
+					});
+				}
+
 				const fields = [];
 				const params = [];
 				let idx = 1;
@@ -484,10 +491,21 @@ export function createSubscriptionRoutes({
 					fields.push(`include_prerelease = $${idx++}`);
 					params.push(Boolean(patch.include_prerelease));
 				}
+				if (patch.pause === true) {
+					// 用户主动暂停：调度器会跳过该订阅，保留配置与历史。
+					fields.push(`paused_reason = 'user_paused'`);
+					fields.push(`consecutive_failures = 0`);
+				}
 				if (patch.resume === true) {
 					// 用户主动恢复暂停的订阅
 					fields.push(`paused_reason = NULL`);
 					fields.push(`consecutive_failures = 0`);
+					if (patch.check_interval_minutes === undefined) {
+						fields.push(
+							`next_check_at = NOW() + ($${idx++} || ' minutes')::interval`,
+						);
+						params.push(String(existingRows[0].check_interval_minutes || 60));
+					}
 				}
 
 				fields.push(`updated_at = NOW()`);

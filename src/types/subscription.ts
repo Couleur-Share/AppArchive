@@ -71,6 +71,7 @@ export interface SubscriptionUpdateInput {
 	channel_id?: number | null;
 	check_interval_minutes?: CheckIntervalMinutes;
 	include_prerelease?: boolean;
+	pause?: boolean;
 	resume?: boolean;
 }
 

@@ -142,7 +142,7 @@ async function patchSoftware(id, patch) {
 	return await res.json();
 }
 
-// 补丁构造逻辑已抽到 server/rerunPatch.js，CLI 与 Web Job 共用
+// 补丁构造逻辑已抽到 server/rerunPatch.js，供 CLI 复用
 
 async function main() {
 	if (!AUTH_TOKEN) {

@@ -85,22 +85,54 @@
       </div>
 
       <div class="subscription-card__actions">
-        <button type="button" class="subscription-card__action subscription-card__action--primary" @click="$emit('edit', props.subscription)">
+        <button
+          type="button"
+          class="subscription-card__action subscription-card__action--primary"
+          :disabled="props.busy"
+          @click="$emit('edit', props.subscription)"
+        >
           <Pencil class="h-4 w-4" />
           <span>编辑</span>
         </button>
 
-        <button type="button" class="subscription-card__action" @click="$emit('check-now', props.subscription)">
+        <button
+          type="button"
+          class="subscription-card__action"
+          :class="isPaused ? 'subscription-card__action--restore' : 'subscription-card__action--pause'"
+          :disabled="props.busy"
+          @click="togglePause"
+        >
+          <PlayCircle v-if="isPaused" class="h-4 w-4" />
+          <PauseCircle v-else class="h-4 w-4" />
+          <span>{{ isPaused ? '恢复订阅' : '暂停订阅' }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="subscription-card__action"
+          :disabled="isPaused || props.busy"
+          @click="$emit('check-now', props.subscription)"
+        >
           <Send class="h-4 w-4" />
           <span>立即检查</span>
         </button>
 
-        <button type="button" class="subscription-card__action" @click="$emit('view-logs', props.subscription)">
+        <button
+          type="button"
+          class="subscription-card__action"
+          :disabled="props.busy"
+          @click="$emit('view-logs', props.subscription)"
+        >
           <FileText class="h-4 w-4" />
           <span>查看日志</span>
         </button>
 
-        <button type="button" class="subscription-card__action subscription-card__action--danger" @click="$emit('remove', props.subscription)">
+        <button
+          type="button"
+          class="subscription-card__action subscription-card__action--danger"
+          :disabled="props.busy"
+          @click="$emit('remove', props.subscription)"
+        >
           <Trash2 class="h-4 w-4" />
           <span>取消订阅</span>
         </button>
@@ -123,7 +155,9 @@ import {
   AlertTriangle,
   Box,
   FileText,
+  PauseCircle,
   Pencil,
+  PlayCircle,
   Send,
   Trash2,
 } from 'lucide-vue-next'
@@ -138,14 +172,22 @@ import {
 import TagBadge from '../common/TagBadge.vue'
 import InfoItem from './InfoItem.vue'
 
-const props = defineProps<{
-  subscription: Subscription
-}>()
+const props = withDefaults(
+  defineProps<{
+    subscription: Subscription
+    busy?: boolean
+  }>(),
+  {
+    busy: false,
+  },
+)
 
-defineEmits<{
+const emit = defineEmits<{
   edit: [sub: Subscription]
   'check-now': [sub: Subscription]
+  pause: [sub: Subscription]
   remove: [sub: Subscription]
+  resume: [sub: Subscription]
   'view-logs': [sub: Subscription]
 }>()
 
@@ -176,7 +218,7 @@ const summaryLine = computed(() => {
     return '推送通道最近连续失败，订阅已自动暂停，恢复通道后即可继续跟踪。'
   }
   if (props.subscription.paused_reason === 'no_channel') {
-    return '当前没有可用推送通道，版本仍可检查，但不会发出通知。'
+    return '当前没有可用推送通道，补齐通道并恢复后才会继续检查和通知。'
   }
   if (props.subscription.paused_reason === 'user_paused') {
     return '该订阅已手动暂停，恢复后会继续按既定频率轮询新版本。'
@@ -195,8 +237,12 @@ const noticeText = computed(() => {
     return `最近连续 ${props.subscription.consecutive_failures} 次推送失败，建议尽快检查通道配置。`
   }
 
+  if (props.subscription.paused_reason === 'user_paused') {
+    return '暂停期间不会自动检查版本，也不会推送更新通知。'
+  }
+
   if (props.subscription.paused_reason === 'no_channel') {
-    return '当前没有默认通道可用，版本检查仍会继续，但不会产生通知。'
+    return '当前没有默认通道可用，恢复前请先补齐推送通道。'
   }
 
   return ''
@@ -206,8 +252,19 @@ const noticeToneClass = computed(() => {
   if (props.subscription.paused_reason === 'no_channel') {
     return 'subscription-card__notice--info'
   }
+  if (props.subscription.paused_reason === 'user_paused') {
+    return 'subscription-card__notice--muted'
+  }
   return 'subscription-card__notice--warning'
 })
+
+function togglePause() {
+  if (isPaused.value) {
+    emit('resume', props.subscription)
+    return
+  }
+  emit('pause', props.subscription)
+}
 
 function channelTypeLabel(type: string): string {
   return CHANNEL_TYPE_LABELS[type as ChannelType] || type
@@ -276,7 +333,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
 .subscription-card {
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--home-card-border) 90%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--home-surface-strong) 94%, transparent), color-mix(in srgb, var(--home-surface) 92%, transparent));
@@ -325,7 +382,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   height: 50px;
   overflow: hidden;
   flex-shrink: 0;
-  border-radius: 15px;
+  border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--home-card-icon-ring) 92%, transparent);
   background: var(--home-card-icon-shell);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
@@ -364,7 +421,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   font-size: 1.22rem;
   font-weight: 700;
   line-height: 1.16;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   transition: color var(--dur) var(--ease);
 }
 
@@ -398,7 +455,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   display: grid;
   align-content: start;
   gap: 8px;
-  min-width: 124px;
+  min-width: 132px;
 }
 
 .subscription-card__action {
@@ -412,6 +469,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   border: 1px solid color-mix(in srgb, var(--home-border) 88%, transparent);
   background: color-mix(in srgb, var(--home-surface-soft) 82%, transparent);
   color: var(--home-text);
+  font: inherit;
   font-size: 12px;
   font-weight: 600;
   transition:
@@ -445,10 +503,45 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   color: #f3727f;
 }
 
+.subscription-card__action--pause {
+  color: #ffc778;
+}
+
+.subscription-card__action--pause:hover {
+  color: #ffd89a;
+  border-color: rgb(255 164 43 / 0.28);
+  background: rgb(255 164 43 / 0.08);
+}
+
+.subscription-card__action--restore {
+  color: var(--theme-primary-400);
+  border-color: color-mix(in srgb, var(--home-accent-border) 76%, transparent);
+  background: color-mix(in srgb, var(--home-accent-soft) 72%, var(--home-surface-soft));
+}
+
+.subscription-card__action--restore:hover {
+  color: var(--theme-primary-400);
+  border-color: color-mix(in srgb, var(--home-accent-border) 92%, transparent);
+  background: color-mix(in srgb, var(--home-accent-soft) 92%, var(--home-surface-soft));
+}
+
 .subscription-card__action--danger:hover {
   color: #ff9ca5;
   border-color: rgb(243 114 127 / 0.28);
   background: rgb(243 114 127 / 0.08);
+}
+
+.subscription-card__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+
+.subscription-card__action:disabled:hover {
+  color: var(--home-text);
+  background: color-mix(in srgb, var(--home-surface-soft) 82%, transparent);
+  border-color: color-mix(in srgb, var(--home-border) 88%, transparent);
 }
 
 .subscription-card__notice {
@@ -475,8 +568,14 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   border-color: rgb(83 157 245 / 0.18);
 }
 
+.subscription-card__notice--muted {
+  color: var(--home-text-muted);
+  background: color-mix(in srgb, var(--home-surface-soft) 72%, transparent);
+  border-color: color-mix(in srgb, var(--home-border) 82%, transparent);
+}
+
 .subscription-card__mono {
-  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 12px;
 }
 
@@ -507,14 +606,14 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   }
 
   .subscription-card__actions {
-    grid-template-columns: repeat(4, minmax(0, max-content));
+    grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
     min-width: 0;
   }
 }
 
 @media (max-width: 720px) {
   .subscription-card {
-    border-radius: 18px;
+    border-radius: 14px;
   }
 
   .subscription-card__layout {
@@ -529,7 +628,7 @@ function formatRelativeTime(iso: string | null, fallback: string): string {
   .subscription-card__icon-shell {
     width: 46px;
     height: 46px;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 
   .subscription-card__title {

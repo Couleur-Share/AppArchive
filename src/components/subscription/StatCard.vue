@@ -1,5 +1,19 @@
 <template>
-  <div class="stat-card" :class="variantClass">
+  <component
+    :is="interactive ? 'button' : 'div'"
+    class="stat-card"
+    :class="[
+      variantClass,
+      {
+        'stat-card--interactive': interactive,
+        'stat-card--active': active,
+      },
+    ]"
+    :type="interactive ? 'button' : undefined"
+    :aria-pressed="interactive ? active : undefined"
+    :aria-label="interactive ? ariaLabel || label : undefined"
+    @click="handleSelect"
+  >
     <div class="stat-card__topline">
       <span class="stat-card__label">{{ label }}</span>
       <span v-if="max" class="stat-card__meta">上限 {{ max }}</span>
@@ -13,7 +27,7 @@
     <p v-if="caption" class="stat-card__caption">
       {{ caption }}
     </p>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -28,12 +42,22 @@ const props = withDefaults(
     max?: number
     caption?: string
     variant?: Variant
+    interactive?: boolean
+    active?: boolean
+    ariaLabel?: string
   }>(),
   {
     variant: 'neutral',
     caption: '',
+    interactive: false,
+    active: false,
+    ariaLabel: '',
   },
 )
+
+const emit = defineEmits<{
+  select: []
+}>()
 
 const variantClass = computed(() => {
   switch (props.variant) {
@@ -47,19 +71,53 @@ const variantClass = computed(() => {
       return 'stat-card--neutral'
   }
 })
+
+function handleSelect() {
+  if (props.interactive) emit('select')
+}
 </script>
 
 <style scoped>
 .stat-card {
   position: relative;
   overflow: hidden;
+  width: 100%;
+  text-align: left;
+  font: inherit;
   min-height: 122px;
   padding: 15px 16px;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--home-border-strong) 88%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--home-surface-strong) 96%, transparent), color-mix(in srgb, var(--home-surface) 92%, transparent));
   box-shadow: var(--home-shadow);
+  transition:
+    transform var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+.stat-card--interactive {
+  cursor: pointer;
+}
+
+.stat-card--interactive:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--home-border-strong) 96%, var(--theme-primary-500));
+  box-shadow: var(--home-card-shadow-hover);
+}
+
+.stat-card--interactive:focus-visible {
+  outline: none;
+  border-color: var(--home-accent-border);
+  box-shadow: var(--home-focus-ring-soft);
+}
+
+.stat-card--active {
+  border-color: color-mix(in srgb, var(--home-accent-border) 86%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--home-accent-soft) 26%, var(--home-surface-strong)), color-mix(in srgb, var(--home-surface) 94%, transparent));
 }
 
 .stat-card::before {
@@ -111,10 +169,10 @@ const variantClass = computed(() => {
 
 .stat-card__value {
   color: var(--home-text-strong);
-  font-size: clamp(1.7rem, 1.4vw + 1.15rem, 2.15rem);
+  font-size: 2.05rem;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
 }
 
 .stat-card__max {
@@ -155,7 +213,7 @@ const variantClass = computed(() => {
   .stat-card {
     min-height: auto;
     padding: 14px 15px;
-    border-radius: 16px;
+    border-radius: 14px;
   }
 
   .stat-card__value-row {

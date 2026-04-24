@@ -84,7 +84,7 @@
                   </div>
 
                   <!-- 桌面端底部按钮（移动端改为 sticky footer） -->
-                  <div v-if="activeTab !== 'maintenance' && activeTab !== 'channels'" class="hidden sm:block p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                  <div v-if="activeTab !== 'channels'" class="hidden sm:block p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                     <BaseButton
                       @click="resetSettings"
                       variant="secondary"
@@ -508,16 +508,11 @@
                       <ChannelsPanel />
                     </div>
 
-                    <!-- 维护工具：批量重跑 AI 分析 -->
-                    <div v-if="activeTab === 'maintenance'">
-                      <BatchRerunPanel />
-                    </div>
-
                   </div>
                 </div>
               </div>
 
-              <!-- 移动端 Save/Reset 底栏（flex child，自然参与布局；维护/通知渠道 tab 内置自己的操作，故隐藏） -->
+              <!-- 移动端 Save/Reset 底栏（flex child，自然参与布局；通知渠道 tab 内置自己的操作，故隐藏） -->
               <div
                 v-if="showMobileFooter"
                 class="sm:hidden shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/80 backdrop-blur-md"
@@ -558,7 +553,6 @@ import { LICENSES, SYSTEMS } from '@/types/constants'
 import { isSignedIn, updateProfile, user } from '../lib/auth'
 import { type AIConfig, type AIProvider, aiConfigService, type SearchConfig, searchConfigService } from '../services/aiConfig'
 import { uploadService } from '../services/upload'
-import BatchRerunPanel from './BatchRerunPanel.vue'
 import BaseButton from './common/BaseButton.vue'
 import ChannelsPanel from './subscription/ChannelsPanel.vue'
 
@@ -593,7 +587,7 @@ const emit = defineEmits<{
 }>();
 
 // 导航标签页
-type TabId = 'account' | 'filters' | 'sort' | 'view' | 'ai' | 'channels' | 'maintenance'
+type TabId = 'account' | 'filters' | 'sort' | 'view' | 'ai' | 'channels'
 const tabs = computed(() => {
   const list: { id: TabId; label: string }[] = []
   if (isSignedIn.value) {
@@ -608,7 +602,6 @@ const tabs = computed(() => {
     list.push(
       { id: 'ai', label: 'AI 设置' },
       { id: 'channels', label: '通知渠道' },
-      { id: 'maintenance', label: '维护工具' },
     )
   }
   return list
@@ -622,7 +615,7 @@ const currentTab = computed(() => tabs.value.find(tab => tab.id === activeTab.va
 
 // 移动端 sticky footer 是否显示：与桌面端左下 Save/Reset 同条件
 const showMobileFooter = computed(() =>
-  activeTab.value !== 'maintenance' && activeTab.value !== 'channels'
+  activeTab.value !== 'channels'
 )
 
 // 系统筛选设置
@@ -726,9 +719,6 @@ const licenseIcons: Record<string, typeof Gift> = {
 
 // 重置设置
 const resetSettings = () => {
-  if (activeTab.value === 'maintenance') {
-    return
-  }
   if (activeTab.value === 'account') {
     editDisplayName.value = user.value?.displayName || ''
     editAvatar.value = user.value?.avatar || ''
@@ -751,9 +741,6 @@ const resetSettings = () => {
 
 // 保存设置
 const saveSettings = async () => {
-  if (activeTab.value === 'maintenance') {
-    return
-  }
   if (activeTab.value === 'account') {
     await saveProfile()
     if (profileError.value) return

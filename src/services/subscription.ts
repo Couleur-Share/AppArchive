@@ -74,6 +74,14 @@ export const subscriptionService = {
 		return data.data as Subscription;
 	},
 
+	async pause(id: number): Promise<Subscription> {
+		return subscriptionService.update(id, { pause: true });
+	},
+
+	async resume(id: number): Promise<Subscription> {
+		return subscriptionService.update(id, { resume: true });
+	},
+
 	async remove(id: number): Promise<void> {
 		const response = await fetch(`${API_BASE}/subscriptions/${id}`, {
 			method: "DELETE",
