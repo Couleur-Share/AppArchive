@@ -71,6 +71,7 @@
               :mode="newArrivalMode"
               :only-new="showNewOnly"
               :new-count="newArrivalsCount"
+              :item-label="newArrivalItemLabel"
               :can-collapse="canCollapseNewArrivalRadar"
               @update:mode="handleNewArrivalModeChange"
               @update:only-new="handleNewOnlyChange"
@@ -286,6 +287,7 @@ import { initImageCache } from './services/imageCache'
 import { softwareService } from './services/software'
 import { type LicenseType, type Software, type SoftwareKind, type SoftwareListItem, type SystemType } from './types'
 import { APP_CATEGORIES, EXT_CATEGORIES } from './types/constants'
+import { getKindLabel } from './utils/kind'
 import logger from './utils/logger'
 import { devPerformanceTips, performanceChecker } from './utils/performance'
 
@@ -436,6 +438,14 @@ const activeNewSince = computed(() => {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
 })
 
+const activeListKind = computed<SoftwareKind | 'all'>(() => (
+  searchTerm.value.trim() ? 'all' : activeKind.value
+))
+
+const newArrivalItemLabel = computed(() => (
+  activeListKind.value === 'all' ? '条目' : getKindLabel(activeListKind.value)
+))
+
 const shouldHideNewArrivalRadar = computed(() =>
   !showNewOnly.value &&
   !isNewArrivalPanelExpanded.value
@@ -562,6 +572,11 @@ const fetchNewArrivalsCount = async () => {
     const result = await softwareService.getSoftwareList({
       page: 1,
       limit: 1,
+      search: searchTerm.value,
+      category: activeCategory.value,
+      kind: activeListKind.value,
+      systems: filterSystems.value,
+      licenses: activeKind.value === 'app' ? filterLicenses.value : [],
       sortField: 'created_at',
       sortOrder: 'desc',
       addedSince: activeNewSince.value,
@@ -642,6 +657,7 @@ watch(() => route.name, (newName, oldName) => {
 watch(searchTerm, () => {
   if (!isInitialized.value) return
   currentPage.value = 0
+  void fetchNewArrivalsCount()
   fetchSoftwares()
 })
 
@@ -649,6 +665,7 @@ watch(searchTerm, () => {
 watch(filterSystems, () => {
   if (!isInitialized.value) return
   currentPage.value = 0
+  void fetchNewArrivalsCount()
   fetchSoftwares()
 })
 
@@ -656,6 +673,7 @@ watch(filterSystems, () => {
 watch(filterLicenses, () => {
   if (!isInitialized.value) return
   currentPage.value = 0
+  void fetchNewArrivalsCount()
   fetchSoftwares()
 })
 
@@ -771,6 +789,7 @@ const handleFormSubmit = async (software: Partial<Software>) => {
 watch(activeCategory, () => {
   if (!isInitialized.value) return
   currentPage.value = 0
+  void fetchNewArrivalsCount()
   fetchSoftwares()
 })
 
@@ -785,6 +804,7 @@ watch(activeKind, () => {
   if (activeKind.value !== 'app') {
     filterLicenses.value = []
   }
+  void fetchNewArrivalsCount()
   fetchSoftwares()
 })
 
@@ -848,7 +868,6 @@ onMounted(async () => {
   window.addEventListener('resize', updateGridColumns, { passive: true })
 
   loadNewArrivalSettings()
-  void fetchNewArrivalsCount()
 
   // 读取设置
   const savedSettings = localStorage.getItem('app-settings')
@@ -884,6 +903,7 @@ onMounted(async () => {
   const hasCachedSoftwares = loadCachedSoftwares({ allowStale: true })
   // 初始化图片缓存放到后台，不阻塞首屏数据
   void initImageCache()
+  void fetchNewArrivalsCount()
   // 有缓存时后台更新数据，无缓存则全屏加载（冷启动唯一使用场景）
   await fetchSoftwares({ loadingMode: hasCachedSoftwares ? 'silent' : 'fullscreen' })
   isInitialized.value = true
@@ -926,9 +946,7 @@ async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' 
     limit: pageSize.value,
     search: searchTerm.value,
     category: activeCategory.value,
-    kind: (searchTerm.value && searchTerm.value.trim())
-      ? ('all' as const)
-      : activeKind.value,
+    kind: activeListKind.value,
     systems: filterSystems.value,
     licenses: activeKind.value === 'app' ? filterLicenses.value : [],
     sortField: sortBy.value,

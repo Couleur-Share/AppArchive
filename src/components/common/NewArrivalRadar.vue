@@ -75,7 +75,7 @@
             :aria-checked="onlyNew"
             @click="$emit('update:onlyNew', !onlyNew)"
           >
-            <span>仅看新增应用</span>
+            <span>仅看新增{{ itemLabel }}</span>
             <span
               class="radar-switch relative inline-flex h-6 w-11 items-center rounded-full"
               :class="{ 'radar-switch--active': onlyNew }"
@@ -98,12 +98,15 @@ import { computed } from 'vue'
 
 type NewArrivalMode = '7d' | '30d'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   mode: NewArrivalMode
   onlyNew: boolean
   newCount: number
+  itemLabel?: string
   canCollapse?: boolean
-}>()
+}>(), {
+  itemLabel: '应用',
+})
 
 const emit = defineEmits<{
   (e: 'update:mode', value: NewArrivalMode): void
@@ -125,18 +128,20 @@ const compactPeriodLabel = computed(() => (
   props.mode === '7d' ? '近 7 天' : '近 30 天'
 ))
 
+const itemLabel = computed(() => props.itemLabel.trim() || '条目')
+
 const headerText = computed(() => {
   if (props.newCount === 0) {
-    return `${periodLabel.value}暂无新增`
+    return `${periodLabel.value}暂无新增${itemLabel.value}`
   }
-  return `${periodLabel.value}新增 ${props.newCount} 个应用`
+  return `${periodLabel.value}新增 ${props.newCount} 个${itemLabel.value}`
 })
 
 const compactHeaderText = computed(() => {
   if (props.newCount === 0) {
-    return `${compactPeriodLabel.value}暂无新增`
+    return `${compactPeriodLabel.value}暂无新增${itemLabel.value}`
   }
-  return `${compactPeriodLabel.value}新增 ${props.newCount} 个`
+  return `${compactPeriodLabel.value}新增 ${props.newCount} 个${itemLabel.value}`
 })
 
 const hintText = computed(() => {
