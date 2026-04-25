@@ -16,7 +16,7 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-5 mb-6 sm:mb-9">
           <nav
             class="flex-1 min-w-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-            aria-label="软件形态与分类"
+            aria-label="条目类型与分类"
           >
             <KindSwitcher v-model="activeKind" />
             <CategoryFilter
@@ -368,7 +368,7 @@ import { useTheme } from './composables/useTheme'
 // 导入组合式函数
 import { useToast } from './composables/useToast'
 
-// 软件形态（kind）当前选中：默认 'app'
+// 条目类型（kind）当前选中：默认 'app'
 const activeKind = ref<SoftwareKind>('app')
 
 // 候选分类：随 activeKind 切换（app 用生活化 10 项，extension / userscript 共用功能化 10 项）
@@ -781,6 +781,10 @@ watch(activeKind, () => {
   if (!isInitialized.value) return
   currentPage.value = 0
   activeCategory.value = 'all'
+  filterSystems.value = []
+  if (activeKind.value !== 'app') {
+    filterLicenses.value = []
+  }
   fetchSoftwares()
 })
 
@@ -926,7 +930,7 @@ async function fetchSoftwares (options: { loadingMode?: 'fullscreen' | 'inline' 
       ? ('all' as const)
       : activeKind.value,
     systems: filterSystems.value,
-    licenses: filterLicenses.value,
+    licenses: activeKind.value === 'app' ? filterLicenses.value : [],
     sortField: sortBy.value,
     sortOrder: sortOrder.value,
     addedSince: showNewOnly.value ? activeNewSince.value : undefined,

@@ -2,7 +2,7 @@
   <SegmentedControl
     :model-value="modelValue"
     :items="kindItems"
-    aria-label="软件形态切换"
+    aria-label="条目类型切换"
     :show-animation="showAnimation"
     :animation-delay-base="animationDelayBase"
     :animation-stagger="animationStagger"

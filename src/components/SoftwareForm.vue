@@ -1,6 +1,6 @@
 <template>
   <!-- AI 分析全屏动画 -->
-  <AIOverlay :active="isAnalyzingUI" />
+  <AIOverlay :active="isAnalyzingUI" :mode="aiOverlayMode" />
 
   <div
     v-if="isOpen"
@@ -32,7 +32,7 @@
       <div class="flex items-center justify-between px-6 py-4 border-b border-black/[0.06] dark:border-white/[0.08] bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-20">
         <div class="flex items-center gap-3">
           <h2 id="software-form-title" class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {{ software ? '编辑软件' : '添加软件' }}
+            {{ formTitle }}
           </h2>
           <!-- 撤销/重做 工具栏 -->
           <div class="flex items-center gap-1 ml-4 px-2 py-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
@@ -104,15 +104,15 @@
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">核心信息</h3>
             </div>
 
-            <!-- 形态选择：决定下方 category 与 systems 的候选集 -->
+            <!-- 条目类型：决定下方 category 与 systems 的候选集 -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                软件形态 <span class="text-red-500">*</span>
+                条目类型 <span class="text-red-500">*</span>
               </label>
               <RadioGroup
                 :model-value="formKind"
                 @update:model-value="onKindChange"
-                aria-label="软件形态"
+                aria-label="条目类型"
                 class="grid grid-cols-3 gap-3"
               >
                 <RadioGroupOption
@@ -160,8 +160,8 @@
               <!-- 软件名称 -->
               <div class="space-y-2 col-span-2 md:col-span-1">
                 <label class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <span>软件名称 <span class="text-red-500">*</span></span>
-                  <span class="text-xs text-primary cursor-pointer hover:underline" @click="startAIFromName" v-if="formData.name && !isAnalyzing">AI 自动填充?</span>
+                  <span>{{ entryNameLabel }} <span class="text-red-500">*</span></span>
+                  <span class="text-xs text-primary cursor-pointer hover:underline" @click="startAIFromName" v-if="formData.name && !isAnalyzing">{{ aiActionLabel }}</span>
                 </label>
                 <div class="relative group">
                   <input
@@ -170,7 +170,7 @@
                     ref="nameInputRef"
                     class="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all text-gray-900 dark:text-white placeholder-gray-400"
                     :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.name}"
-                    placeholder="输入软件名称，如 Chrome"
+                    :placeholder="namePlaceholder"
                   />
                   <Type class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                   
@@ -247,7 +247,7 @@
                     rows="3"
                     class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all resize-none text-gray-900 dark:text-white placeholder-gray-400 text-sm leading-relaxed"
                     :class="{'border-red-500 focus:border-red-500 focus:ring-red-500/20': errors.description}"
-                    placeholder="简要描述该软件的主要功能和特点..."
+                    :placeholder="descriptionPlaceholder"
                   ></textarea>
                 </div>
                 <p v-if="errors.description" class="text-xs text-red-500 animate-in slide-in-from-top-1">{{ errors.description }}</p>
@@ -256,7 +256,7 @@
           </section>
 
           <!-- Section 2: 视觉与授权 -->
-          <section class="space-y-6">
+          <section v-if="isAppKind" class="space-y-6">
             <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Sparkles class="w-4 h-4" />
@@ -356,7 +356,7 @@
 
             <div class="space-y-4">
                <div class="space-y-2">
-                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">官方网址</label>
+                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ sourceLinkLabel }}</label>
                  <div class="relative group">
                     <input
                       v-model="formData.website"
@@ -382,7 +382,7 @@
           </section>
 
           <!-- Section 5: 评价 (Pros & Cons) -->
-          <section class="space-y-6">
+          <section v-if="isAppKind" class="space-y-6">
              <div class="flex items-center gap-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
                <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                  <ThumbsUp class="w-4 h-4" />
@@ -405,11 +405,11 @@
               <div class="w-8 h-8 rounded-lg bg-primary/12 dark:bg-primary/[0.16] flex items-center justify-center text-primary">
                 <Lightbulb class="w-4 h-4" />
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">结构化洞察</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ insightSectionTitle }}</h3>
             </div>
 
             <!-- 标语 tagline -->
-            <div class="space-y-2">
+            <div v-if="isAppKind" class="space-y-2">
               <label class="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
                 <span>一句话标语</span>
                 <span class="text-xs text-gray-400 tabular-nums">{{ (formData.tagline || '').length }}/40</span>
@@ -429,21 +429,22 @@
             <!-- 核心亮点 highlights -->
             <StructuredPairListEditor
               v-model="highlightsModel"
-              label="核心亮点"
-              add-label="添加核心亮点"
-              empty-title="暂无核心亮点"
-              empty-hint="AI 分析后自动填充，也可手动添加 2-4 条"
+              :label="highlightEditorLabel"
+              :add-label="highlightEditorAddLabel"
+              :empty-title="highlightEditorEmptyTitle"
+              :empty-hint="highlightEditorEmptyHint"
               :empty-icon="Sparkles"
               :max-items="6"
               :disabled="isSubmitting"
-              :fields="HIGHLIGHT_FIELDS"
-              kind-field="kind"
+              :fields="highlightEditorFields"
+              :kind-field="isAppKind ? 'kind' : undefined"
               kind-label="亮点类别"
-              :kind-options="HIGHLIGHT_KIND_OPTIONS"
+              :kind-options="isAppKind ? HIGHLIGHT_KIND_OPTIONS : undefined"
             />
 
             <!-- 适合谁用 best_for -->
             <StructuredPairListEditor
+              v-if="isAppKind"
               v-model="bestForModel"
               label="适合谁用"
               add-label="添加适用场景"
@@ -457,6 +458,7 @@
 
             <!-- 什么情况别用 avoid_if -->
             <StructuredPairListEditor
+              v-if="isAppKind"
               v-model="avoidIfModel"
               label="什么情况下别用"
               add-label="添加规避场景"
@@ -470,7 +472,7 @@
           </section>
 
           <!-- 高级选项折叠 -->
-          <div class="pt-2">
+          <div v-if="isAppKind" class="pt-2">
              <button
                type="button"
                @click="showAdvanced = !showAdvanced"
@@ -638,6 +640,17 @@ const HIGHLIGHT_FIELDS: PairListFieldDef[] = [
     key: 'detail',
     label: '具体说明',
     placeholder: '20-45 字，说清楚「是什么 / 能解决啥问题」',
+    maxLength: 80,
+    multiline: true,
+  },
+]
+
+const FUNCTION_HIGHLIGHT_FIELDS: PairListFieldDef[] = [
+  { key: 'title', label: '功能标题', placeholder: '6-14 字，说清功能名称', maxLength: 30 },
+  {
+    key: 'detail',
+    label: '功能说明',
+    placeholder: '20-45 字，说清它具体能做什么',
     maxLength: 80,
     multiline: true,
   },
@@ -971,6 +984,33 @@ const toggleSystem = (sys: SystemType) => {
 const formKind = computed<SoftwareKind>(() => (formData.value.kind as SoftwareKind) || 'app')
 const formCategories = computed(() => getCategoriesByKind(formKind.value))
 const formSystems = computed(() => getSystemsByKind(formKind.value))
+const isAppKind = computed(() => formKind.value === 'app')
+const isFunctionalKind = computed(() => formKind.value === 'extension' || formKind.value === 'userscript')
+const formTitle = computed(() => `${props.software ? '编辑' : '添加'}${isAppKind.value ? '软件' : kindLabelMap[formKind.value]}`)
+const entryNameLabel = computed(() => (isAppKind.value ? '软件名称' : `${kindLabelMap[formKind.value]}名称`))
+const namePlaceholder = computed(() => {
+  if (formKind.value === 'extension') return '输入插件名称，如 uBlock Origin'
+  if (formKind.value === 'userscript') return '输入脚本名称，如 自动展开全文'
+  return '输入软件名称，如 Chrome'
+})
+const descriptionPlaceholder = computed(() => {
+  if (formKind.value === 'extension') return '简要描述该插件提供的具体功能...'
+  if (formKind.value === 'userscript') return '简要描述该脚本自动完成的具体任务...'
+  return '简要描述该软件的主要功能和特点...'
+})
+const aiActionLabel = computed(() => (isFunctionalKind.value ? '整理简介' : 'AI 自动填充'))
+const aiOverlayMode = computed(() => (isFunctionalKind.value ? 'summary' : 'analysis'))
+const sourceLinkLabel = computed(() => (isAppKind.value ? '官方网址' : '来源链接'))
+const insightSectionTitle = computed(() => (isAppKind.value ? '结构化洞察' : '核心功能'))
+const highlightEditorLabel = computed(() => (isAppKind.value ? '核心亮点' : '核心功能点'))
+const highlightEditorAddLabel = computed(() => (isAppKind.value ? '添加核心亮点' : '添加功能点'))
+const highlightEditorEmptyTitle = computed(() => (isAppKind.value ? '暂无核心亮点' : '暂无核心功能点'))
+const highlightEditorEmptyHint = computed(() =>
+  isAppKind.value
+    ? 'AI 分析后自动填充，也可手动添加 2-4 条'
+    : 'AI 整理后自动填充，也可手动添加 3-5 条'
+)
+const highlightEditorFields = computed(() => (isAppKind.value ? HIGHLIGHT_FIELDS : FUNCTION_HIGHLIGHT_FIELDS))
 
 // 切换 kind 时：重置非法 category，对 systems 取交集（保留当前合法项）
 const onKindChange = (next: SoftwareKind) => {
@@ -992,6 +1032,10 @@ const onKindChange = (next: SoftwareKind) => {
   formData.value.systems = intersected.length > 0
     ? intersected
     : [getSystemsByKind(next)[0] as SystemType]
+
+  if (next !== 'app') {
+    showAdvanced.value = false
+  }
 
   validateField('category')
   validateField('systems')
@@ -1115,13 +1159,14 @@ const startAIFromName = async () => {
   if (!formData.value.name) return
   
   const isEditing = Boolean(props.software?.id)
+  const isFunctionalEntry = isFunctionalKind.value
   const payload = {
     ...(formData.value as any),
     id: props.software?.id || 0,
     // 编辑态重新分析时，不将现有简介/优缺点作为输入上下文
-    description: isEditing ? '' : formData.value.description,
-    pros: isEditing ? [] : formData.value.pros,
-    cons: isEditing ? [] : formData.value.cons,
+    description: isEditing && !isFunctionalEntry ? '' : formData.value.description,
+    pros: isEditing || isFunctionalEntry ? [] : formData.value.pros,
+    cons: isEditing || isFunctionalEntry ? [] : formData.value.cons,
   } as Software
 
   const result = await analyze(payload, { forceFresh: isEditing })
@@ -1135,6 +1180,20 @@ const startAIFromName = async () => {
   formData.value.analysis_model = result.analysis_model || undefined
   formData.value.analysis_at = result.analysis_at || new Date().toISOString()
   formData.value.analysis_sources = Array.isArray(result.analysis_sources) ? result.analysis_sources : []
+
+  if (isFunctionalEntry) {
+    if (result.description) formData.value.description = result.description
+    if (Array.isArray(result.highlights)) {
+      formData.value.highlights = result.highlights.map((item) => ({
+        title: item.title || '',
+        detail: item.detail || '',
+        kind: 'other',
+      })) as SoftwareHighlight[]
+    }
+    validateAll()
+    return
+  }
+
   formData.value.warnings = Array.isArray(result.warnings) ? result.warnings : []
 
   // 结构化洞察：编辑态一律覆盖（以最新 AI 结果为准）；

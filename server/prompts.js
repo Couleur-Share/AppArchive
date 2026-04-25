@@ -7,6 +7,108 @@ const sanitizeText = (value) => {
 	return text.trim();
 };
 
+const normalizeKind = (kind) =>
+	kind === "extension" || kind === "userscript" ? kind : "app";
+
+const kindLabelMap = {
+	extension: "浏览器插件",
+	userscript: "用户脚本",
+};
+
+const buildFunctionalAnalyzeMessages = (
+	normalized,
+	{ websiteContext, hasWebsiteContext, searchSection, hasSearchResults },
+) => {
+	const kindLabel = kindLabelMap[normalized.kind] || "工具条目";
+	const hasExternalContext = hasWebsiteContext || hasSearchResults;
+
+	const system = {
+		role: "system",
+		content: [
+			`你是一位数字工具资料整理助手，负责把${kindLabel}资料整理成便于归档、检索和分享的功能说明。`,
+			"",
+			"你的整理风格：",
+			"- 只关注它具体能做什么，不做选型评审",
+			"- 不输出优缺点、授权、风险、安全审查或是否值得安装",
+			"- 功能点要具体、可检索，避免「功能强大」「体验好」这类空话",
+			"- 不确定的信息宁可不写，不要编造",
+			"",
+			"输出规范：",
+			"- 必须输出纯JSON，不要任何额外文字、代码块标记或解释",
+			"- 所有字符串字段必须是一行，严禁换行符",
+			'- highlights 的 kind 固定输出 "other"',
+		].join("\n"),
+	};
+
+	const user = {
+		role: "user",
+		content: [
+			`请整理${kindLabel}「${normalized.name}」的简介和核心功能点。`,
+			"",
+			"## 已知信息",
+			normalized.description ? `描述：${normalized.description}` : "",
+			normalized.category ? `类别：${normalized.category}` : "",
+			normalized.website ? `来源链接：${normalized.website}` : "",
+			"",
+			"## 官网/来源校验信息（系统抓取）",
+			hasWebsiteContext
+				? `抓取地址：${sanitizeText(websiteContext.resolved_url || websiteContext.requested_url)}`
+				: "",
+			hasWebsiteContext && websiteContext.title
+				? `页面标题：${sanitizeText(websiteContext.title)}`
+				: "",
+			hasWebsiteContext && websiteContext.description
+				? `页面简介：${sanitizeText(websiteContext.description)}`
+				: "",
+			hasWebsiteContext && websiteContext.site_name
+				? `站点名称：${sanitizeText(websiteContext.site_name)}`
+				: "",
+			hasWebsiteContext &&
+			Array.isArray(websiteContext.headings) &&
+			websiteContext.headings.length
+				? `关键标题：${websiteContext.headings.slice(0, 6).join(" | ")}`
+				: "",
+			hasWebsiteContext && websiteContext.snippet
+				? `正文摘录：${sanitizeText(websiteContext.snippet)}`
+				: "",
+			!hasWebsiteContext && websiteContext?.error
+				? `抓取状态：${sanitizeText(websiteContext.error)}`
+				: "",
+			"",
+			...searchSection,
+			"## 整理要求",
+			hasExternalContext
+				? "优先依据来源页和搜索结果识别真实条目，避免同名误判。"
+				: "请基于名称和已知描述整理功能说明，不要扩展到无关同名项目。",
+			"简介只回答「它是什么 + 主要能帮用户做什么」，不要写推荐结论。",
+			"核心功能点输出 3-5 条；如果资料不足，输出能够确认的功能点即可。",
+			"",
+			"## 输出字段说明",
+			"",
+			"**description** (35-90字)：",
+			"一句话说明这个插件/脚本的具体用途和主要能力。",
+			"",
+			"**highlights** (3-5条)：",
+			"核心功能点，每条包含：",
+			"- title (6-14字)：功能名称",
+			"- detail (20-45字)：具体说明它能做什么",
+			'- kind：固定为 "other"',
+			"",
+			"## 输出格式（严格JSON，无其他内容）",
+			"{",
+			'  "description": "",',
+			'  "highlights": [',
+			'    { "title": "", "detail": "", "kind": "other" }',
+			"  ]",
+			"}",
+		]
+			.filter(Boolean)
+			.join("\n"),
+	};
+
+	return [system, user];
+};
+
 /**
  * 构造"单软件分析"对话消息
  * 定位：软件选购顾问，提供有决策价值的信息
@@ -18,6 +120,7 @@ const sanitizeText = (value) => {
 export function buildAnalyzeMessages(software = {}, options = {}) {
 	const normalized = {
 		name: sanitizeText(software.name) || "未命名软件",
+		kind: normalizeKind(software.kind),
 		description: sanitizeText(software.description),
 		category: sanitizeText(software.category),
 		license: sanitizeText(software.license),
@@ -89,6 +192,15 @@ export function buildAnalyzeMessages(software = {}, options = {}) {
 		searchSection.push("## 网络搜索补充信息（系统检索）");
 		searchSection.push(`检索状态：${sanitizeText(searchResults.error)}`);
 		searchSection.push("");
+	}
+
+	if (normalized.kind === "extension" || normalized.kind === "userscript") {
+		return buildFunctionalAnalyzeMessages(normalized, {
+			websiteContext,
+			hasWebsiteContext,
+			searchSection,
+			hasSearchResults,
+		});
 	}
 
 	// ---- 安全风险搜索段落 ----

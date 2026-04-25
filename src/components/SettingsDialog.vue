@@ -209,7 +209,7 @@
                       </div>
 
                       <!-- 授权类型 -->
-                      <div class="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-3">
+                      <div v-if="isAppKind" class="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-3">
                         <div class="flex items-baseline justify-between">
                           <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300">授权类型</h5>
                           <span class="text-xs text-gray-500 dark:text-gray-400">维度间 AND</span>
@@ -577,6 +577,7 @@ const props = defineProps<{
 // - extension → 浏览器 4 项
 // - userscript → 脚本宿主 3 项
 const visibleSystems = computed(() => getSystemsByKind(props.activeKind || 'app'))
+const isAppKind = computed(() => (props.activeKind || 'app') === 'app')
 
 // 首先定义正确的类型
 interface SortSettings {
@@ -764,7 +765,7 @@ const saveSettings = async () => {
   }
   emit('update:settings', {
     systems: selectedSystems.value,
-    licenses: selectedLicenses.value,
+    licenses: isAppKind.value ? selectedLicenses.value : [],
     sort: sortSettings.value,
     viewMode: viewMode.value
   })

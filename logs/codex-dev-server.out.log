@@ -1,0 +1,32 @@
+
+> vue3-software-manager@0.0.0 dev
+> concurrently --names "SERVER,CLIENT" --prefix-colors "yellow,cyan" "npm run server" "vite"
+
+[SERVER] 
+[SERVER] > vue3-software-manager@0.0.0 server
+[SERVER] > node server/index.js
+[SERVER] 
+[CLIENT] Port 5000 is in use, trying another one...
+[CLIENT] 
+[CLIENT]   [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1101[22m[2m[0m ms[22m
+[CLIENT] 
+[CLIENT]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5001[22m/[39m
+[CLIENT]   [32m➜[39m  [1mNetwork[22m: [36mhttp://198.18.0.1:[1m5001[22m/[39m
+[CLIENT]   [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.8.104:[1m5001[22m/[39m
+[CLIENT]   [32m➜[39m  [1mNetwork[22m: [36mhttp://169.254.32.224:[1m5001[22m/[39m
+[CLIENT]   [32m➜[39m  [1mNetwork[22m: [36mhttp://169.254.174.201:[1m5001[22m/[39m
+[SERVER] ✅ COS 已配置并启用
+[SERVER] ✅ 已启用生产模式：静态文件服务 + SEO预渲染 + SPA路由fallback
+[SERVER] [SUB_SCHED] 启动调度器，tick 间隔=60000ms
+[SERVER] (node:69852) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+[SERVER] (Use `node --trace-deprecation ...` to show where the warning was created)
+[SERVER] 🚀 后端服务器已启动，监听所有网络接口
+[SERVER] 📍 本地访问: http://localhost:3001
+[SERVER] 🌐 网络访问: http://198.18.0.1:3001
+[SERVER] 📊 API测试: http://localhost:3001/api/test
+[SERVER] 🔧 软件管理: http://localhost:3001/api/software
+[SERVER] 📋 比较功能: http://localhost:3001/api/comparison/groups
+[SERVER] ---
+[SERVER] 💡 提示: 现在可以通过本机IP在其他设备上访问此服务
+[SERVER] PostgreSQL 数据库连接成功 { ok: 1 }
+[SERVER] npm run server exited with code 0

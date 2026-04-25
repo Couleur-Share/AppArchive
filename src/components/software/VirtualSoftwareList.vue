@@ -21,6 +21,7 @@
                       backdrop-blur-md backdrop-saturate-150
                       transition-all duration-500 ease-out transform-gpu">
             <img
+              v-if="shouldRenderImage(item)"
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
               class="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
@@ -28,6 +29,13 @@
               decoding="async"
               referrerpolicy="origin"
             />
+            <div
+              v-else
+              class="flex h-full w-full items-center justify-center text-primary"
+              :aria-label="getKindLabel(item.kind)"
+            >
+              <component :is="getTypeIcon(item)" class="h-7 w-7" :stroke-width="2" />
+            </div>
           </div>
         </div>
 
@@ -46,6 +54,9 @@
                    {{ item.name }}
                  </h3>
                 <div class="mt-2 flex items-center gap-2">
+                  <TagBadge v-if="isFunctionalItem(item)" size="xs" variant="primary" strong>
+                    {{ getKindLabel(item.kind) }}
+                  </TagBadge>
                   <TagBadge size="xs" variant="neutral" class="uppercase tracking-wider">
                     {{ item.category || '未分类' }}
                   </TagBadge>
@@ -74,7 +85,7 @@
                      <div class="py-1">
                        <MenuItem v-if="item.website" v-slot="{ active }">
                         <button @click.stop="openWebsite(item.website)" :class="[active ? 'software-card-action software-card-action--active' : 'software-card-action', 'w-full text-left px-3 py-2 text-sm flex items-center gap-2']">
-                           <ArrowUpRight class="w-3.5 h-3.5" /> <span>访问官网</span>
+                           <ArrowUpRight class="w-3.5 h-3.5" /> <span>{{ getSourceActionLabel(item) }}</span>
                          </button>
                        </MenuItem>
                        <div v-if="item.website && canEdit" class="my-0.5 h-px bg-slate-200/60 dark:bg-slate-700/60"></div>
@@ -113,7 +124,7 @@
              <!-- 底部区域 -->
              <div class="software-card-divider flex items-center mt-4 pt-4 border-t">
                <div class="flex items-center gap-2 flex-1 min-w-0">
-                <TagBadge size="sm" strong class="shrink-0" :variant="getLicenseVariant(item.license)">
+                <TagBadge v-if="!isFunctionalItem(item)" size="sm" strong class="shrink-0" :variant="getLicenseVariant(item.license)">
                    {{ getLicenseLabel(item.license) }}
                 </TagBadge>
                  <div class="flex items-center gap-1">
@@ -144,12 +155,20 @@
           <!-- 1. 左侧：小图标 -->
           <div class="software-card-icon-shell w-12 h-12 shrink-0 rounded-lg overflow-hidden">
             <img
+              v-if="shouldRenderImage(item)"
               :src="deferIcons ? placeholderIcon : getIconUrl(item.icon || '')"
               :alt="item.name"
               class="w-full h-full object-cover transition-opacity duration-200"
               loading="lazy"
               referrerpolicy="origin"
             />
+            <div
+              v-else
+              class="flex h-full w-full items-center justify-center text-primary"
+              :aria-label="getKindLabel(item.kind)"
+            >
+              <component :is="getTypeIcon(item)" class="h-5 w-5" :stroke-width="2" />
+            </div>
           </div>
 
           <!-- 2. 中间：信息区 -->
@@ -158,6 +177,9 @@
               <h3 class="text-base font-semibold text-slate-900 dark:text-slate-50 truncate">
                 {{ item.name }}
               </h3>
+              <TagBadge v-if="isFunctionalItem(item)" size="xs" variant="primary" strong class="shrink-0">
+                {{ getKindLabel(item.kind) }}
+              </TagBadge>
               <TagBadge size="xs" variant="neutral" class="shrink-0">
                 {{ item.category || '未分类' }}
               </TagBadge>
@@ -188,6 +210,7 @@
 
             <!-- License 标签 (固定宽度以保证对齐) -->
             <TagBadge
+              v-if="!isFunctionalItem(item)"
               size="sm"
               strong
               class="w-14 justify-center box-border shrink-0"
@@ -202,7 +225,7 @@
                 v-if="item.website"
                 @click="openWebsite(item.website)"
                 class="software-card-inline-action p-2 rounded-lg transition-colors shrink-0"
-                title="访问官网"
+                :title="getSourceActionLabel(item)"
               >
                 <ArrowUpRight class="w-4 h-4" />
               </button>
@@ -234,11 +257,13 @@
 
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { ArrowUpRight, Edit, MoreVertical, Trash } from 'lucide-vue-next'
+import { ArrowUpRight, Edit, MoreVertical, Package, Puzzle, ScrollText, Trash } from 'lucide-vue-next'
 import { computed } from 'vue'
+import type { Component } from 'vue'
 import { isSignedIn } from '../../lib/auth'
 import { getIconUrl } from '../../services/localIconCache'
 import type { SoftwareListItem } from '../../types'
+import { getKindLabel } from '../../utils/kind'
 import { getLicenseTagVariant as getLicenseVariant } from '../../utils/license'
 import TagBadge from '../common/TagBadge.vue'
 import SystemIcon from '../SystemIcon.vue'
@@ -270,6 +295,24 @@ const handleItemClick = (item: SoftwareListItem, _view: 'grid' | 'list') => {
 const getDescription = (description?: string) => description || '暂无描述'
 
 const getLicenseLabel = (license?: string) => license || '未知'
+
+const getSourceActionLabel = (item: SoftwareListItem) =>
+  isFunctionalItem(item) ? '访问来源' : '访问官网'
+
+const isFunctionalItem = (item: SoftwareListItem) =>
+  item.kind === 'extension' || item.kind === 'userscript'
+
+const shouldRenderImage = (item: SoftwareListItem) =>
+  Boolean(props.deferIcons || item.icon || !isFunctionalItem(item))
+
+const typeIconMap: Record<string, Component> = {
+  app: Package,
+  extension: Puzzle,
+  userscript: ScrollText,
+}
+
+const getTypeIcon = (item: SoftwareListItem) =>
+  typeIconMap[item.kind || 'app'] || Package
 
 const newSinceTimestamp = computed(() => {
   if (!props.newSince) return Number.NaN

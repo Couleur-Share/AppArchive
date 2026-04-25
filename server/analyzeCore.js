@@ -25,7 +25,13 @@ export async function runSoftwareAnalyze(software) {
 		throw new Error("软件名称不能为空");
 	}
 
-	// 并行：官网爬取 + Tavily 通用搜索 + Tavily 安全搜索
+	const kind =
+		software.kind === "extension" || software.kind === "userscript"
+			? software.kind
+			: "app";
+	const shouldRunSafetySearch = kind === "app";
+
+	// 并行：官网爬取 + Tavily 通用搜索；应用条目额外执行安全搜索
 	const tasks = [];
 
 	if (software.website) {
@@ -50,12 +56,14 @@ export async function runSoftwareAnalyze(software) {
 	);
 
 	tasks.push(
-		searchTavilySafety(software.name, {
-			website: software.website,
-		}).catch((err) => {
-			console.error("[TAVILY_SAFETY] 搜索异常:", err?.message);
-			return { searched: false, error: err?.message };
-		}),
+		shouldRunSafetySearch
+			? searchTavilySafety(software.name, {
+					website: software.website,
+				}).catch((err) => {
+					console.error("[TAVILY_SAFETY] 搜索异常:", err?.message);
+					return { searched: false, error: err?.message };
+				})
+			: Promise.resolve(null),
 	);
 
 	const [websiteContext, searchResults, safetySearchResults] =

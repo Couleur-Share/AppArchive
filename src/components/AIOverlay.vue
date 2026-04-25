@@ -16,7 +16,7 @@
           <div class="flex items-center justify-between gap-4 border-b border-slate-900/[0.06] px-6 py-4 dark:border-white/[0.08]">
             <div class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">
               <span class="analysis-panel-dot h-2 w-2 rounded-full"></span>
-              Analysis Queue
+              {{ overlayCopy.queueLabel }}
             </div>
             <div class="analysis-progress-chip rounded-full px-3 py-1 text-[11px] font-semibold">
               {{ Math.round(visualProgress) }}%
@@ -66,10 +66,10 @@
             <div ref="contentRef" class="space-y-5 text-center md:text-left">
               <div class="space-y-2.5">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                  Software Analysis
+                  {{ overlayCopy.kicker }}
                 </p>
                 <h3 class="text-[1.65rem] font-semibold tracking-tight text-slate-900 dark:text-slate-50">
-                  正在整理软件分析结果
+                  {{ overlayCopy.title }}
                 </h3>
                 <div class="relative h-6 overflow-hidden">
                   <TransitionGroup name="analysis-status">
@@ -86,7 +86,7 @@
 
               <div class="space-y-3">
                 <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                  <span>Pipeline</span>
+                  <span>{{ overlayCopy.pipelineLabel }}</span>
                   <span>{{ Math.round(visualProgress) }}%</span>
                 </div>
                 <div class="analysis-progress-track h-1.5 overflow-hidden rounded-full">
@@ -114,7 +114,7 @@
               </div>
 
               <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">
-                系统会自动补全简介、优缺点与分析元数据，完成后直接回填到当前表单。
+                {{ overlayCopy.description }}
               </p>
             </div>
           </div>
@@ -128,7 +128,12 @@
 import { gsap } from 'gsap'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-const props = defineProps<{ active: boolean }>()
+const props = withDefaults(defineProps<{
+  active: boolean
+  mode?: 'analysis' | 'summary'
+}>(), {
+  mode: 'analysis',
+})
 
 const RING_CIRCUMFERENCE = 314
 const MAX_PROCESS_PROGRESS = 94
@@ -144,14 +149,42 @@ const currentStep = ref('正在读取软件上下文...')
 const visualProgress = ref(0)
 const prefersReducedMotion = ref(false)
 
-const steps = [
-  '正在读取软件上下文...',
-  '正在提炼核心能力与边界...',
-  '正在整理优缺点与风险...',
-  '正在校对结构与元数据...'
-]
+const overlayCopy = computed(() => {
+  if (props.mode === 'summary') {
+    return {
+      queueLabel: 'Summary Queue',
+      kicker: 'Function Summary',
+      title: '正在整理功能说明',
+      pipelineLabel: 'Summary',
+      description: '系统会自动提炼简介与核心功能点，完成后直接回填到当前表单。',
+      steps: [
+        '正在读取条目上下文...',
+        '正在识别主要用途...',
+        '正在提炼核心功能点...',
+        '正在校对简介结构...'
+      ],
+      phases: ['读取上下文', '提炼功能', '生成简介'],
+    }
+  }
 
-const phases = ['收集语义', '提炼要点', '生成结果']
+  return {
+    queueLabel: 'Analysis Queue',
+    kicker: 'Software Analysis',
+    title: '正在整理软件分析结果',
+    pipelineLabel: 'Pipeline',
+    description: '系统会自动补全简介、优缺点与分析元数据，完成后直接回填到当前表单。',
+    steps: [
+      '正在读取软件上下文...',
+      '正在提炼核心能力与边界...',
+      '正在整理优缺点与风险...',
+      '正在校对结构与元数据...'
+    ],
+    phases: ['收集语义', '提炼要点', '生成结果'],
+  }
+})
+
+const steps = computed(() => overlayCopy.value.steps)
+const phases = computed(() => overlayCopy.value.phases)
 
 const currentPhaseIndex = computed(() => {
   if (visualProgress.value >= 68) return 2
@@ -160,7 +193,7 @@ const currentPhaseIndex = computed(() => {
 })
 
 const phaseItems = computed(() =>
-  phases.map((label, index) => ({
+  phases.value.map((label, index) => ({
     label,
     index: index + 1,
     active: index <= currentPhaseIndex.value,
@@ -217,7 +250,7 @@ const pulseCore = () => {
 const startProcess = () => {
   killProcessTweens()
   visualProgress.value = 0
-  currentStep.value = steps[0]
+  currentStep.value = steps.value[0]
   updateRingProgress(0)
 
   progressTween = gsap.to(visualProgress, {
@@ -227,12 +260,12 @@ const startProcess = () => {
     onUpdate: () => {
       const progressValue = clampProgress(visualProgress.value)
       const stepIndex = Math.min(
-        steps.length - 1,
-        Math.floor((progressValue / MAX_PROCESS_PROGRESS) * steps.length)
+        steps.value.length - 1,
+        Math.floor((progressValue / MAX_PROCESS_PROGRESS) * steps.value.length)
       )
 
-      if (steps[stepIndex] && currentStep.value !== steps[stepIndex]) {
-        currentStep.value = steps[stepIndex]
+      if (steps.value[stepIndex] && currentStep.value !== steps.value[stepIndex]) {
+        currentStep.value = steps.value[stepIndex]
         pulseCore()
       }
 

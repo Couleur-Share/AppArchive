@@ -66,6 +66,7 @@
                     <div class="flex-shrink-0 mx-auto sm:mx-0">
                       <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shadow-lg ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-800 relative">
                         <img
+                          v-if="shouldRenderDetailImage"
                           :src="getIconUrl(software.icon || '')"
                           :alt="software.name"
                           class="w-full h-full object-cover"
@@ -73,6 +74,13 @@
                           decoding="async"
                           referrerpolicy="origin"
                         />
+                        <div
+                          v-else
+                          class="flex h-full w-full items-center justify-center text-primary"
+                          :aria-label="getKindLabel(software.kind)"
+                        >
+                          <component :is="detailTypeIcon" class="h-10 w-10" :stroke-width="2" />
+                        </div>
                       </div>
                     </div>
 
@@ -124,7 +132,7 @@
                          </div>
 
                          <!-- AI 分析溯源标签 -->
-                         <div class="flex items-center gap-1.5 flex-wrap">
+                         <div v-if="isAppEntry" class="flex items-center gap-1.5 flex-wrap">
                             <Bot class="w-4 h-4 text-gray-400 shrink-0" />
                             <span v-if="!analysisModelTag" class="text-gray-400 dark:text-gray-500">未记录</span>
                             <template v-else>
@@ -160,7 +168,7 @@
                             </span>
 
                             <!-- 授权标签 -->
-                            <TagBadge size="sm" :variant="getLicenseVariant(software.license)" strong>
+                            <TagBadge v-if="isAppEntry" size="sm" :variant="getLicenseVariant(software.license)" strong>
                               {{ licenseLabel }}
                             </TagBadge>
                             
@@ -175,7 +183,7 @@
                          <div class="flex items-center gap-3">
                             <!-- 订阅按钮：仅当是 GitHub 仓库且用户已登录时显示 -->
                             <SubscribeButton
-                                v-if="isGitHubSoftware && isSignedIn"
+                                v-if="isAppEntry && isGitHubSoftware && isSignedIn"
                                 :software="{
                                     id: software.id,
                                     name: software.name,
@@ -184,7 +192,7 @@
                                 }"
                             />
 
-                            <Tooltip v-if="software.website" content="访问官方网站">
+                            <Tooltip v-if="software.website" :content="sourceActionTooltip">
                                 <BaseButton
                                     @click="openWebsite"
                                     variant="primary"
@@ -192,7 +200,7 @@
                                     class="rounded-md shadow-sm"
                                 >
                                     <ExternalLink class="w-4 h-4" />
-                                    <span class="hidden sm:inline">访问官网</span>
+                                    <span class="hidden sm:inline">{{ sourceActionLabel }}</span>
                                 </BaseButton>
                             </Tooltip>
 
@@ -281,7 +289,7 @@
                 >
                 <div v-if="activeTab === 'overview'" class="space-y-8 max-w-4xl mx-auto">
                   <!-- 标语 hero（仅当 AI 给出 tagline 时展示） -->
-                  <section v-if="software.tagline" class="overview-tagline-card">
+                  <section v-if="isAppEntry && software.tagline" class="overview-tagline-card">
                     <div class="overview-tagline-bar"></div>
                     <div class="flex flex-col gap-1.5">
                       <div class="overview-tagline-label">核心价值</div>
@@ -292,7 +300,7 @@
                   <!-- 产品描述 -->
                   <section class="software-detail-card rounded-lg p-6">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        关于软件
+                        {{ aboutSectionTitle }}
                     </h3>
                     <div class="relative">
                         <p class="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap text-base"
@@ -313,7 +321,7 @@
                   <!-- 核心亮点（结构化） / 核心特性（降级） -->
                   <section>
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 px-1">
-                        {{ structuredHighlights.length > 0 ? '核心亮点' : '核心特性' }}
+                        {{ featureSectionTitle }}
                     </h3>
 
                     <!-- 优先展示结构化 highlights -->
@@ -355,7 +363,7 @@
                         v-if="coreFeatures.length === 0"
                         class="software-detail-card col-span-full rounded-lg border-dashed py-8 text-center text-gray-500 dark:text-gray-400"
                       >
-                        暂无核心特性记录
+                        {{ emptyFeatureText }}
                       </div>
                     </div>
                   </section>
@@ -725,6 +733,7 @@
   />
 
   <ComparisonManager
+    v-if="isAppEntry"
     :isOpen="showComparisonManager"
     :software="software"
     @update:isOpen="handleComparisonManagerClose"
@@ -757,8 +766,11 @@ import {
   Link,
   Link2,
   Monitor,
+  Package,
   Plug,
   Plus,
+  Puzzle,
+  ScrollText,
   Share2,
   Shield,
   ShieldAlert,
@@ -809,6 +821,30 @@ const props = defineProps<{
 const software = ref<Software | SoftwareListItem>(props.software)
 const isLoadingDetails = ref(false)
 const previousFocusedElement = ref<HTMLElement | null>(null)
+const entryKind = computed(() =>
+  software.value.kind === 'extension' || software.value.kind === 'userscript'
+    ? software.value.kind
+    : 'app'
+)
+const isFunctionalEntry = computed(() => entryKind.value === 'extension' || entryKind.value === 'userscript')
+const isAppEntry = computed(() => entryKind.value === 'app')
+const detailTypeIconMap = {
+  app: Package,
+  extension: Puzzle,
+  userscript: ScrollText,
+} as const
+const detailTypeIcon = computed(() => detailTypeIconMap[entryKind.value])
+const shouldRenderDetailImage = computed(() => Boolean(software.value.icon || isAppEntry.value))
+const sourceActionLabel = computed(() => (isAppEntry.value ? '访问官网' : '访问来源'))
+const sourceActionTooltip = computed(() => (isAppEntry.value ? '访问官方网站' : '打开来源链接'))
+const aboutSectionTitle = computed(() => (isAppEntry.value ? '关于软件' : `关于${getKindLabel(entryKind.value)}`))
+const featureSectionTitle = computed(() => {
+  if (isFunctionalEntry.value) return '核心功能点'
+  const raw = software.value.highlights
+  const hasStructuredHighlights = Array.isArray(raw) && raw.some((h) => h && typeof h === 'object' && (h.title || h.detail))
+  return hasStructuredHighlights ? '核心亮点' : '核心特性'
+})
+const emptyFeatureText = computed(() => (isFunctionalEntry.value ? '暂无核心功能点记录' : '暂无核心特性记录'))
 
 // 监听 props.software 变化，重新获取详情
 watch(() => props.software, async (newSoftware) => {
@@ -876,6 +912,13 @@ const activeTab = ref<TabId>('overview')
 const isGitHubRepo = computed(() => githubService.isGitHubRepo(software.value.website))
 
 const tabs = computed(() => {
+  if (isFunctionalEntry.value) {
+    return [
+      { id: 'overview', label: '概览' },
+      { id: 'articles', label: '相关资源' },
+    ] as { id: TabId; label: string }[]
+  }
+
   const baseTabs: { id: TabId; label: string }[] = [
     { id: 'overview', label: '概览' },
     { id: 'details', label: '详细信息' },
@@ -894,6 +937,12 @@ const tabs = computed(() => {
   return baseTabs
 })
 
+watch(tabs, (nextTabs) => {
+  if (!nextTabs.some((tab) => tab.id === activeTab.value)) {
+    activeTab.value = 'overview'
+  }
+})
+
 // Description Expand
 const isDescriptionExpanded = ref(false)
 const descriptionThreshold = 200
@@ -903,6 +952,7 @@ const licenseLabel = computed(() => software.value.license || '未知')
 
 // 判断软件是否关联 GitHub 仓库（仅此类软件支持订阅）
 const isGitHubSoftware = computed(() => {
+  if (!isAppEntry.value) return false
   const url = software.value.website
   if (!url) return false
   try {
@@ -954,7 +1004,7 @@ const tavilyIssueLabel = computed(() => {
   return ''
 })
 const hasSafetySource = computed(() => analysisSources.value.includes('tavily-safety'))
-const hasWarnings = computed(() => (software.value.warnings || []).length > 0)
+const hasWarnings = computed(() => isAppEntry.value && (software.value.warnings || []).length > 0)
 
 const analysisTimeLabel = computed(() => {
   const raw = software.value.analysis_at
